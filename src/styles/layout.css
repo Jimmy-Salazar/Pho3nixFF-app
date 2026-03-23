@@ -1,0 +1,235 @@
+html, body { width: 100%; overflow-x: hidden; }
+#root { overflow-x: hidden; }
+
+.app-container{
+  min-height:100vh; color:white; display:flex; flex-direction:column;
+  position:relative; isolation:isolate; background:#070a12; overflow-x:hidden;
+}
+
+/* Fondo global */
+.app-bg{ position:fixed; inset:0; z-index:-1; background:#070a12; }
+.app-bg::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(135deg, rgba(15,23,42,.95), rgba(30,41,59,.85));
+}
+.app-bg::after{
+  content:""; position:absolute; inset:0; opacity:.14;
+  background-image:radial-gradient(circle at 1px 1px, rgba(255,255,255,.35) 1px, transparent 0);
+  background-size:28px 28px;
+}
+
+/* Navbar */
+.navbar{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:14px 12px; background:rgba(255,255,255,.05);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+  position:sticky; top:0; z-index:50;
+}
+
+.logo{ font-size:18px; font-weight:800; }
+
+.navbar-left{ display:flex; align-items:center; }
+.navbar-right, .navbar-actions{ display:flex; align-items:center; gap:10px; }
+
+.user-chip{ display:flex; align-items:center; gap:8px; min-width:0; }
+
+.user-name, .user-role{
+  font-size:13px; color:rgba(255,255,255,.85); font-weight:800;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;
+}
+
+/* ✅ Avatar del usuario (default 🐦‍🔥, futuro foto) */
+.avatar-user{
+  width:30px; height:30px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow: 0 0 6px rgba(255,120,60,.40), 0 0 14px rgba(255,80,0,.30);
+}
+.avatar-user-img{ width:100%; height:100%; object-fit:cover; }
+.avatar-user-phoenix{ font-size:16px; line-height:1; }
+
+/* Botón salir */
+.logout-btn{
+  background:linear-gradient(90deg, rgba(239,68,68,.85), rgba(249,115,22,.70));
+  border:1px solid rgba(255,255,255,.10);
+  padding:8px 12px; border-radius:10px; color:white; cursor:pointer;
+  box-shadow:0 0 22px rgba(255,90,80,.18);
+  font-weight:800; font-size:13px;
+}
+.logout-btn:hover{ filter:brightness(1.08); }
+
+/* Botón menú (solo móvil) */
+.menu-toggle{
+  display:none;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:10px;
+  width:40px; height:38px; font-size:18px;
+  color:white; cursor:pointer;
+  position:relative; z-index:60;
+}
+
+/* Main */
+.main-content{ padding:18px 16px; flex:1; }
+
+/* Visibilidad por breakpoint */
+.desktop-only{ display:flex; }
+.mobile-only{ display:none; }
+
+/* ===== PC SaaS links ===== */
+.navbar-links-desktop{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.navlink{
+  text-decoration:none;
+  color:rgba(255,255,255,0.72);
+  font-weight:800;
+  font-size:13px;
+  padding:8px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,0.10);
+  background:rgba(255,255,255,0.04);
+  transition:0.2s;
+}
+
+.navlink:hover{
+  color:#ffffff;
+  background:rgba(255,120,60,0.08);
+  border-color:rgba(255,140,90,0.28);
+  box-shadow:0 0 10px rgba(255,120,60,0.18);
+}
+
+.navlink.active{
+  color:#ffffff;
+  background:rgba(255,120,60,0.12);
+  border-color:rgba(255,140,90,0.35);
+  box-shadow:
+    0 0 0 1px rgba(255,120,60,0.25) inset,
+    0 0 14px rgba(255,120,60,0.35),
+    0 0 28px rgba(255,120,60,0.18);
+}
+
+/* Drawer (solo móvil) por defecto oculto en PC */
+.navbar-links{ display:none; }
+
+/* ===== MOBILE ===== */
+@media (max-width:768px){
+  .desktop-only{ display:none; }
+  .mobile-only{ display:flex; }
+
+  .navbar-links-desktop{ display:none; }
+  .menu-toggle{ display:block; }
+
+  /* Overlay */
+  .nav-overlay{
+    position:fixed; inset:0; z-index:40;
+    background:rgba(0,0,0,.45);
+    border:0; padding:0; cursor:pointer;
+  }
+
+  /* Drawer más pequeño */
+  .navbar-links{
+    position:fixed; top:0; right:0; height:100vh;
+    width:min(78vw, 300px);
+    z-index:45;
+
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+
+    padding:84px 14px 14px;
+
+    background:rgba(7,10,18,.96);
+    backdrop-filter:blur(12px);
+    border-left:1px solid rgba(255,255,255,.10);
+
+    transform:translateX(100%);
+    transition:transform .25s ease;
+  }
+
+  .navbar-links.open{ transform:translateX(0); }
+
+  .navbar-links a{
+    text-decoration:none;
+    padding:12px 12px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.10);
+    color:#e5e7eb;
+    transition:.25s;
+  }
+
+  .user-name{ max-width:38vw; }
+}
+
+/* ==========================
+   PHOENIX FIRE MENU (MOBILE)
+   visible SIEMPRE cuando open
+   ========================== */
+.navbar-links.open a{
+  position:relative;
+  overflow:hidden;
+  background:transparent !important;
+}
+
+/* capa fuego animada */
+.navbar-links.open a::before{
+  content:"";
+  position:absolute;
+  inset:-20px;
+  z-index:0;
+
+  background:
+    radial-gradient(60px 40px at 20% 120%, rgba(255, 140, 0, 0.55), transparent 60%),
+    radial-gradient(70px 50px at 60% 130%, rgba(255, 60, 0, 0.45), transparent 65%),
+    linear-gradient(120deg,
+      rgba(255, 80, 0, 0.18),
+      rgba(255, 140, 0, 0.22),
+      rgba(255, 60, 0, 0.16)
+    );
+
+  filter:blur(10px);
+  opacity:0.9;
+  animation:phoenixFlames 1.6s ease-in-out infinite;
+}
+
+/* glass arriba para legibilidad */
+.navbar-links.open a::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:12px;
+}
+
+/* texto por encima */
+.navbar-links.open a{
+  z-index:2;
+  box-shadow:0 0 18px rgba(255,110,60,0.18);
+}
+.navbar-links.open a > *{
+  position:relative;
+  z-index:2;
+}
+
+.navbar-links.open a:active,
+.navbar-links.open a:hover{
+  box-shadow:
+    0 0 14px rgba(255, 120, 60, 0.30),
+    0 0 34px rgba(255, 80, 0, 0.22);
+}
+
+@keyframes phoenixFlames{
+  0%   { transform:translateY(2px) scale(1.02); opacity:0.85; }
+  50%  { transform:translateY(-2px) scale(1.06); opacity:1; }
+  100% { transform:translateY(2px) scale(1.02); opacity:0.85; }
+}
