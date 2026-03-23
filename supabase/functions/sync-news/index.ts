@@ -107,6 +107,10 @@ Deno.serve(async (req) => {
   }
 })
 
+/* ---------------------------
+   CrossFit Media
+---------------------------- */
+
 async function collectCrossFitMediaNews(): Promise<NewsRow[]> {
   const listUrl = "https://www.crossfit.com/media"
   const html = await fetchHtml(listUrl)
@@ -168,8 +172,8 @@ async function collectCrossFitMediaNews(): Promise<NewsRow[]> {
 
       rows.push({
         titulo: normalizeTitle(title),
-        resumen: null,
-        contenido: null,
+        resumen: details.resumen || null,
+        contenido: details.contenido || details.resumen || null,
         fuente: "CrossFit",
         tipo: "externa",
         categoria: "general",
@@ -189,9 +193,15 @@ async function collectCrossFitMediaNews(): Promise<NewsRow[]> {
   return rows
 }
 
+/* ---------------------------
+   Article details
+---------------------------- */
+
 async function fetchArticleDetails(url: string): Promise<{
   fecha_publicacion: string | null
   imagen_url: string | null
+  resumen: string | null
+  contenido: string | null
 }> {
   try {
     const html = await fetchHtml(url)
@@ -200,6 +210,8 @@ async function fetchArticleDetails(url: string): Promise<{
       return {
         fecha_publicacion: null,
         imagen_url: null,
+        resumen: null,
+        contenido: null,
       }
     }
 
@@ -215,16 +227,65 @@ async function fetchArticleDetails(url: string): Promise<{
       getFirstUsefulImage(doc, url) ||
       null
 
+    const resumen =
+      normalizeSummary(
+        getMeta(doc, 'meta[property="og:description"]') ||
+          getMeta(doc, 'meta[name="description"]') ||
+          getFirstUsefulParagraph(doc) ||
+          null
+      ) || null
+
+    const contenido =
+      buildContent(doc, resumen) || null
+
     return {
       fecha_publicacion: published ? toIso(published) : null,
       imagen_url: imagen,
+      resumen,
+      contenido,
     }
   } catch {
     return {
       fecha_publicacion: null,
       imagen_url: null,
+      resumen: null,
+      contenido: null,
     }
   }
+}
+
+/* ---------------------------
+   Helpers
+---------------------------- */
+
+function buildContent(doc: any, resumen: string | null): string | null {
+  const paragraphs = getUsefulParagraphs(doc, 4)
+  if (paragraphs.length > 0) {
+    return paragraphs.join("\n\n")
+  }
+  return resumen || null
+}
+
+function getUsefulParagraphs(doc: any, maxItems = 4): string[] {
+  const selectors = ["article p", "main p", ".article p", ".content p", "p"]
+  const results: string[] = []
+  const seen = new Set<string>()
+
+  for (const selector of selectors) {
+    const nodes = [...doc.querySelectorAll(selector)]
+    for (const node of nodes) {
+      const text = cleanText(node?.textContent || "")
+      if (!isUsefulParagraph(text)) continue
+      if (seen.has(text)) continue
+
+      seen.add(text)
+      results.push(text)
+
+      if (results.length >= maxItems) return results
+    }
+  }
+
+  return results
 }
 
 function dedupeByHash(rows: NewsRow[]): NewsRow[] {
@@ -312,6 +373,13 @@ function normalizeTitle(text: string): string {
   )
 }
 
+function normalizeSummary(text: string | null): string | null {
+  if (!text) return null
+  const cleaned = cleanText(text)
+  if (!cleaned || cleaned.length < 25) return null
+  return cleaned.length > 280 ? `${cleaned.slice(0, 277)}...` : cleaned
+}
+
 function isBadTitle(title: string): boolean {
   const t = title.trim().toLowerCase()
   return [
@@ -322,6 +390,40 @@ function isBadTitle(title: string): boolean {
     "sport",
     "essentials",
   ].includes(t)
+}
+
+function getFirstUsefulParagraph(doc: any): string | null {
+  const selectors = ["article p", "main p", ".article p", ".content p", "p"]
+
+  for (const selector of selectors) {
+    const nodes = [...doc.querySelectorAll(selector)]
+    for (const node of nodes) {
+      const text = cleanText(node?.textContent || "")
+      if (isUsefulParagraph(text)) return text
+    }
+  }
+
+  return null
+}
+
+function isUsefulParagraph(text: string): boolean {
+  if (!text || text.length < 40) return false
+
+  const lower = text.toLowerCase()
+  const blockedStarts = [
+    "share",
+    "subscribe",
+    "sign up",
+    "learn more",
+    "read more",
+    "menu",
+    "watch",
+    "view workout",
+  ]
+
+  if (blockedStarts.some((s) => lower.startsWith(s))) return false
+
+  return true
 }
 
 function getFirstUsefulImage(doc: any, baseUrl: string): string | null {
