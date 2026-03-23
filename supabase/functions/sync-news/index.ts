@@ -16,9 +16,12 @@ type NewsRow = {
   hash_unico: string
 }
 
-const SUPABASE_URL = Deno.env.get("PROJECT_URL")!
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SERVICE_ROLE_KEY")!
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const SYNC_NEWS_SECRET = Deno.env.get("SYNC_NEWS_SECRET") || ""
+
+const DEFAULT_NEWS_IMAGE =
+  "https://rmolvzjluxutxmxzthjp.supabase.co/storage/v1/object/public/images/news-default.jpg"
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false, autoRefreshToken: false },
@@ -42,19 +45,28 @@ Deno.serve(async (req) => {
     const crossfitRows = await collectCrossFitMediaNews()
     console.log("[sync-news] CrossFit rows:", crossfitRows.length)
 
-    const gamesRows = await collectCrossFitGamesNews()
-    console.log("[sync-news] Games rows:", gamesRows.length)
-
-    const allRows = dedupeByHash([...crossfitRows, ...gamesRows])
+    const allRows = dedupeByHash(crossfitRows)
     const freshRows = keepLast15Days(allRows)
 
     console.log("[sync-news] total rows:", allRows.length)
     console.log("[sync-news] fresh rows:", freshRows.length)
 
     if (freshRows.length > 0) {
+      const rowsToUpsert = freshRows.map((row, index) => ({
+        ...row,
+        destacada: index === 0,
+      }))
+
+      const { error: resetFeaturedError } = await supabase
+        .from("noticias")
+        .update({ destacada: false })
+        .eq("tipo", "externa")
+
+      if (resetFeaturedError) throw resetFeaturedError
+
       const { error: upsertError } = await supabase
         .from("noticias")
-        .upsert(freshRows, { onConflict: "hash_unico" })
+        .upsert(rowsToUpsert, { onConflict: "hash_unico" })
 
       if (upsertError) throw upsertError
     }
@@ -63,7 +75,7 @@ Deno.serve(async (req) => {
 
     const { error: cleanupError } = await supabase
       .from("noticias")
-      .update({ activo: false })
+      .update({ activo: false, destacada: false })
       .eq("tipo", "externa")
       .lt("fecha_publicacion", cutoffIso)
 
@@ -73,6 +85,7 @@ Deno.serve(async (req) => {
       ok: true,
       inserted_or_updated: freshRows.length,
       kept_days: 15,
+      newest_url: freshRows[0]?.url || null,
     })
   } catch (error) {
     console.error("[sync-news] fatal error:", error)
@@ -94,212 +107,99 @@ Deno.serve(async (req) => {
   }
 })
 
-/* ---------------------------
-   CrossFit Media
----------------------------- */
-
 async function collectCrossFitMediaNews(): Promise<NewsRow[]> {
   const listUrl = "https://www.crossfit.com/media"
   const html = await fetchHtml(listUrl)
   const doc = parseHtml(html)
   if (!doc) return []
 
-  const cards = [...doc.querySelectorAll("article[aria-label]")]
+  const anchors = [...doc.querySelectorAll("a")]
   const rows: NewsRow[] = []
+  const seen = new Set<string>()
 
-  for (const card of cards) {
+  console.log("[sync-news] anchors found:", anchors.length)
+
+  for (const a of anchors) {
     try {
-      const title =
-        card.getAttribute("aria-label") ||
-        getTextFromNode(card, "h2") ||
-        getTextFromNode(card, "h3") ||
+      const href = a.getAttribute("href")
+      if (!href) continue
+      if (!href.startsWith("/")) continue
+
+      const fullUrl = "https://www.crossfit.com" + href
+
+      if (seen.has(fullUrl)) continue
+      seen.add(fullUrl)
+
+      const blocked = [
+        "/media",
+        "/courses",
+        "/workout",
+        "/workouts",
+        "/faq",
+        "/about",
+        "/careers",
+        "/pricing",
+      ]
+
+      if (blocked.some((x) => href.startsWith(x))) continue
+
+      const title = cleanText(a.textContent || "")
+      if (!title || title.length < 8) continue
+      if (isBadTitle(title)) continue
+
+      const container =
+        a.closest("article") ||
+        a.closest("section") ||
+        a.parentElement ||
+        a
+
+      const dateText =
+        extractPublishedFromText(container?.textContent || "") ||
         null
 
-      if (!title) continue
-
-      const href = getAttrFromNode(card, 'a[href]', "href")
-      if (!href) continue
-
-      const fullUrl = absolutizeUrl(listUrl, href)
-      if (!fullUrl) continue
-
-      const u = new URL(fullUrl)
-      if (u.hostname !== "www.crossfit.com") continue
-
-      const segments = u.pathname.split("/").filter(Boolean)
-      // Queremos /sport/<slug>
-      if (!(segments.length === 2 && segments[0].toLowerCase() === "sport")) continue
-
-      const cleanTitle = normalizeTitle(title)
-      if (!cleanTitle || isBadTitle(cleanTitle)) continue
-
-      const dateText = extractPublishedFromText(card.textContent || "")
-      if (!dateText) continue
-
-      const publishedIso = toIso(dateText)
-      if (!publishedIso) continue
-
-      const summaryFromCard = normalizeSummary(
-        getFirstUsefulParagraphFromNode(card) || null
-      )
-
-      const imageFromCard = getBestImageFromNode(card, listUrl)
-
-      // Enriquecer contenido entrando al artículo
       const details = await fetchArticleDetails(fullUrl)
+
+      const fecha_publicacion =
+        details.fecha_publicacion ||
+        (dateText ? toIso(dateText) : null) ||
+        new Date().toISOString()
 
       const hash_unico = await sha256(fullUrl)
 
       rows.push({
-        titulo: cleanTitle,
-        resumen: details.resumen || summaryFromCard,
-        contenido: details.contenido || details.resumen || summaryFromCard,
+        titulo: normalizeTitle(title),
+        resumen: null,
+        contenido: null,
         fuente: "CrossFit",
         tipo: "externa",
-        categoria: inferCategory(cleanTitle, details.resumen || summaryFromCard || ""),
+        categoria: "general",
         url: fullUrl,
-        imagen_url: details.imagen_url || imageFromCard,
-        fecha_publicacion: details.fecha_publicacion || publishedIso,
+        imagen_url: details.imagen_url || DEFAULT_NEWS_IMAGE,
+        fecha_publicacion,
         activo: true,
         destacada: false,
         hash_unico,
       })
     } catch (err) {
-      console.warn("[sync-news] CrossFit card parse failed:", err)
+      console.warn("[sync-news] parse anchor error:", err)
     }
   }
 
+  console.log("[sync-news] rows parsed:", rows.length)
   return rows
 }
-
-/* ---------------------------
-   CrossFit Games
----------------------------- */
-
-async function collectCrossFitGamesNews(): Promise<NewsRow[]> {
-  const listUrl = "https://games.crossfit.com"
-  const html = await fetchHtml(listUrl)
-  const doc = parseHtml(html)
-  if (!doc) return []
-
-  const anchors = [...doc.querySelectorAll('a[href]')]
-  const seen = new Set<string>()
-  const urls: string[] = []
-
-  for (const a of anchors) {
-    const href = a.getAttribute("href")
-    if (!href) continue
-
-    const full = absolutizeUrl(listUrl, href)
-    if (!full) continue
-
-    const u = new URL(full)
-    if (u.hostname !== "games.crossfit.com") continue
-    if (!u.pathname.toLowerCase().startsWith("/article/")) continue
-
-    u.hash = ""
-    u.search = ""
-
-    const key = u.toString()
-    if (seen.has(key)) continue
-
-    seen.add(key)
-    urls.push(key)
-  }
-
-  const rows: NewsRow[] = []
-
-  for (const url of urls.slice(0, 15)) {
-    try {
-      const article = await fetchGamesArticle(url)
-      if (article) rows.push(article)
-    } catch (err) {
-      console.warn("[sync-news] Games article parse failed:", url, err)
-    }
-  }
-
-  return rows
-}
-
-async function fetchGamesArticle(url: string): Promise<NewsRow | null> {
-  const html = await fetchHtml(url)
-  const doc = parseHtml(html)
-  if (!doc) return null
-
-  const rawTitle =
-    getMeta(doc, 'meta[property="og:title"]') ||
-    getMeta(doc, 'meta[name="twitter:title"]') ||
-    getText(doc, "h1") ||
-    getText(doc, "title")
-
-  if (!rawTitle) return null
-
-  const titulo = normalizeTitle(rawTitle)
-  if (!titulo || isBadTitle(titulo)) return null
-
-  const published =
-    getMeta(doc, 'meta[property="article:published_time"]') ||
-    getMeta(doc, 'meta[name="article:published_time"]') ||
-    getAttr(doc, "time[datetime]", "datetime") ||
-    extractPublishedFromDoc(doc)
-
-  if (!published) return null
-
-  const publishedIso = toIso(published)
-  if (!publishedIso) return null
-
-  const resumen = normalizeSummary(
-    getMeta(doc, 'meta[property="og:description"]') ||
-      getMeta(doc, 'meta[name="description"]') ||
-      getFirstUsefulParagraph(doc) ||
-      null
-  )
-
-  const contenido = buildContent(doc, resumen)
-
-  const imagen =
-    getMeta(doc, 'meta[property="og:image"]') ||
-    getMeta(doc, 'meta[name="twitter:image"]') ||
-    getFirstUsefulImage(doc, url) ||
-    null
-
-  const hash_unico = await sha256(url)
-
-  return {
-    titulo,
-    resumen,
-    contenido,
-    fuente: "CrossFit Games",
-    tipo: "externa",
-    categoria: inferCategory(titulo, resumen || ""),
-    url,
-    imagen_url: imagen,
-    fecha_publicacion: publishedIso,
-    activo: true,
-    destacada: false,
-    hash_unico,
-  }
-}
-
-/* ---------------------------
-   Shared article details
----------------------------- */
 
 async function fetchArticleDetails(url: string): Promise<{
-  resumen: string | null
-  contenido: string | null
-  imagen_url: string | null
   fecha_publicacion: string | null
+  imagen_url: string | null
 }> {
   try {
     const html = await fetchHtml(url)
     const doc = parseHtml(html)
     if (!doc) {
       return {
-        resumen: null,
-        contenido: null,
-        imagen_url: null,
         fecha_publicacion: null,
+        imagen_url: null,
       }
     }
 
@@ -309,17 +209,6 @@ async function fetchArticleDetails(url: string): Promise<{
       getAttr(doc, "time[datetime]", "datetime") ||
       extractPublishedFromDoc(doc)
 
-    const publishedIso = published ? toIso(published) : null
-
-    const resumen = normalizeSummary(
-      getMeta(doc, 'meta[property="og:description"]') ||
-        getMeta(doc, 'meta[name="description"]') ||
-        getFirstUsefulParagraph(doc) ||
-        null
-    )
-
-    const contenido = buildContent(doc, resumen)
-
     const imagen =
       getMeta(doc, 'meta[property="og:image"]') ||
       getMeta(doc, 'meta[name="twitter:image"]') ||
@@ -327,53 +216,15 @@ async function fetchArticleDetails(url: string): Promise<{
       null
 
     return {
-      resumen,
-      contenido,
+      fecha_publicacion: published ? toIso(published) : null,
       imagen_url: imagen,
-      fecha_publicacion: publishedIso,
     }
   } catch {
     return {
-      resumen: null,
-      contenido: null,
-      imagen_url: null,
       fecha_publicacion: null,
+      imagen_url: null,
     }
   }
-}
-
-/* ---------------------------
-   Helpers
----------------------------- */
-
-function buildContent(doc: any, resumen: string | null): string | null {
-  const paragraphs = getUsefulParagraphs(doc, 4)
-  if (paragraphs.length > 0) {
-    return paragraphs.join("\n\n")
-  }
-  return resumen || null
-}
-
-function getUsefulParagraphs(doc: any, maxItems = 4): string[] {
-  const selectors = ["article p", "main p", ".article p", ".content p", "p"]
-  const results: string[] = []
-  const seen = new Set<string>()
-
-  for (const selector of selectors) {
-    const nodes = [...doc.querySelectorAll(selector)]
-    for (const node of nodes) {
-      const text = cleanText(node?.textContent || "")
-      if (!isUsefulParagraph(text)) continue
-      if (seen.has(text)) continue
-
-      seen.add(text)
-      results.push(text)
-
-      if (results.length >= maxItems) return results
-    }
-  }
-
-  return results
 }
 
 function dedupeByHash(rows: NewsRow[]): NewsRow[] {
@@ -389,17 +240,6 @@ function dedupeByHash(rows: NewsRow[]): NewsRow[] {
 function keepLast15Days(rows: NewsRow[]): NewsRow[] {
   const cutoff = Date.now() - 15 * 24 * 60 * 60 * 1000
   return rows.filter((row) => new Date(row.fecha_publicacion).getTime() >= cutoff)
-}
-
-function inferCategory(title: string, resumen: string): string | null {
-  const text = `${title} ${resumen}`.toLowerCase()
-
-  if (text.includes("open")) return "open"
-  if (text.includes("quarterfinal")) return "quarterfinals"
-  if (text.includes("semifinal")) return "semifinals"
-  if (text.includes("games")) return "games"
-  if (text.includes("ticket")) return "tickets"
-  return "general"
 }
 
 async function fetchHtml(url: string): Promise<string> {
@@ -427,24 +267,10 @@ function getMeta(doc: any, selector: string): string | null {
   return el.getAttribute("content")
 }
 
-function getText(doc: any, selector: string): string | null {
-  const el = doc.querySelector(selector)
-  return el?.textContent?.trim() || null
-}
-
 function getAttr(doc: any, selector: string, attr: string): string | null {
   const el = doc.querySelector(selector)
-  return el?.getAttribute(attr) || null
-}
-
-function getTextFromNode(node: any, selector: string): string | null {
-  const el = node.querySelector(selector)
-  return el?.textContent?.trim() || null
-}
-
-function getAttrFromNode(node: any, selector: string, attr: string): string | null {
-  const el = node.querySelector(selector)
-  return el?.getAttribute(attr) || null
+  if (!el) return null
+  return el.getAttribute(attr)
 }
 
 function extractPublishedFromDoc(doc: any): string | null {
@@ -459,8 +285,8 @@ function extractPublishedFromText(text: string): string | null {
   ]
 
   for (const pattern of patterns) {
-    const m = text.match(pattern)
-    if (m?.[1]) return m[1]
+    const match = text.match(pattern)
+    if (match?.[1]) return match[1]
   }
 
   return null
@@ -492,66 +318,10 @@ function isBadTitle(title: string): boolean {
     "crossfit",
     "crossfit games",
     "media",
+    "home",
     "sport",
     "essentials",
-    "course photos",
-    "home",
   ].includes(t)
-}
-
-function normalizeSummary(text: string | null): string | null {
-  if (!text) return null
-  const cleaned = cleanText(text)
-  if (!cleaned || cleaned.length < 25) return null
-  return cleaned.length > 280 ? `${cleaned.slice(0, 277)}...` : cleaned
-}
-
-function getFirstUsefulParagraph(doc: any): string | null {
-  const selectors = ["article p", "main p", ".article p", ".content p", "p"]
-
-  for (const selector of selectors) {
-    const nodes = [...doc.querySelectorAll(selector)]
-    for (const node of nodes) {
-      const text = cleanText(node?.textContent || "")
-      if (isUsefulParagraph(text)) return text
-    }
-  }
-
-  return null
-}
-
-function getFirstUsefulParagraphFromNode(node: any): string | null {
-  const selectors = ["p", "div"]
-
-  for (const selector of selectors) {
-    const nodes = [...node.querySelectorAll(selector)]
-    for (const item of nodes) {
-      const text = cleanText(item?.textContent || "")
-      if (isUsefulParagraph(text)) return text
-    }
-  }
-
-  return null
-}
-
-function isUsefulParagraph(text: string): boolean {
-  if (!text || text.length < 40) return false
-
-  const lower = text.toLowerCase()
-  const blockedStarts = [
-    "share",
-    "subscribe",
-    "sign up",
-    "learn more",
-    "read more",
-    "menu",
-    "watch",
-    "view workout",
-  ]
-
-  if (blockedStarts.some((s) => lower.startsWith(s))) return false
-
-  return true
 }
 
 function getFirstUsefulImage(doc: any, baseUrl: string): string | null {
@@ -570,27 +340,6 @@ function getFirstUsefulImage(doc: any, baseUrl: string): string | null {
   const bestSourceSrcset = pickBestFromSrcset(sourceSrcset)
   if (bestSourceSrcset) {
     return absolutizeUrl(baseUrl, bestSourceSrcset)
-  }
-
-  return null
-}
-
-function getBestImageFromNode(node: any, baseUrl: string): string | null {
-  const directSrc = getAttrFromNode(node, 'img[src]', "src")
-  if (directSrc && !directSrc.startsWith("data:")) {
-    return absolutizeUrl(baseUrl, directSrc)
-  }
-
-  const imgSrcset = getAttrFromNode(node, 'img[srcset]', "srcset")
-  const parsedImgSrcset = pickBestFromSrcset(imgSrcset)
-  if (parsedImgSrcset) {
-    return absolutizeUrl(baseUrl, parsedImgSrcset)
-  }
-
-  const sourceSrcset = getAttrFromNode(node, 'source[srcset]', "srcset")
-  const parsedSourceSrcset = pickBestFromSrcset(sourceSrcset)
-  if (parsedSourceSrcset) {
-    return absolutizeUrl(baseUrl, parsedSourceSrcset)
   }
 
   return null
@@ -636,3 +385,8 @@ function json(data: unknown, status = 200) {
     headers: { "content-type": "application/json; charset=utf-8" },
   })
 }
+
+
+
+
+//https://rmolvzjluxutxmxzthjp.supabase.co/storage/v1/object/public/images/news-default.jpg

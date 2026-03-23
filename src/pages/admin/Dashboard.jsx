@@ -448,9 +448,19 @@ export default function Dashboard() {
                     onClick={() => setSelectedNews(item)}
                     className="snap-start shrink-0 w-[290px] sm:w-[340px] text-left rounded-3xl border border-white/10 bg-white/5 overflow-hidden hover:bg-white/[0.07] transition"
                   >
-                    <div className="h-36 w-full bg-gradient-to-br from-orange-500/15 via-white/5 to-blue-500/15 flex items-end">
-                      <div className="p-4">
-                        <div className="text-[11px] text-white/45">
+                    <div className="relative h-36 w-full overflow-hidden">
+                      <img
+                        src={item.imagen_url || "/images/news-default.jpg"}
+                        alt={item.titulo || "Noticia CrossFit"}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "/images/news-default.jpg"
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        <div className="text-[11px] text-white/75">
                           {item.fuente} • {formatHumanDate(item.fecha_publicacion)}
                         </div>
                         <div className="mt-2 text-base font-semibold text-white line-clamp-2">
@@ -670,14 +680,24 @@ function NewsModal({ news, onClose }) {
     <div className="fixed inset-0 z-[70]">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
       <div className="absolute left-1/2 top-1/2 w-[94vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-white/10 bg-[#0b0f14] shadow-2xl">
-        <div className="h-40 w-full bg-gradient-to-br from-orange-500/15 via-white/5 to-blue-500/15 flex items-end">
-          <div className="p-5 sm:p-6">
-            <div className="text-xs text-white/50">
-              {news.fuente} • {formatHumanDate(news.fecha_publicacion)}
+        <div className="relative h-52 w-full overflow-hidden">
+          <img
+            src={news.imagen_url || "/images/news-default.jpg"}
+            alt={news.titulo || "Noticia CrossFit"}
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              e.currentTarget.src = "/images/news-default.jpg"
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-end">
+            <div className="p-5 sm:p-6">
+              <div className="text-xs text-white/75">
+                {news.fuente} • {formatHumanDate(news.fecha_publicacion)}
+              </div>
+              <h3 className="mt-2 text-xl sm:text-2xl font-semibold text-white">
+                {translatedTitle}
+              </h3>
             </div>
-            <h3 className="mt-2 text-xl sm:text-2xl font-semibold text-white">
-              {translatedTitle}
-            </h3>
           </div>
         </div>
 
