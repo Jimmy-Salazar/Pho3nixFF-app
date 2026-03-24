@@ -1,131 +1,143 @@
 import { Link } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { supabase } from "../supabase"
 import heroImage from "../assets/hero-home.png"
+import lycanLogo from "../assets/lycan.png"
 
 export default function Home() {
-  const weekMorning = ["06:00 AM", "07:00 AM", "08:00 AM", "09:00 AM"]
-  const weekEvening = ["05:00 PM", "06:00 PM", "07:00 PM"]
+  const [todayWod, setTodayWod] = useState(null)
+  const [todayWodLoading, setTodayWodLoading] = useState(true)
+
+  useEffect(() => {
+    const elements = document.querySelectorAll("[data-reveal]")
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed")
+          }
+        })
+      },
+      { threshold: 0.14 }
+    )
+
+    elements.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    let alive = true
+
+    async function loadTodayWod() {
+      try {
+        setTodayWodLoading(true)
+
+        const now = new Date()
+        const todayIso = formatDateISO(now)
+
+        const { data, error } = await supabase
+          .from("wod")
+          .select(
+            "id,nombre,descripcion,modo_ranking,modalidad,fecha,activo,publicado,fecha_publicacion"
+          )
+          .eq("fecha", todayIso)
+          .eq("activo", true)
+          .limit(5)
+
+        if (error) throw error
+
+        const safeRows = (data || []).filter((item) => {
+          if (item.publicado === true && item.fecha_publicacion) {
+            return new Date(item.fecha_publicacion) <= now
+          }
+          return true
+        })
+
+        if (!alive) return
+        setTodayWod(safeRows[0] || null)
+      } catch (error) {
+        console.error("Error cargando WOD del día:", error)
+        if (!alive) return
+        setTodayWod(null)
+      } finally {
+        if (alive) setTodayWodLoading(false)
+      }
+    }
+
+    loadTodayWod()
+
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  const weekMorning = ["06:00", "07:00", "08:00", "09:00"]
+  const weekEvening = ["17:00", "18:00", "19:00"]
 
   const socialLinks = {
     instagram: "https://instagram.com/pho3nixff.ec",
     whatsapp:
-      "https://wa.me/593979727407?text=Hola%2C%20quiero%20informaci%C3%B3n%20de%20PHO3NIX",
+      "https://wa.me/593979727407?text=Hola%20quiero%20informacion%20de%20PHO3NIX",
     maps: "https://maps.app.goo.gl/qSocV6BHLWw9suH76",
+    lycan:
+      "https://lycan-fitness.com/?srsltid=AfmBOopUbg9AGdXkQgLgQJ5FT71xo7ncg0QxI-oIZCwP2tfAsBcxoRH2",
+    tiktok: "https://www.tiktok.com/@pho3nixff.ec",
   }
 
-  const benefits = [
+  const values = [
     {
-      title: "Entrenamiento funcional",
+      title: "Entrena con propósito",
       description:
-        "Sesiones dinámicas enfocadas en fuerza, resistencia, movilidad y rendimiento real.",
-      icon: "🏋️",
+        "Cada clase tiene estructura, intención y exigencia real.",
     },
     {
-      title: "Comunidad y disciplina",
+      title: "Evolución progresiva",
       description:
-        "Un ambiente que te exige, te impulsa y te ayuda a evolucionar con constancia.",
-      icon: "🔥",
+        "El progreso se construye con disciplina, constancia y buena técnica.",
     },
     {
-      title: "Progreso medible",
+      title: "Mentalidad competitiva",
       description:
-        "Cada entrenamiento es una oportunidad para mejorar marcas, técnica y capacidad física.",
-      icon: "📈",
+        "Entrenamos para rendir mejor dentro y fuera del box.",
     },
   ]
 
   return (
     <>
       <style>{`
-        @keyframes fadeUp {
-          0% {
-            opacity: 0;
-            transform: translateY(26px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        html {
+          scroll-behavior: smooth;
         }
 
-        .fade-up {
-          animation: fadeUp 0.9s ease forwards;
+        @keyframes heroZoom {
+          0% { transform: scale(1) translateY(0); }
+          50% { transform: scale(1.045) translateY(-6px); }
+          100% { transform: scale(1) translateY(0); }
         }
 
-        .fade-up-delayed {
-          opacity: 0;
-          animation: fadeUp 1.1s ease 0.18s forwards;
+        .hero-cinematic {
+          animation: heroZoom 15s ease-in-out infinite;
+          transform-origin: center center;
         }
 
-        @keyframes phoenixGlow {
-          0% {
-            text-shadow: 0 0 0 rgba(249, 115, 22, 0.35);
-          }
-          50% {
-            text-shadow:
-              0 0 10px rgba(251, 146, 60, 0.50),
-              0 0 24px rgba(249, 115, 22, 0.35);
-          }
-          100% {
-            text-shadow: 0 0 0 rgba(249, 115, 22, 0.35);
-          }
+        @keyframes glowText {
+          0% { text-shadow: 0 0 0 rgba(249, 115, 22, 0.18); }
+          50% { text-shadow: 0 0 18px rgba(249, 115, 22, 0.28); }
+          100% { text-shadow: 0 0 0 rgba(249, 115, 22, 0.18); }
         }
 
-        .phoenix-title-games {
-          animation: phoenixGlow 3s ease-in-out infinite;
+        .hero-tagline {
+          animation: glowText 3.5s ease-in-out infinite;
         }
 
-        @keyframes phoenixFireFloat {
-          0% {
-            transform: translateY(0) scale(1) rotate(0deg);
-            filter: drop-shadow(0 0 0 rgba(249, 115, 22, 0.15));
-          }
-          50% {
-            transform: translateY(-6px) scale(1.05) rotate(1.5deg);
-            filter: drop-shadow(0 0 14px rgba(249, 115, 22, 0.35));
-          }
-          100% {
-            transform: translateY(0) scale(1) rotate(0deg);
-            filter: drop-shadow(0 0 0 rgba(249, 115, 22, 0.15));
-          }
-        }
-
-        .phoenix-logo-fire {
-          animation: phoenixFireFloat 2.8s ease-in-out infinite;
-        }
-
-        @keyframes orbPulse {
-          0% {
-            transform: scale(1) translate3d(0, 0, 0);
-            opacity: 0.45;
-          }
-          50% {
-            transform: scale(1.08) translate3d(10px, -8px, 0);
-            opacity: 0.75;
-          }
-          100% {
-            transform: scale(1) translate3d(0, 0, 0);
-            opacity: 0.45;
-          }
-        }
-
-        .phoenix-orb {
-          animation: orbPulse 8s ease-in-out infinite;
-        }
-
-        .phoenix-orb-delayed {
-          animation: orbPulse 10s ease-in-out infinite reverse;
-        }
-
-        @keyframes gamesSweep {
+        @keyframes lineSweep {
           0% {
             transform: translateX(-100%);
             opacity: 0;
           }
           20% {
-            opacity: 0.55;
-          }
-          80% {
-            opacity: 0.18;
+            opacity: 0.4;
           }
           100% {
             transform: translateX(100%);
@@ -137,125 +149,170 @@ export default function Home() {
           background: linear-gradient(
             90deg,
             transparent 0%,
-            rgba(249, 115, 22, 0.04) 20%,
-            rgba(249, 115, 22, 0.55) 50%,
-            rgba(249, 115, 22, 0.04) 80%,
+            rgba(249, 115, 22, 0.05) 22%,
+            rgba(249, 115, 22, 0.42) 50%,
+            rgba(249, 115, 22, 0.05) 78%,
             transparent 100%
           );
-          animation: gamesSweep 4.5s linear infinite;
+          animation: lineSweep 5.4s linear infinite;
         }
 
-        .games-line-delayed {
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(251, 191, 36, 0.03) 20%,
-            rgba(251, 191, 36, 0.35) 50%,
-            rgba(251, 191, 36, 0.03) 80%,
-            transparent 100%
-          );
-          animation: gamesSweep 6s linear infinite;
+        .reveal-base {
+          opacity: 0;
+          transition:
+            opacity 0.9s ease,
+            transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: opacity, transform;
         }
 
-        @keyframes titleImpact {
-          0% {
-            opacity: 0;
-            transform: translateY(18px) scale(0.98);
-            letter-spacing: 0.01em;
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-            letter-spacing: -0.02em;
-          }
+        .reveal-left {
+          transform: translateX(-56px);
         }
 
-        .games-title {
-          animation: titleImpact 1s ease-out forwards;
+        .reveal-right {
+          transform: translateX(56px);
         }
 
-        .games-frame {
-          position: relative;
-          overflow: hidden;
+        .reveal-center {
+          transform: translateY(40px) scale(0.985);
         }
 
-        .games-frame::before {
-          content: "";
-          position: absolute;
-          inset: 0;
-          border-radius: 1.5rem;
-          padding: 1px;
-          background: linear-gradient(
-            135deg,
-            rgba(249, 115, 22, 0.30),
-            rgba(255, 255, 255, 0.04),
-            rgba(249, 115, 22, 0.08)
-          );
-          -webkit-mask:
-            linear-gradient(#000 0 0) content-box,
-            linear-gradient(#000 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-          pointer-events: none;
+        .revealed {
+          opacity: 1;
+          transform: translateX(0) translateY(0) scale(1);
         }
 
-        @keyframes openBoxPulse {
-          0% {
-            box-shadow: 0 0 0 rgba(249, 115, 22, 0.12);
-          }
-          50% {
-            box-shadow: 0 0 26px rgba(249, 115, 22, 0.18);
-          }
-          100% {
-            box-shadow: 0 0 0 rgba(249, 115, 22, 0.12);
-          }
+        @keyframes pulseSoft {
+          0% { box-shadow: 0 0 0 rgba(249,115,22,0.08); }
+          50% { box-shadow: 0 0 24px rgba(249,115,22,0.15); }
+          100% { box-shadow: 0 0 0 rgba(249,115,22,0.08); }
         }
 
         .open-box-card {
-          animation: openBoxPulse 3.5s ease-in-out infinite;
+          animation: pulseSoft 3.5s ease-in-out infinite;
         }
 
-        @keyframes heroZoom {
-          0% {
-            transform: scale(1) translate3d(0, 0, 0);
+        .section-card {
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+          border: 1px solid rgba(255,255,255,0.08);
+          backdrop-filter: blur(10px);
+        }
+
+        .schedule-grid-card {
+          background:
+            linear-gradient(180deg, rgba(10,10,12,0.55), rgba(255,255,255,0.03));
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .floating-socials {
+          position: fixed;
+          right: 14px;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 60;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .floating-social-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 52px;
+          height: 52px;
+          border-radius: 18px;
+          border: 1px solid rgba(255,255,255,0.10);
+          background: rgba(8, 11, 18, 0.72);
+          backdrop-filter: blur(10px);
+          color: white;
+          transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+        }
+
+        .floating-social-btn:hover {
+          transform: translateX(-3px) scale(1.05);
+          background: rgba(249, 115, 22, 0.16);
+          border-color: rgba(249, 115, 22, 0.25);
+        }
+
+        @media (max-width: 1024px) {
+          .floating-socials {
+            right: 10px;
+            bottom: 14px;
+            top: auto;
+            transform: none;
           }
-          50% {
-            transform: scale(1.06) translate3d(0, -8px, 0);
-          }
-          100% {
-            transform: scale(1) translate3d(0, 0, 0);
+
+          .floating-social-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
           }
         }
 
-        .hero-cinematic {
-          animation: heroZoom 14s ease-in-out infinite;
-          transform-origin: center center;
-        }
+        @media (max-width: 640px) {
+          .floating-socials {
+            gap: 10px;
+          }
 
-        @keyframes heroShine {
-          0% {
-            transform: translateX(-120%);
-            opacity: 0;
+          .floating-social-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
           }
-          18% {
-            opacity: 0.18;
-          }
-          50% {
-            opacity: 0.10;
-          }
-          100% {
-            transform: translateX(120%);
-            opacity: 0;
-          }
-        }
-
-        .hero-shine {
-          animation: heroShine 8s linear infinite;
         }
       `}</style>
 
       <div className="min-h-screen overflow-x-hidden bg-[#0b0f17] text-white">
-        <section className="relative overflow-hidden">
+        <div className="floating-socials">
+          <a
+            href={socialLinks.instagram}
+            target="_blank"
+            rel="noreferrer"
+            className="floating-social-btn"
+            aria-label="Instagram"
+            title="Instagram"
+          >
+            <InstagramIcon />
+          </a>
+
+          <a
+            href={socialLinks.tiktok}
+            target="_blank"
+            rel="noreferrer"
+            className="floating-social-btn"
+            aria-label="TikTok"
+            title="TikTok"
+          >
+            <TikTokIcon />
+          </a>
+
+          <a
+            href={socialLinks.whatsapp}
+            target="_blank"
+            rel="noreferrer"
+            className="floating-social-btn"
+            aria-label="WhatsApp"
+            title="WhatsApp"
+          >
+            <WhatsAppIcon />
+          </a>
+
+          <a
+            href={socialLinks.maps}
+            target="_blank"
+            rel="noreferrer"
+            className="floating-social-btn"
+            aria-label="Ubicación"
+            title="Ubicación"
+          >
+            <MapPinIcon />
+          </a>
+        </div>
+
+        <section className="relative min-h-screen overflow-hidden">
           <div className="absolute inset-0">
             <img
               src={heroImage}
@@ -264,165 +321,273 @@ export default function Home() {
             />
           </div>
 
-          <div className="absolute inset-0 bg-black/75" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.28),_transparent_35%),radial-gradient(circle_at_80%_20%,_rgba(234,88,12,0.16),_transparent_24%),linear-gradient(180deg,_rgba(16,21,34,0.58)_0%,_rgba(11,15,23,0.78)_48%,_rgba(9,12,18,0.96)_100%)]" />
-          <div className="hero-shine absolute inset-y-0 left-0 w-[40%] bg-gradient-to-r from-transparent via-white/10 to-transparent blur-2xl" />
+          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.20),_transparent_35%),linear-gradient(180deg,_rgba(11,15,23,0.32)_0%,_rgba(11,15,23,0.52)_45%,_rgba(11,15,23,0.84)_100%)]" />
+          <div className="games-line absolute left-0 top-24 h-px w-full opacity-50" />
 
-          <div className="phoenix-orb absolute -left-20 top-10 h-72 w-72 rounded-full bg-orange-500/10 blur-3xl" />
-          <div className="phoenix-orb-delayed absolute right-[-70px] top-24 h-80 w-80 rounded-full bg-amber-400/10 blur-3xl" />
-          <div className="games-line absolute left-0 top-24 h-px w-full opacity-40" />
-          <div className="games-line-delayed absolute left-0 top-40 h-px w-full opacity-30" />
-
-          <div className="relative mx-auto flex min-h-screen max-w-7xl items-center px-6 py-16 sm:px-8 lg:px-12">
-            <div className="grid w-full gap-14 lg:grid-cols-2 lg:items-center">
-              <div className="fade-up">
-                <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-sm text-orange-200 backdrop-blur-sm">
-                  <div className="phoenix-logo-fire flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/15 text-2xl shadow-lg shadow-orange-500/20">
-                    🔥
-                  </div>
-                  <span className="phoenix-title-games text-xs font-bold tracking-[0.25em] sm:text-sm">
-                    PHO3NIX FUNCTIONAL FITNESS
-                  </span>
+          <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-16 sm:px-8 lg:px-12">
+            <div className="max-w-3xl">
+              <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-sm text-orange-200 backdrop-blur-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/15 text-2xl shadow-lg shadow-orange-500/20">
+                  🔥
                 </div>
+                <span className="text-xs font-bold tracking-[0.25em] sm:text-sm">
+                  PHO3NIX FUNCTIONAL FITNESS
+                </span>
+              </div>
 
-                <h1 className="games-title max-w-3xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
-                  Renace más fuerte en cada entrenamiento.
-                </h1>
+              <h1 className="max-w-3xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
+                Fuerza, disciplina y evolución en cada sesión.
+              </h1>
 
-                <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                  Un box diseñado para personas que buscan disciplina, rendimiento,
-                  comunidad y evolución real. En PHO3NIX entrenas con intensidad,
-                  técnica y propósito.
+              <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+                Un box diseñado para personas que buscan rendimiento real,
+                comunidad y progreso constante dentro de un entorno exigente,
+                técnico y profesional.
+              </p>
+
+              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+                <Link
+                  to="/login"
+                  className="inline-flex items-center justify-center rounded-2xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition duration-300 hover:scale-[1.03] hover:bg-orange-400"
+                >
+                  Iniciar sesión
+                </Link>
+
+                <a
+                  href="#wod"
+                  className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-white/10"
+                >
+                  Ver inicio
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute bottom-8 right-6 z-10 max-w-md text-right sm:bottom-10 sm:right-10">
+            <p className="hero-tagline text-lg font-bold text-white/95 sm:text-2xl">
+              Renace más fuerte en cada entrenamiento.
+            </p>
+          </div>
+        </section>
+
+        <section
+          id="wod"
+          className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-12"
+        >
+          <div
+            data-reveal
+            className="reveal-base reveal-center section-card rounded-[28px] p-8 md:p-10"
+          >
+            <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
+              <div>
+                <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
+                  Wod del día
+                </h2>
+
+                <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
+                  {todayWodLoading
+                    ? "Cargando WOD del día..."
+                    : todayWod?.descripcion ||
+                      "No hay WOD publicado para hoy."}
                 </p>
 
-                <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                  <Link
-                    to="/login"
-                    className="inline-flex items-center justify-center rounded-2xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition duration-300 hover:scale-[1.03] hover:bg-orange-400"
-                  >
-                    Iniciar sesión
-                  </Link>
-
-                  <a
-                    href="#horarios"
-                    className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-white/10"
-                  >
-                    Ver horarios
-                  </a>
-                </div>
-
-                <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                    <p className="text-2xl font-bold text-orange-300">Fuerza</p>
-                    <p className="mt-1 text-sm text-slate-400">
-                      Construye potencia y control.
+                <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-400">
+                      Estado
+                    </p>
+                    <p className="mt-2 text-xl font-bold text-white">
+                      {todayWodLoading
+                        ? "Cargando..."
+                        : todayWod
+                        ? "WOD publicado"
+                        : "Sin publicación"}
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                    <p className="text-2xl font-bold text-orange-300">Resistencia</p>
-                    <p className="mt-1 text-sm text-slate-400">
-                      Mejora tu condición física.
+                  <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-4">
+                    <p className="text-xs uppercase tracking-[0.22em] text-orange-200">
+                      Modalidad
                     </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-                    <p className="text-2xl font-bold text-orange-300">Disciplina</p>
-                    <p className="mt-1 text-sm text-slate-400">
-                      Evoluciona con constancia.
+                    <p className="mt-2 text-xl font-bold text-white">
+                      {todayWodLoading
+                        ? "..."
+                        : todayWod
+                        ? formatModalidad(todayWod.modalidad)
+                        : "-"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="fade-up-delayed relative">
-                <div className="games-frame rounded-3xl border border-white/10 bg-white/5 p-5 shadow-2xl backdrop-blur-md">
-                  <div className="rounded-[28px] border border-orange-500/20 bg-gradient-to-br from-slate-900/95 via-slate-950/95 to-black/95 p-6">
-                    <div className="mb-6 flex items-center justify-between">
+              <div className="rounded-[24px] border border-white/10 bg-black/30 p-6">
+                {todayWodLoading ? (
+                  <div>
+                    <div className="mb-5">
+                      <div className="h-4 w-28 animate-pulse rounded bg-white/10" />
+                      <div className="mt-3 h-6 w-52 animate-pulse rounded bg-white/10" />
+                    </div>
+
+                    <div className="grid gap-3">
+                      {[1, 2, 3].map((item) => (
+                        <div
+                          key={item}
+                          className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/5"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : todayWod ? (
+                  <>
+                    <div className="mb-5 flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm uppercase tracking-[0.25em] text-orange-300/80">
-                          PHO3NIX
-                        </p>
-                        <h2 className="mt-2 text-2xl font-bold">
-                          Functional Fitness
-                        </h2>
-                      </div>
+                        <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
+                          WOD Publicado
+                        </div>
 
-                      <div className="phoenix-logo-fire flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-500/15 text-3xl shadow-inner shadow-orange-500/10">
-                        🔥
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4">
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-sm text-slate-400">Enfoque</p>
-                        <p className="mt-1 text-lg font-semibold">
-                          Técnica • Rendimiento • Superación
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-sm text-slate-400">Ambiente</p>
-                        <p className="mt-1 text-lg font-semibold">
-                          Comunidad fuerte y energía competitiva
-                        </p>
-                      </div>
-
-                      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <p className="text-sm text-slate-400">Mentalidad</p>
-                        <p className="mt-1 text-lg font-semibold">
-                          Caer, levantarse y volver más fuerte
+                        <p className="mt-3 text-2xl font-black text-white">
+                          {todayWod.nombre || "WOD del día"}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-6 rounded-2xl border border-orange-500/20 bg-orange-500/10 p-4">
-                      <p className="text-sm text-orange-200">
-                        “No se trata solo de entrenar. Se trata de evolucionar.”
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <p className="whitespace-pre-line text-sm leading-7 text-slate-200 sm:text-base">
+                        {todayWod.descripcion || "Sin descripción disponible."}
                       </p>
                     </div>
 
-                    <div className="mt-6 flex flex-wrap gap-3">
-                      <a
-                        href={socialLinks.instagram}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                      >
-                        <InstagramIcon />
-                        Instagram
-                      </a>
-
-                      <a
-                        href={socialLinks.whatsapp}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                      >
-                        <WhatsAppIcon />
-                        WhatsApp
-                      </a>
-
-                      <a
-                        href={socialLinks.maps}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                      >
-                        <MapPinIcon />
-                        Ubicación
-                      </a>
+                    <div className="mt-5 text-sm text-orange-300">
+                      Disponible hoy en PHO3NIX
                     </div>
+                  </>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-5">
+                    <p className="text-sm leading-7 text-slate-300">
+                      No hay WOD publicado para hoy.
+                    </p>
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="horarios"
+          className="mx-auto max-w-7xl px-6 py-4 sm:px-8 lg:px-12"
+        >
+          <div className="mb-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-orange-300">
+              Horarios
+            </p>
+            <h2 className="mt-4 text-3xl font-black sm:text-4xl">
+              Bloques de entrenamiento
+            </h2>
+            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
+              Distribución clara de sesiones para mantener constancia, orden y
+              disponibilidad durante la semana.
+            </p>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[1fr_1fr_0.95fr]">
+            <div
+              data-reveal
+              className="reveal-base reveal-left schedule-grid-card rounded-[28px] p-6"
+            >
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.20em] text-orange-300">
+                    Bloque mañana
+                  </p>
+                  <p className="mt-1 text-sm text-slate-400">Lunes a viernes</p>
                 </div>
+                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+                  AM
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {weekMorning.map((time) => (
+                  <div
+                    key={time}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center"
+                  >
+                    <p className="text-lg font-bold text-white">{time}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              data-reveal
+              className="reveal-base reveal-right schedule-grid-card rounded-[28px] p-6"
+            >
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.20em] text-orange-300">
+                    Bloque tarde
+                  </p>
+                  <p className="mt-1 text-sm text-slate-400">Lunes a viernes</p>
+                </div>
+                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+                  PM
+                </div>
+              </div>
+
+              <div className="grid gap-3">
+                {weekEvening.map((time) => (
+                  <div
+                    key={time}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5"
+                  >
+                    <p className="text-center text-lg font-bold text-white">
+                      {time}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div
+              data-reveal
+              className="reveal-base reveal-center open-box-card rounded-[28px] border border-orange-500/20 bg-gradient-to-br from-orange-500/12 to-orange-500/5 p-6"
+            >
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.20em] text-orange-200">
+                    Sábado
+                  </p>
+                  <p className="mt-1 text-sm text-slate-300">Espacio libre</p>
+                </div>
+                <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white">
+                  OPEN BOX
+                </div>
+              </div>
+
+              <div className="rounded-[24px] border border-white/10 bg-black/25 p-6">
+                <p className="text-xs uppercase tracking-[0.22em] text-orange-200">
+                  Horario
+                </p>
+                <p className="mt-3 text-3xl font-black text-white">
+                  08:00 AM - 10:00 AM
+                </p>
+                <p className="mt-4 text-sm leading-6 text-slate-300">
+                  Espacio para práctica, trabajo libre y mejora técnica en un
+                  entorno controlado.
+                </p>
               </div>
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-12">
-          <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-            <div>
+          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+            <div
+              data-reveal
+              className="reveal-base reveal-left"
+            >
               <p className="text-sm font-semibold uppercase tracking-[0.25em] text-orange-300">
                 Quiénes somos
               </p>
@@ -441,139 +606,34 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div
+              data-reveal
+              className="reveal-base reveal-right section-card rounded-[28px] p-6"
+            >
               <h3 className="text-xl font-bold">Lo que nos define</h3>
 
               <div className="mt-6 space-y-4">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="font-semibold text-orange-300">Entrena con propósito</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-400">
-                    Cada clase tiene intención, estructura y exigencia real.
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="font-semibold text-orange-300">Evolución progresiva</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-400">
-                    El progreso se construye con constancia, técnica y disciplina.
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="font-semibold text-orange-300">Mentalidad competitiva</p>
-                  <p className="mt-1 text-sm leading-6 text-slate-400">
-                    Entrenamos para rendir mejor dentro y fuera del box.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-6 py-6 sm:px-8 lg:px-12">
-          <div className="grid gap-6 md:grid-cols-3">
-            {benefits.map((item) => (
-              <div
-                key={item.title}
-                className="rounded-3xl border border-white/10 bg-white/5 p-6 transition duration-300 hover:-translate-y-1 hover:bg-white/10"
-              >
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-500/10 text-3xl">
-                  {item.icon}
-                </div>
-                <h3 className="mt-5 text-xl font-bold">{item.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-400">
-                  {item.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section
-          id="horarios"
-          className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-12"
-        >
-          <div className="rounded-3xl border border-white/10 bg-gradient-to-r from-orange-500/10 via-white/5 to-transparent p-8 md:p-10">
-            <div className="mb-10">
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-orange-300">
-                Horarios
-              </p>
-              <h2 className="mt-4 text-3xl font-black sm:text-4xl">
-                Bloques de entrenamiento y Open Box
-              </h2>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-                Organizamos nuestros bloques para que puedas entrenar en la mañana,
-                en la tarde y aprovechar el espacio del sábado para Open Box.
-              </p>
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="rounded-3xl border border-white/10 bg-black/20 p-6">
-                <div className="mb-5 flex items-center justify-between">
-                  <h3 className="text-xl font-bold">Bloque mañana</h3>
-                  <span className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-300">
-                    Lunes a viernes
-                  </span>
-                </div>
-
-                <div className="grid gap-3">
-                  {weekMorning.map((time) => (
-                    <div
-                      key={time}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
-                    >
-                      <p className="text-lg font-semibold text-orange-300">{time}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-white/10 bg-black/20 p-6">
-                <div className="mb-5 flex items-center justify-between">
-                  <h3 className="text-xl font-bold">Bloque tarde</h3>
-                  <span className="rounded-full bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-300">
-                    Lunes a viernes
-                  </span>
-                </div>
-
-                <div className="grid gap-3">
-                  {weekEvening.map((time) => (
-                    <div
-                      key={time}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
-                    >
-                      <p className="text-lg font-semibold text-orange-300">{time}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="open-box-card rounded-3xl border border-orange-500/20 bg-orange-500/10 p-6">
-                <div className="mb-5 flex items-center justify-between">
-                  <h3 className="text-xl font-bold">Sábado</h3>
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white">
-                    OPEN BOX
-                  </span>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-5">
-                  <p className="text-sm uppercase tracking-[0.20em] text-orange-200">
-                    Horario
-                  </p>
-                  <p className="mt-2 text-3xl font-black text-white">
-                    08:00 AM - 10:00 AM
-                  </p>
-                  <p className="mt-3 text-sm leading-6 text-slate-300">
-                    Espacio para práctica, trabajo libre y mejora técnica.
-                  </p>
-                </div>
+                {values.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-2xl border border-white/10 bg-black/20 p-4"
+                  >
+                    <p className="font-semibold text-orange-300">{item.title}</p>
+                    <p className="mt-1 text-sm leading-6 text-slate-400">
+                      {item.description}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-6 pb-20 sm:px-8 lg:px-12">
-          <div className="rounded-3xl border border-orange-500/20 bg-orange-500/10 p-8 text-center md:p-12">
+          <div
+            data-reveal
+            className="reveal-base reveal-center rounded-[28px] border border-orange-500/20 bg-gradient-to-br from-orange-500/12 via-orange-500/8 to-transparent p-8 text-center md:p-12"
+          >
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-orange-200">
               Acceso
             </p>
@@ -582,10 +642,10 @@ export default function Home() {
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-300">
               Ingresa a tu cuenta para revisar tu progreso, consultar información
-              del box y acceder a tus módulos dentro de la plataforma.
+              del box y acceder a los módulos internos de la plataforma.
             </p>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-5">
               <Link
                 to="/login"
                 className="inline-flex items-center justify-center rounded-2xl bg-orange-500 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition hover:scale-[1.02] hover:bg-orange-400"
@@ -594,41 +654,77 @@ export default function Home() {
               </Link>
 
               <a
-                href={socialLinks.whatsapp}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-8 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                <WhatsAppIcon />
-                Contactar por WhatsApp
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <footer className="border-t border-white/10 bg-black/20">
-          <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-8 text-sm text-slate-400 sm:px-8 lg:px-12 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="font-semibold text-white">PHO3NIX Functional Fitness</p>
-              <p className="mt-1">Disciplina • Fuerza • Evolución</p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <a
                 href={socialLinks.instagram}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 hover:text-white"
+                className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 <InstagramIcon />
                 Instagram
               </a>
 
               <a
+                href={socialLinks.tiktok}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                <TikTokIcon />
+                TikTok
+              </a>
+
+              <a
                 href={socialLinks.whatsapp}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 hover:text-white"
+                className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+              >
+                <WhatsAppIcon />
+                WhatsApp
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <footer className="border-t border-white/10 bg-black/20">
+          <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-8 text-sm text-slate-400 sm:px-8 lg:px-12 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="font-semibold text-white">PHO3NIX Functional Fitness</p>
+              <p className="mt-1">Disciplina • Fuerza • Evolución</p>
+              <p className="mt-2 text-xs text-slate-500">
+                ©2026 Pho3nixff.ec. Todos los derechos reservados.
+              </p>
+              <p className="mt-2 text-xs text-slate-500">
+                Sitio por Neutron
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-5">
+              <a
+                href={socialLinks.instagram}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-3 hover:text-white"
+              >
+                <InstagramIcon />
+                Instagram
+              </a>
+
+              <a
+                href={socialLinks.tiktok}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-3 hover:text-white"
+              >
+                <TikTokIcon />
+                TikTok
+              </a>
+
+              <a
+                href={socialLinks.whatsapp}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-3 hover:text-white"
               >
                 <WhatsAppIcon />
                 WhatsApp
@@ -638,12 +734,33 @@ export default function Home() {
                 href={socialLinks.maps}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 hover:text-white"
+                className="inline-flex items-center gap-3 hover:text-white"
               >
                 <MapPinIcon />
-                Google Maps
+                Ubicación
               </a>
             </div>
+
+            <a
+              href={socialLinks.lycan}
+              target="_blank"
+              rel="noreferrer"
+              className="group inline-flex items-center gap-4 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 transition hover:border-orange-500/20 hover:bg-white/10"
+            >
+              <img
+                src={lycanLogo}
+                alt="Lycan Ecuador"
+                className="h-12 w-auto object-contain opacity-90 transition duration-300 group-hover:scale-105 group-hover:opacity-100"
+              />
+              <div>
+                <p className="text-xs uppercase tracking-[0.20em] text-slate-500">
+                  Official Equipment Partner
+                </p>
+                <p className="font-semibold text-white group-hover:text-orange-300">
+                  Lycan Ecuador
+                </p>
+              </div>
+            </a>
           </div>
         </footer>
       </div>
@@ -651,11 +768,28 @@ export default function Home() {
   )
 }
 
+function formatDateISO(date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
+function formatModalidad(modalidad) {
+  const m = String(modalidad || "").trim().toLowerCase()
+
+  if (m === "single") return "Single"
+  if (m === "duo") return "Duo"
+  if (m === "trio") return "Trio"
+
+  return "Single"
+}
+
 function InstagramIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-5 w-5"
+      className="h-6 w-6"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
@@ -669,11 +803,23 @@ function InstagramIcon() {
   )
 }
 
+function TikTokIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-6 w-6"
+      fill="currentColor"
+    >
+      <path d="M16.5 3c.3 1.7 1.5 3.1 3.2 3.5v3.2c-1.3 0-2.5-.4-3.5-1.1v6.1c0 3.1-2.5 5.6-5.6 5.6S5 17.8 5 14.7s2.5-5.6 5.6-5.6c.3 0 .7 0 1 .1v3.3c-.3-.1-.6-.2-1-.2-1.3 0-2.3 1-2.3 2.3S9.3 17 10.6 17s2.3-1 2.3-2.3V3h3.6z" />
+    </svg>
+  )
+}
+
 function WhatsAppIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-5 w-5"
+      className="h-6 w-6"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
@@ -690,7 +836,7 @@ function MapPinIcon() {
   return (
     <svg
       viewBox="0 0 24 24"
-      className="h-5 w-5"
+      className="h-6 w-6"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.8"
