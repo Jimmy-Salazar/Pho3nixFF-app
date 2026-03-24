@@ -233,3 +233,232 @@ html, body { width: 100%; overflow-x: hidden; }
   50%  { transform:translateY(-2px) scale(1.06); opacity:1; }
   100% { transform:translateY(2px) scale(1.02); opacity:0.85; }
 }
+
+@keyframes phoenixGlow {
+  0% {
+    text-shadow: 0 0 0px #f97316;
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 0 0 12px #fb923c, 0 0 24px #f97316;
+    transform: scale(1.03);
+  }
+  100% {
+    text-shadow: 0 0 0px #f97316;
+    transform: scale(1);
+  }
+}
+
+.phoenix-title {
+  animation: phoenixGlow 3s ease-in-out infinite;
+}
+
+@keyframes phoenixFloat {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(2deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+}
+
+.phoenix-logo {
+  animation: phoenixFloat 3s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 1s ease forwards;
+}
+
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: fadeUp 0.9s ease forwards;
+}
+
+.fade-up-delayed {
+  opacity: 0;
+  animation: fadeUp 1.1s ease 0.18s forwards;
+}
+
+@keyframes phoenixGlow {
+  0% {
+    text-shadow: 0 0 0 rgba(249, 115, 22, 0.4);
+  }
+  50% {
+    text-shadow:
+      0 0 12px rgba(251, 146, 60, 0.55),
+      0 0 28px rgba(249, 115, 22, 0.45);
+  }
+  100% {
+    text-shadow: 0 0 0 rgba(249, 115, 22, 0.4);
+  }
+}
+
+.phoenix-title-games {
+  animation: phoenixGlow 3s ease-in-out infinite;
+}
+
+@keyframes phoenixFireFloat {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(249, 115, 22, 0.25));
+  }
+  50% {
+    transform: translateY(-7px) scale(1.06) rotate(2deg);
+    filter: drop-shadow(0 0 14px rgba(249, 115, 22, 0.45));
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(249, 115, 22, 0.25));
+  }
+}
+
+.phoenix-logo-fire {
+  animation: phoenixFireFloat 2.8s ease-in-out infinite;
+}
+
+@keyframes orbPulse {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.08) translate3d(10px, -8px, 0);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+    opacity: 0.55;
+  }
+}
+
+.phoenix-orb {
+  animation: orbPulse 8s ease-in-out infinite;
+}
+
+.phoenix-orb-delayed {
+  animation: orbPulse 10s ease-in-out infinite reverse;
+}
+
+@keyframes gamesSweep {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.games-line {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(249, 115, 22, 0.05) 20%,
+    rgba(249, 115, 22, 0.6) 50%,
+    rgba(249, 115, 22, 0.05) 80%,
+    transparent 100%
+  );
+  animation: gamesSweep 4.5s linear infinite;
+}
+
+.games-line-delayed {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(251, 191, 36, 0.04) 20%,
+    rgba(251, 191, 36, 0.45) 50%,
+    rgba(251, 191, 36, 0.04) 80%,
+    transparent 100%
+  );
+  animation: gamesSweep 6s linear infinite;
+}
+
+@keyframes titleImpact {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+    letter-spacing: 0.01em;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    letter-spacing: -0.02em;
+  }
+}
+
+.games-title {
+  animation: titleImpact 1s ease-out forwards;
+}
+
+.games-frame {
+  position: relative;
+  overflow: hidden;
+}
+
+.games-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 1.5rem;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.35),
+    rgba(255, 255, 255, 0.04),
+    rgba(249, 115, 22, 0.1)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@keyframes openBoxPulse {
+  0% {
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(249, 115, 22, 0.18);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(249, 115, 22, 0.15);
+  }
+}
+
+.open-box-card {
+  animation: openBoxPulse 3.5s ease-in-out infinite;
+}

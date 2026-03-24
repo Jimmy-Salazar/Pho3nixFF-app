@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 
+import Home from "./pages/Home"
 import Login from "./pages/Login"
 import SetPassword from "./pages/SetPassword"
 
@@ -25,16 +26,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        {/* Raíz -> login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Pública principal */}
+        <Route path="/" element={<Home />} />
 
         {/* Públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/set-password" element={<SetPassword />} />
 
         {/* Privadas */}
-
         <Route
           path="/dashboard"
           element={
@@ -91,7 +90,6 @@ export default function App() {
         />
 
         {/* ADMIN */}
-
         <Route
           path="/admin"
           element={
@@ -146,7 +144,6 @@ export default function App() {
 
         {/* fallback */}
         <Route path="*" element={<Navigate to="/login" replace />} />
-
       </Routes>
     </BrowserRouter>
   )
