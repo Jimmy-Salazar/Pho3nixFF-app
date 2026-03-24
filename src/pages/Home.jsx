@@ -263,9 +263,16 @@ export default function Home() {
             border-radius: 14px;
           }
         }
+		
+
+@media (max-width: 768px) {
+  .home-text p {
+    text-align: left;
+  }
+}
       `}</style>
 
-      <div className="min-h-screen overflow-x-hidden bg-[#0b0f17] text-white">
+      <div className="home-text min-h-screen overflow-x-hidden bg-[#0b0f17] text-white">
         <div className="floating-socials">
           <a
             href={socialLinks.instagram}
@@ -385,13 +392,6 @@ export default function Home() {
                   Wod del día
                 </h2>
 
-                <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-                  {todayWodLoading
-                    ? "Cargando WOD del día..."
-                    : todayWod?.descripcion ||
-                      "No hay WOD publicado para hoy."}
-                </p>
-
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                     <p className="text-xs uppercase tracking-[0.22em] text-slate-400">
@@ -442,9 +442,6 @@ export default function Home() {
                   <>
                     <div className="mb-5 flex items-center justify-between gap-3">
                       <div>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
-                          WOD Publicado
-                        </div>
 
                         <p className="mt-3 text-2xl font-black text-white">
                           {todayWod.nombre || "WOD del día"}
@@ -459,7 +456,7 @@ export default function Home() {
                     </div>
 
                     <div className="mt-5 text-sm text-orange-300">
-                      Disponible hoy en PHO3NIX
+                      Disponible hoy en PHO3NIXFF
                     </div>
                   </>
                 ) : (
@@ -479,15 +476,11 @@ export default function Home() {
           className="mx-auto max-w-7xl px-6 py-4 sm:px-8 lg:px-12"
         >
           <div className="mb-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-orange-300">
-              Horarios
-            </p>
-            <h2 className="mt-4 text-3xl font-black sm:text-4xl">
-              Bloques de entrenamiento
-            </h2>
+                <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
+                  HORARIOS
+                </h2>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-              Distribución clara de sesiones para mantener constancia, orden y
-              disponibilidad durante la semana.
+              Distribución clara de sesiones para mantener constancia, orden y disponibilidad durante la semana.
             </p>
           </div>
 
@@ -588,9 +581,9 @@ export default function Home() {
               data-reveal
               className="reveal-base reveal-left"
             >
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-orange-300">
-                Quiénes somos
-              </p>
+                <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
+                  QUIENES SOMOS
+                </h2>
               <h2 className="mt-4 text-3xl font-black sm:text-4xl">
                 Más que un box, una comunidad de evolución.
               </h2>
@@ -634,9 +627,7 @@ export default function Home() {
             data-reveal
             className="reveal-base reveal-center rounded-[28px] border border-orange-500/20 bg-gradient-to-br from-orange-500/12 via-orange-500/8 to-transparent p-8 text-center md:p-12"
           >
-            <p className="text-sm font-semibold uppercase tracking-[0.25em] text-orange-200">
-              Acceso
-            </p>
+
             <h2 className="mt-4 text-3xl font-black sm:text-4xl">
               ¿Ya formas parte de PHO3NIX?
             </h2>
