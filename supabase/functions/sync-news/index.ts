@@ -163,10 +163,14 @@ async function collectCrossFitMediaNews(): Promise<NewsRow[]> {
 
       const details = await fetchArticleDetails(fullUrl)
 
-      const fecha_publicacion =
+      let fecha_publicacion =
         details.fecha_publicacion ||
         (dateText ? toIso(dateText) : null) ||
-        new Date().toISOString()
+        null
+
+      if (!fecha_publicacion) {
+        fecha_publicacion = new Date().toISOString()
+      }
 
       const hash_unico = await sha256(fullUrl)
 
@@ -174,7 +178,7 @@ async function collectCrossFitMediaNews(): Promise<NewsRow[]> {
         titulo: normalizeTitle(title),
         resumen: details.resumen || null,
         contenido: details.contenido || details.resumen || null,
-        fuente: "CrossFit",
+        fuente: details.fuente || inferFuenteFromUrl(fullUrl),
         tipo: "externa",
         categoria: "general",
         url: fullUrl,
@@ -202,6 +206,7 @@ async function fetchArticleDetails(url: string): Promise<{
   imagen_url: string | null
   resumen: string | null
   contenido: string | null
+  fuente: string | null
 }> {
   try {
     const html = await fetchHtml(url)
@@ -212,6 +217,7 @@ async function fetchArticleDetails(url: string): Promise<{
         imagen_url: null,
         resumen: null,
         contenido: null,
+        fuente: null,
       }
     }
 
@@ -238,11 +244,19 @@ async function fetchArticleDetails(url: string): Promise<{
     const contenido =
       buildContent(doc, resumen) || null
 
+    const fuente =
+      normalizeFuente(
+        getMeta(doc, 'meta[property="og:site_name"]') ||
+        getMeta(doc, 'meta[name="application-name"]') ||
+        getText(doc, "title")
+      ) || inferFuenteFromUrl(url)
+
     return {
       fecha_publicacion: published ? toIso(published) : null,
       imagen_url: imagen,
       resumen,
       contenido,
+      fuente,
     }
   } catch {
     return {
@@ -250,6 +264,7 @@ async function fetchArticleDetails(url: string): Promise<{
       imagen_url: null,
       resumen: null,
       contenido: null,
+      fuente: inferFuenteFromUrl(url),
     }
   }
 }
@@ -334,20 +349,31 @@ function getAttr(doc: any, selector: string, attr: string): string | null {
   return el.getAttribute(attr)
 }
 
+function getText(doc: any, selector: string): string | null {
+  const el = doc.querySelector(selector)
+  if (!el) return null
+  return el.textContent?.trim() || null
+}
+
 function extractPublishedFromDoc(doc: any): string | null {
   const text = doc?.body?.textContent || ""
   return extractPublishedFromText(text)
 }
 
 function extractPublishedFromText(text: string): string | null {
+  if (!text) return null
+
   const patterns = [
     /Published on\s+([A-Za-z]+\s+\d{1,2},\s+\d{4})/i,
-    /\b([A-Za-z]+\s+\d{1,2},\s+\d{4})\b/,
+    /([A-Za-z]+\s+\d{1,2},\s+\d{4})/,
+    /([A-Za-z]+\s+\d{1,2})\s*,\s*(\d{4})/,
   ]
 
   for (const pattern of patterns) {
     const match = text.match(pattern)
-    if (match?.[1]) return match[1]
+    if (match?.[1]) {
+      return match[1]
+    }
   }
 
   return null
@@ -378,6 +404,34 @@ function normalizeSummary(text: string | null): string | null {
   const cleaned = cleanText(text)
   if (!cleaned || cleaned.length < 25) return null
   return cleaned.length > 280 ? `${cleaned.slice(0, 277)}...` : cleaned
+}
+
+function normalizeFuente(text: string | null): string | null {
+  if (!text) return null
+
+  const cleaned = cleanText(text)
+    .replace(/\s*\|\s*CrossFit\s*$/i, "")
+    .replace(/\s*\|\s*CrossFit Games\s*$/i, "")
+    .replace(/\s*-\s*CrossFit\s*$/i, "")
+    .replace(/\s*-\s*CrossFit Games\s*$/i, "")
+
+  if (!cleaned) return null
+
+  if (/crossfit games/i.test(cleaned)) return "CrossFit Games"
+  if (/crossfit/i.test(cleaned)) return "CrossFit"
+
+  return cleaned
+}
+
+function inferFuenteFromUrl(url: string): string {
+  try {
+    const u = new URL(url)
+    if (u.hostname.includes("games.crossfit.com")) return "CrossFit Games"
+    if (u.hostname.includes("crossfit.com")) return "CrossFit"
+    return u.hostname
+  } catch {
+    return "CrossFit"
+  }
 }
 
 function isBadTitle(title: string): boolean {
@@ -487,7 +541,6 @@ function json(data: unknown, status = 200) {
     headers: { "content-type": "application/json; charset=utf-8" },
   })
 }
-
 
 
 

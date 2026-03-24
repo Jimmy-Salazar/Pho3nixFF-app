@@ -460,9 +460,15 @@ export default function Dashboard() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
 
                       <div className="absolute inset-x-0 bottom-0 p-4">
-                        <div className="text-[11px] text-white/75">
-                          {item.fuente} • {formatHumanDate(item.fecha_publicacion)}
+                        <div className="flex items-center gap-2 text-[11px]">
+                          <span className="rounded-md border border-orange-400/20 bg-orange-500/20 px-2 py-1 text-orange-300">
+                            {item.fuente || "CrossFit"}
+                          </span>
+                          <span className="text-white/75">
+                            {formatHumanDate(item.fecha_publicacion)}
+                          </span>
                         </div>
+
                         <div className="mt-2 text-base font-semibold text-white line-clamp-2">
                           {translateNewsTitle(item.titulo)}
                         </div>
@@ -691,8 +697,11 @@ function NewsModal({ news, onClose }) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-end">
             <div className="p-5 sm:p-6">
-              <div className="text-xs text-white/75">
-                {news.fuente} • {formatHumanDate(news.fecha_publicacion)}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-white/75">
+                <span className="rounded-md border border-orange-400/20 bg-orange-500/20 px-2 py-1 text-orange-300">
+                  {news.fuente || "CrossFit"}
+                </span>
+                <span>{formatHumanDate(news.fecha_publicacion)}</span>
               </div>
               <h3 className="mt-2 text-xl sm:text-2xl font-semibold text-white">
                 {translatedTitle}
