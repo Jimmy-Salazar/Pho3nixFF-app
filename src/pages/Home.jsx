@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { supabase } from "../supabase"
 import heroImage from "../assets/hero-home.png"
 import lycanLogo from "../assets/lycan.png"
+import pho3nixLogo from "../assets/pho3nix-logo.png"
 
 export default function Home() {
   const [todayWod, setTodayWod] = useState(null)
@@ -77,12 +78,12 @@ export default function Home() {
 
   const socialLinks = {
     instagram: "https://instagram.com/pho3nixff.ec",
+    tiktok: "https://www.tiktok.com/@pho3nixff.ec",
     whatsapp:
       "https://wa.me/593979727407?text=Hola%20quiero%20informacion%20de%20PHO3NIX",
     maps: "https://maps.app.goo.gl/qSocV6BHLWw9suH76",
     lycan:
       "https://lycan-fitness.com/?srsltid=AfmBOopUbg9AGdXkQgLgQJ5FT71xo7ncg0QxI-oIZCwP2tfAsBcxoRH2",
-    tiktok: "https://www.tiktok.com/@pho3nixff.ec",
   }
 
   const values = [
@@ -108,6 +109,25 @@ export default function Home() {
       <style>{`
         html {
           scroll-behavior: smooth;
+        }
+
+        .home-text p {
+          text-align: justify;
+          line-height: 1.7;
+          letter-spacing: 0.01em;
+        }
+
+        .home-text h1,
+        .home-text h2,
+        .home-text h3,
+        .home-text h4 {
+          text-wrap: balance;
+        }
+
+        @media (max-width: 768px) {
+          .home-text p {
+            text-align: left;
+          }
         }
 
         @keyframes heroZoom {
@@ -237,6 +257,19 @@ export default function Home() {
           border-color: rgba(249, 115, 22, 0.25);
         }
 
+        .footer-logo-wrap {
+          transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+          box-shadow: 0 0 0 rgba(249, 115, 22, 0);
+        }
+
+        .footer-logo-wrap:hover {
+          transform: scale(1.05);
+          border-color: rgba(249, 115, 22, 0.35);
+          box-shadow:
+            0 0 0 1px rgba(249, 115, 22, 0.12),
+            0 0 20px rgba(249, 115, 22, 0.18);
+        }
+
         @media (max-width: 1024px) {
           .floating-socials {
             right: 10px;
@@ -263,13 +296,6 @@ export default function Home() {
             border-radius: 14px;
           }
         }
-		
-
-@media (max-width: 768px) {
-  .home-text p {
-    text-align: left;
-  }
-}
       `}</style>
 
       <div className="home-text min-h-screen overflow-x-hidden bg-[#0b0f17] text-white">
@@ -335,8 +361,12 @@ export default function Home() {
           <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-16 sm:px-8 lg:px-12">
             <div className="max-w-3xl">
               <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-sm text-orange-200 backdrop-blur-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/15 text-2xl shadow-lg shadow-orange-500/20">
-                  🔥
+                <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/30 shadow-lg shadow-orange-500/20">
+                  <img
+                    src={pho3nixLogo}
+                    alt="Pho3nix logo"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <span className="text-xs font-bold tracking-[0.25em] sm:text-sm">
                   PHO3NIX FUNCTIONAL FITNESS
@@ -392,32 +422,12 @@ export default function Home() {
                   Wod del día
                 </h2>
 
-                <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-xs uppercase tracking-[0.22em] text-slate-400">
-                      Estado
-                    </p>
-                    <p className="mt-2 text-xl font-bold text-white">
-                      {todayWodLoading
-                        ? "Cargando..."
-                        : todayWod
-                        ? "WOD publicado"
-                        : "Sin publicación"}
-                    </p>
-                  </div>
-
-                  <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-4">
-                    <p className="text-xs uppercase tracking-[0.22em] text-orange-200">
-                      Modalidad
-                    </p>
-                    <p className="mt-2 text-xl font-bold text-white">
-                      {todayWodLoading
-                        ? "..."
-                        : todayWod
-                        ? formatModalidad(todayWod.modalidad)
-                        : "-"}
-                    </p>
-                  </div>
+                <div className="mt-6 text-sm text-slate-400">
+                  {todayWodLoading
+                    ? "Cargando WOD del día..."
+                    : todayWod
+                    ? "Entrenamiento programado para hoy"
+                    : "No hay WOD publicado"}
                 </div>
               </div>
 
@@ -442,7 +452,6 @@ export default function Home() {
                   <>
                     <div className="mb-5 flex items-center justify-between gap-3">
                       <div>
-
                         <p className="mt-3 text-2xl font-black text-white">
                           {todayWod.nombre || "WOD del día"}
                         </p>
@@ -456,7 +465,7 @@ export default function Home() {
                     </div>
 
                     <div className="mt-5 text-sm text-orange-300">
-                      Disponible hoy en PHO3NIXFF
+                      Disponible hoy en PHO3NIX
                     </div>
                   </>
                 ) : (
@@ -476,11 +485,12 @@ export default function Home() {
           className="mx-auto max-w-7xl px-6 py-4 sm:px-8 lg:px-12"
         >
           <div className="mb-10">
-                <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
-                  HORARIOS
-                </h2>
+            <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
+              Horarios
+            </h2>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-              Distribución clara de sesiones para mantener constancia, orden y disponibilidad durante la semana.
+              Distribución clara de sesiones para mantener constancia, orden y
+              disponibilidad durante la semana.
             </p>
           </div>
 
@@ -581,9 +591,9 @@ export default function Home() {
               data-reveal
               className="reveal-base reveal-left"
             >
-                <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
-                  QUIENES SOMOS
-                </h2>
+              <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
+                Quiénes somos
+              </h2>
               <h2 className="mt-4 text-3xl font-black sm:text-4xl">
                 Más que un box, una comunidad de evolución.
               </h2>
@@ -627,7 +637,6 @@ export default function Home() {
             data-reveal
             className="reveal-base reveal-center rounded-[28px] border border-orange-500/20 bg-gradient-to-br from-orange-500/12 via-orange-500/8 to-transparent p-8 text-center md:p-12"
           >
-
             <h2 className="mt-4 text-3xl font-black sm:text-4xl">
               ¿Ya formas parte de PHO3NIX?
             </h2>
@@ -637,13 +646,6 @@ export default function Home() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-5">
-              <Link
-                to="/login"
-                className="inline-flex items-center justify-center rounded-2xl bg-orange-500 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition hover:scale-[1.02] hover:bg-orange-400"
-              >
-                Ir al login
-              </Link>
-
               <a
                 href={socialLinks.instagram}
                 target="_blank"
@@ -679,15 +681,25 @@ export default function Home() {
 
         <footer className="border-t border-white/10 bg-black/20">
           <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-8 text-sm text-slate-400 sm:px-8 lg:px-12 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="font-semibold text-white">PHO3NIX Functional Fitness</p>
-              <p className="mt-1">Disciplina • Fuerza • Evolución</p>
-              <p className="mt-2 text-xs text-slate-500">
-                ©2026 Pho3nixff.ec. Todos los derechos reservados.
-              </p>
-              <p className="mt-2 text-xs text-slate-500">
-                Sitio por Neutron
-              </p>
+            <div className="flex items-center gap-4">
+              <div className="footer-logo-wrap h-15 w-15 overflow-hidden rounded-2x1 border border-white/5 bg-black/40">
+                <img
+                  src={pho3nixLogo}
+                  alt="Pho3nix Functional Fitness"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+
+              <div>
+                <p className="font-semibold text-white">PHO3NIX Functional Fitness</p>
+                <p className="mt-1">Disciplina • Fuerza • Evolución</p>
+                <p className="mt-2 text-xs text-slate-500">
+                  ©2026 Pho3nix Functional Fitness — Producto registrado
+                </p>
+				<p className="mt-2 text-xs text-slate-500">
+                  By Neutron
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-5">
@@ -764,16 +776,6 @@ function formatDateISO(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0")
   const day = String(date.getDate()).padStart(2, "0")
   return `${year}-${month}-${day}`
-}
-
-function formatModalidad(modalidad) {
-  const m = String(modalidad || "").trim().toLowerCase()
-
-  if (m === "single") return "Single"
-  if (m === "duo") return "Duo"
-  if (m === "trio") return "Trio"
-
-  return "Single"
 }
 
 function InstagramIcon() {
