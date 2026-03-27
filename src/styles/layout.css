@@ -462,3 +462,44 @@ html, body { width: 100%; overflow-x: hidden; }
 .open-box-card {
   animation: openBoxPulse 3.5s ease-in-out infinite;
 }
+
+.logo-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-weight: 600;
+  font-size: 16px;
+  color: white;
+}
+
+.footer {
+  margin-top: auto;
+  background: #0b0f14;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 0;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  text-align: center;
+}
+
+.footer-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}

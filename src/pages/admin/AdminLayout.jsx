@@ -22,7 +22,7 @@ export default function AdminLayout() {
               admin
             </span>
             <button className="rounded-xl bg-rose-500/80 px-4 py-2 text-sm font-semibold hover:bg-rose-500 transition">
-              Salir
+              Cerrar Sesión
             </button>
           </div>
         </div>

@@ -5,12 +5,9 @@ import { ROLES } from "../config/roles"
 export default function ProtectedAdminRoute({ children }) {
   const { user, rol, loading, profileLoading } = useAuth()
 
-  if (loading) return <p>Verificando servicios...</p>
+  if (loading || profileLoading) return <p>Verificando servicios...</p>
 
   if (!user) return <Navigate to="/login" replace />
-
-  // Para rutas admin sí esperamos el rol real
-  if (profileLoading) return <p>Verificando servicios...</p>
 
   const norm = (v) => String(v || "").trim().toLowerCase()
 

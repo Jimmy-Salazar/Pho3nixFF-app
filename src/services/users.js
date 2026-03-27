@@ -1,7 +1,7 @@
 import { supabase } from "../supabase"
 
 const USERS_SELECT =
-  "id,nombre,cedula,email,telefono,role,fecha_nacimiento,foto_url"
+  "id,nombre,cedula,email,telefono,role,fecha_nacimiento,foto_url,sexo"
 
 export async function fetchUsers({ search = "", role = "all", limit = 100 }) {
   let q = supabase
@@ -42,7 +42,7 @@ export async function fetchLatestMensualidadesByUserIds(userIds) {
 
   const map = new Map()
   for (const m of data ?? []) {
-    if (!map.has(m.usuario_id)) map.set(m.usuario_id, m) // primera = más reciente
+    if (!map.has(m.usuario_id)) map.set(m.usuario_id, m)
   }
   return map
 }
@@ -64,8 +64,8 @@ export async function activateMensualidad({ usuario_id, fecha_inicio, fecha_fin 
     .insert([
       {
         usuario_id,
-        fecha_inicio, // "YYYY-MM-DD"
-        fecha_fin,    // "YYYY-MM-DD"
+        fecha_inicio,
+        fecha_fin,
         estado: "Activo",
       },
     ])
@@ -85,17 +85,21 @@ export async function deactivateLatestMensualidad({ mensualidad_id }) {
   if (error) throw error
 }
 
-export async function updateUserBasic(userId, { telefono, role, fecha_nacimiento }) {
+export async function updateUserBasic(
+  userId,
+  { telefono, role, fecha_nacimiento, sexo }
+) {
   const patch = {}
   if (telefono !== undefined) patch.telefono = telefono
   if (role !== undefined) patch.role = role
   if (fecha_nacimiento !== undefined) patch.fecha_nacimiento = fecha_nacimiento
+  if (sexo !== undefined) patch.sexo = sexo
 
   const { data, error } = await supabase
     .from("usuarios")
     .update(patch)
     .eq("id", userId)
-    .select("id,telefono,role,fecha_nacimiento")
+    .select("id,telefono,role,fecha_nacimiento,sexo")
     .single()
 
   if (error) throw error

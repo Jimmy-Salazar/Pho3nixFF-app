@@ -12,6 +12,7 @@ import { mensualidadStatusInfo } from "../../utils/mensualidades"
 
 const ROLE_OPTIONS = ["all", "Alumno", "Admin", "Coach"]
 const ROLE_PICKER_OPTIONS = ["Alumno", "Coach", "Admin"]
+const SEX_OPTIONS = ["Masculino", "Femenino"]
 
 export default function Users() {
   const [loading, setLoading] = useState(true)
@@ -65,14 +66,25 @@ export default function Users() {
   }, [search])
 
   const computeStatus = (u) => {
+    const roleNorm = String(u.role || "").trim().toLowerCase()
+
+    if (roleNorm === "admin" || roleNorm === "administrador") {
+      return {
+        active: true,
+        mensualidad: null,
+        forced: true,
+      }
+    }
+
     const m = mensMap.get(u.id)
-    if (!m) return { active: false, mensualidad: null }
+    if (!m) return { active: false, mensualidad: null, forced: false }
 
     const info = mensualidadStatusInfo(m)
 
     return {
       active: info.active,
       mensualidad: m,
+      forced: false,
     }
   }
 
@@ -89,6 +101,11 @@ export default function Users() {
   }
 
   const onToggleStatus = async (u) => {
+    const roleNorm = String(u.role || "").trim().toLowerCase()
+
+    // Admin no usa mensualidades
+    if (roleNorm === "admin" || roleNorm === "administrador") return
+
     const s = computeStatus(u)
 
     if (s.active) {
@@ -213,6 +230,8 @@ export default function Users() {
                 ) : (
                   rows.map((u) => {
                     const st = computeStatus(u)
+                    const isForcedAdmin = st.forced === true
+
                     return (
                       <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
                         <td className="px-4 py-3">
@@ -236,6 +255,9 @@ export default function Users() {
                           <StatusToggle
                             active={st.active}
                             endDate={st.mensualidad?.fecha_fin}
+                            disabled={isForcedAdmin}
+                            labelOverride={isForcedAdmin ? "Activo" : undefined}
+                            titleOverride={isForcedAdmin ? "Administrador siempre activo" : undefined}
                             onToggle={() => onToggleStatus(u)}
                           />
                         </td>
@@ -278,6 +300,7 @@ export default function Users() {
                   rows.map((u) => {
                     const st = computeStatus(u)
                     const roleLabel = normalizeRoleLabel(u.role)
+
                     return (
                       <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
                         <td className="px-3 py-2.5">
@@ -385,19 +408,35 @@ function formatDateDMY(value) {
   }
 }
 
-function StatusToggle({ active, endDate, onToggle }) {
+function StatusToggle({
+  active,
+  endDate,
+  onToggle,
+  disabled = false,
+  labelOverride,
+  titleOverride,
+}) {
+  const title =
+    titleOverride ||
+    (endDate ? `Hasta: ${formatDateDMY(endDate)}` : active ? "Activo" : "Inactivo")
+
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={(e) => {
         e.stopPropagation()
-        onToggle?.()
+        if (!disabled) onToggle?.()
       }}
-      className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition bg-white/5 border-white/10 hover:bg-white/8"
-      title={endDate ? `Hasta: ${formatDateDMY(endDate)}` : active ? "Activo" : "Inactivo"}
+      className={[
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition",
+        "bg-white/5 border-white/10",
+        disabled ? "opacity-60 cursor-not-allowed" : "hover:bg-white/8",
+      ].join(" ")}
+      title={title}
     >
       <span className={`h-2.5 w-2.5 rounded-full ${active ? "bg-green-400" : "bg-white/30"}`} />
-      <span className="text-white/80">{active ? "Activo" : "Inactivo"}</span>
+      <span className="text-white/80">{labelOverride || (active ? "Activo" : "Inactivo")}</span>
     </button>
   )
 }
@@ -544,6 +583,32 @@ function RolePicker({ value, onChange, options = ROLE_PICKER_OPTIONS }) {
   )
 }
 
+function SexSelect({ value, onChange, required = false }) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full appearance-none rounded-xl border border-white/10 bg-slate-900 text-white px-3 py-2 pr-10 outline-none transition focus:border-orange-400 focus:bg-slate-900"
+        required={required}
+      >
+        <option value="" className="bg-slate-900 text-white">
+          Seleccione
+        </option>
+        {SEX_OPTIONS.map((opt) => (
+          <option key={opt} value={opt} className="bg-slate-900 text-white">
+            {opt}
+          </option>
+        ))}
+      </select>
+
+      <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-white/60">
+        ▾
+      </span>
+    </div>
+  )
+}
+
 /* ---------------- Modals ---------------- */
 
 function PaymentModal({ user, lastMensualidad, onClose, onSave }) {
@@ -576,7 +641,8 @@ function PaymentModal({ user, lastMensualidad, onClose, onSave }) {
 
         {lastMensualidad?.fecha_fin ? (
           <div className="mt-2 text-xs text-white/50">
-            Última mensualidad hasta: <b>{formatDateDMY(lastMensualidad.fecha_fin)}</b> ({lastMensualidad.estado})
+            Última mensualidad hasta: <b>{formatDateDMY(lastMensualidad.fecha_fin)}</b> (
+            {lastMensualidad.estado})
           </div>
         ) : null}
 
@@ -603,7 +669,8 @@ function PaymentModal({ user, lastMensualidad, onClose, onSave }) {
         </div>
 
         <p className="mt-3 text-xs text-white/50">
-          Se verá <b>Activo</b> mientras estado sea “Activo” y la fecha fin sea ≥ hoy. Si vence, se apaga solo.
+          Se verá <b>Activo</b> mientras estado sea “Activo” y la fecha fin sea ≥ hoy. Si vence,
+          se apaga solo.
         </p>
 
         <div className="mt-4 flex justify-end gap-2">
@@ -640,10 +707,11 @@ function EditUserModal({ user, onClose, onSaved }) {
   const [telefono, setTelefono] = useState(user.telefono ?? "")
   const [role, setRole] = useState(user.role ?? "Alumno")
   const [fechaNacimiento, setFechaNacimiento] = useState(user.fecha_nacimiento ?? "")
+  const [sexo, setSexo] = useState(user.sexo ?? "")
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState("")
 
-  const canSave = !saving && role
+  const canSave = !saving && role && sexo
 
   return (
     <div className="fixed inset-0 z-50">
@@ -681,7 +749,12 @@ function EditUserModal({ user, onClose, onSaved }) {
             <RolePicker value={role} onChange={setRole} />
           </div>
 
-          <label className="block sm:col-span-2">
+          <label className="block">
+            <div className="text-white/60 text-xs mb-1">Sexo</div>
+            <SexSelect value={sexo} onChange={setSexo} required />
+          </label>
+
+          <label className="block">
             <div className="text-white/60 text-xs mb-1">Fecha de nacimiento</div>
             <input
               type="date"
@@ -711,6 +784,7 @@ function EditUserModal({ user, onClose, onSaved }) {
                   telefono,
                   role,
                   fecha_nacimiento: fechaNacimiento || null,
+                  sexo,
                 })
                 await onSaved()
               } catch (e) {
@@ -728,7 +802,7 @@ function EditUserModal({ user, onClose, onSaved }) {
         </div>
 
         <p className="mt-3 text-xs text-white/50">
-          Edita solo: teléfono, rol y fecha de nacimiento.
+          Edita solo: teléfono, rol, sexo y fecha de nacimiento.
         </p>
       </div>
     </div>
@@ -743,10 +817,11 @@ function CreateStudentModal({ onClose, onSubmit, loading }) {
     telefono: "",
     fecha_nacimiento: "",
     role: "Alumno",
+    sexo: "",
   })
 
   const disabled =
-    loading || !form.nombre.trim() || !form.email.trim() || !form.cedula.trim()
+    loading || !form.nombre.trim() || !form.email.trim() || !form.cedula.trim() || !form.sexo
 
   return (
     <div className="fixed inset-0 z-50">
@@ -802,7 +877,15 @@ function CreateStudentModal({ onClose, onSubmit, loading }) {
             />
           </Field>
 
-          <div className="block">
+          <Field label="Sexo">
+            <SexSelect
+              value={form.sexo}
+              onChange={(nextSexo) => setForm({ ...form, sexo: nextSexo })}
+              required
+            />
+          </Field>
+
+          <div className="block sm:col-span-2">
             <div className="text-white/60 text-xs mb-1">Rol</div>
             <RolePicker
               value={form.role}

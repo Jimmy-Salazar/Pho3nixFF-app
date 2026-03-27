@@ -1,4 +1,6 @@
-import { useState } from "react"
+// src/pages/Login.js
+
+import { useEffect, useState } from "react"
 import { supabase } from "../supabase"
 import { useNavigate, Link } from "react-router-dom"
 
@@ -10,42 +12,60 @@ export default function Login() {
 
   const navigate = useNavigate()
 
-  const withTimeout = (promise, ms = 8000) =>
-  Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`Timeout login (${ms}ms)`)), ms)
-    ),
-  ])
+  useEffect(() => {
+    const authError = sessionStorage.getItem("auth_error")
+    if (authError) {
+      console.log("[LOGIN] auth_error from sessionStorage:", authError)
+      setError(authError)
+      sessionStorage.removeItem("auth_error")
+    }
+  }, [])
 
-const handleLogin = async (e) => {
-  e.preventDefault()
+  const handleLogin = async (e) => {
+    e.preventDefault()
 
-  try {
-    setLoading(true)
-    setError(null)
+    if (loading) {
+      console.log("[LOGIN] blocked: already loading")
+      return
+    }
 
-    const { error } = await withTimeout(
-      supabase.auth.signInWithPassword({ email, password }),
-      8000
-    )
+    try {
+      console.log("[LOGIN] submit")
+      console.log("[LOGIN] email:", email?.trim())
 
-    if (error) throw error
+      setLoading(true)
+      setError(null)
 
-    navigate("/dashboard")
-  } catch (err) {
-    console.log("Login error:", err)
-    setError(err?.message || "No se pudo iniciar sesión.")
-  } finally {
-    setLoading(false)
+      console.log("[LOGIN] before signInWithPassword")
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+
+      console.log("[LOGIN] after signInWithPassword", {
+        hasSession: !!data?.session,
+        hasUser: !!data?.user,
+        userId: data?.user?.id || data?.session?.user?.id || null,
+        error: error ? error.message : null,
+      })
+
+      if (error) throw error
+
+      console.log("[LOGIN] navigate -> /dashboard")
+      navigate("/dashboard")
+    } catch (err) {
+      console.error("[LOGIN] catch:", err)
+      setError(err?.message || "No se pudo iniciar sesión.")
+    } finally {
+      console.log("[LOGIN] finally -> setLoading(false)")
+      setLoading(false)
+    }
   }
-}
 
   return (
     <div className="fixed inset-0 login-bg overflow-hidden">
-      {/* Estilos encapsulados SOLO para el login (no rompen tu lógica ni otros layouts) */}
       <style>{`
-        /* --- Phoenix icon animation --- */
         @keyframes phoenixFloat {
           0%,100% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 10px rgba(255,120,0,.35)); }
           50% { transform: translateY(-2px) scale(1.03); filter: drop-shadow(0 0 14px rgba(255,0,90,.35)); }
@@ -57,7 +77,6 @@ const handleLogin = async (e) => {
         .phoenix-icon { animation: phoenixFloat 1.6s ease-in-out infinite; transform-origin: center; }
         .phoenix-wing { animation: phoenixWings .9s ease-in-out infinite; transform-origin: 12px 12px; }
 
-        /* --- Fire border (NO rotation) --- */
         @keyframes fireBreath {
           0%,100% { opacity: .55; filter: blur(14px); }
           50% { opacity: .9; filter: blur(18px); }
@@ -77,7 +96,6 @@ const handleLogin = async (e) => {
           mix-blend-mode: screen;
         }
 
-        /* --- Matchstick burn button --- */
         @keyframes matchBurn {
           0% { transform: translateX(-120%); opacity: 0; }
           10% { opacity: 1; }
@@ -116,20 +134,15 @@ const handleLogin = async (e) => {
         }
       `}</style>
 
-      {/* Orbes del fondo */}
       <div className="phoenix-orb phoenix-orb--a pointer-events-none" aria-hidden="true" />
       <div className="phoenix-orb phoenix-orb--b pointer-events-none" aria-hidden="true" />
       <div className="phoenix-orb phoenix-orb--c pointer-events-none" aria-hidden="true" />
 
-      {/* Centro: sin scroll fantasma */}
       <div className="min-h-dvh w-full grid place-items-center p-4">
-        {/* Card wrapper con altura controlada para móvil */}
         <div className="relative w-full max-w-sm sm:max-w-md">
-          {/* “Fuego” alrededor (no gira) */}
           <div className="fire-border" />
 
           <div className="relative rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_25px_80px_rgba(0,0,0,0.55)] overflow-hidden">
-            {/* Imagen superior (más baja en móvil) */}
             <div className="relative">
               <img
                 src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1600&auto=format&fit=crop"
@@ -140,18 +153,17 @@ const handleLogin = async (e) => {
               <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/65" />
             </div>
 
-            {/* Contenido */}
             <div className="p-5 sm:p-7">
               <div className="flex items-center gap-3">
-                {/* Icono 🐦‍🔥 (el que pediste) */}
-				<div className="h-12 w-12 rounded-2xl bg-white/12 flex items-center justify-center phoenix-badge">
-				  <span className="phoenix-emoji text-[28px] leading-none" aria-hidden="true">🐦‍🔥</span>
-				</div>
+                <div className="h-12 w-12 rounded-2xl bg-white/12 flex items-center justify-center phoenix-badge">
+                  <span className="phoenix-emoji text-[28px] leading-none" aria-hidden="true">
+                    🐦‍🔥
+                  </span>
+                </div>
 
                 <div className="min-w-0">
-                  {/* Título más pequeño y pro */}
                   <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
-                    Pho3nix Fuctional Fitness
+                    Pho3nix Functional Fitness
                   </h1>
                   <p className="text-xs sm:text-sm text-white/70">
                     Ingresa con tu correo y contraseña.
@@ -196,7 +208,7 @@ const handleLogin = async (e) => {
                   className={[
                     "w-full rounded-2xl py-2.5 sm:py-3 font-semibold text-white transition relative",
                     "bg-gradient-to-r from-orange-500 to-pink-600 hover:opacity-95",
-                    loading ? "btn-match cursor-wait" : ""
+                    loading ? "btn-match cursor-wait opacity-90" : "",
                   ].join(" ")}
                 >
                   {loading ? (
@@ -220,13 +232,21 @@ const handleLogin = async (e) => {
                     type="button"
                     className="text-white/75 hover:text-white underline underline-offset-4"
                     onClick={async () => {
-                      if (!email) {
+                      if (!email.trim()) {
                         setError("Escribe tu correo para recuperar la contraseña.")
                         return
                       }
-                      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                        redirectTo: "http://localhost:5173/set-password",
+
+                      console.log("[LOGIN] resetPasswordForEmail ->", email.trim())
+
+                      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+                        redirectTo: `${window.location.origin}/set-password`,
                       })
+
+                      console.log("[LOGIN] resetPasswordForEmail result", {
+                        error: error ? error.message : null,
+                      })
+
                       if (error) setError(error.message)
                       else setError("Te enviamos un correo para recuperar tu contraseña.")
                     }}
@@ -253,120 +273,9 @@ const handleLogin = async (e) => {
             </div>
           </div>
 
-          {/* Glow extra (tu clase existente) */}
           <div className="phoenix-glow pointer-events-none absolute inset-0 -z-10" />
         </div>
       </div>
     </div>
   )
 }
-
-
-/*import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { supabase } from "../supabase"
-
-export default function Login() {
-  const navigate = useNavigate()
-
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [errorMsg, setErrorMsg] = useState("")
-
-  const handleLogin = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setErrorMsg("")
-
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) {
-        setErrorMsg(error.message || "Credenciales incorrectas")
-        setLoading(false)
-        return
-      }
-
-      setLoading(false)
-      navigate("/dashboard", { replace: true })
-    } catch (err) {
-      setLoading(false)
-      setErrorMsg("Error inesperado. Intenta nuevamente.")
-      console.error(err)
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Card *//*}*/
-        /*<div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.45)] p-6 sm:p-8">
-          {/* Header *//*}*/
-       /*   <div className="mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🐦‍🔥</span>
-              <h1 className="text-xl font-semibold tracking-tight">
-                Pho3nix Fitness
-              </h1>
-            </div>
-            <p className="mt-2 text-sm text-slate-300">
-              Inicia sesión para entrar al panel.
-            </p>
-          </div>
-
-          {/* Error *//*}
-*/        /*  {errorMsg ? (
-            <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-              {errorMsg}
-            </div>
-          ) : null}
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="text-sm text-slate-300">Correo</label>
-              <input
-                type="email"
-                className="mt-1 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 transition"
-                placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-slate-300">Contraseña</label>
-              <input
-                type="password"
-                className="mt-1 w-full rounded-xl bg-slate-900/60 border border-white/10 px-4 py-3 outline-none focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 transition"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-4 py-3 font-semibold shadow-lg shadow-cyan-500/10 hover:opacity-95 disabled:opacity-60 disabled:cursor-not-allowed transition"
-            >
-              {loading ? "Ingresando..." : "Ingresar"}
-            </button>
-          </form>
-
-          <div className="mt-6 flex items-center justify-between text-xs text-slate-400">
-            <span>© {new Date().getFullYear()} Pho3nix Fitness</span>
-            <span className="opacity-80">v1</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}*/
