@@ -7,6 +7,9 @@ import { supabase } from "../supabase"
 const DEFAULT_AVATAR =
   "https://rmolvzjluxutxmxzthjp.supabase.co/storage/v1/object/public/images/pho3nix-logo.png"
 
+const BRAND_LOGO =
+  "https://rmolvzjluxutxmxzthjp.supabase.co/storage/v1/object/public/images/pho3nix-logo.png"
+
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [fotoUrl, setFotoUrl] = useState(null)
@@ -23,14 +26,33 @@ export default function Navbar() {
     String(rol || "").toLowerCase() === "administrador" ||
     String(rol || "").toLowerCase() === "admin"
 
-  // ✅ Cargar foto del usuario
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const isMobile = () => window.matchMedia("(max-width: 768px)").matches
+    if (!isMobile()) return
+
+    let lastY = window.scrollY
+
+    const onScroll = () => {
+      const y = window.scrollY
+      if (Math.abs(y - lastY) > 0) setMenuOpen(false)
+      lastY = y
+    }
+
+    window.addEventListener("scroll", onScroll, { passive: true })
+
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+    }
+  }, [menuOpen])
+
   useEffect(() => {
     let alive = true
 
     const loadFoto = async () => {
       try {
         const { data: userData } = await supabase.auth.getUser()
-
         const userId = userData?.user?.id
 
         if (!userId) {
@@ -38,20 +60,13 @@ export default function Navbar() {
           return
         }
 
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("usuarios")
           .select("foto_url")
           .eq("id", userId)
           .single()
 
-        if (error) {
-          if (alive) setFotoUrl(null)
-          return
-        }
-
-        if (alive) {
-          setFotoUrl(data?.foto_url || null)
-        }
+        if (alive) setFotoUrl(data?.foto_url || null)
       } catch {
         if (alive) setFotoUrl(null)
       }
@@ -64,14 +79,10 @@ export default function Navbar() {
     }
   }, [])
 
-  // ✅ Avatar con fallback
   const AvatarUser = useMemo(
     () =>
       function AvatarUser() {
-        const src =
-          fotoUrl && fotoUrl.length > 5
-            ? fotoUrl
-            : DEFAULT_AVATAR
+        const src = fotoUrl && fotoUrl.length > 5 ? fotoUrl : DEFAULT_AVATAR
 
         return (
           <div className="avatar-user">
@@ -97,6 +108,7 @@ export default function Navbar() {
       strokeWidth={1.8}
       stroke="currentColor"
       className="h-5 w-5"
+      aria-hidden="true"
     >
       <path
         strokeLinecap="round"
@@ -108,56 +120,119 @@ export default function Navbar() {
 
   return (
     <header className="navbar">
+      {/* ===== BRAND DESKTOP ===== */}
+      <div className="navbar-left desktop-only">
+        <div className="logo-box">
+          <img
+            src={BRAND_LOGO}
+            alt="Pho3nix logo"
+            className="logo-img"
+          />
+          <span className="logo-text">Pho3nix Functional Fitness</span>
+        </div>
+      </div>
 
-		<div className="navbar-left desktop-only">
-		  <div className="logo-box">
-			<img
-			  src="https://rmolvzjluxutxmxzthjp.supabase.co/storage/v1/object/public/images/pho3nix-logo.png"
-			  alt="phoenix"
-			  className="logo-img"
-			/>
-			<span className="logo-text">
-			  Pho3nix Functional Fitness
-			</span>
-		  </div>
-		</div>
-
+      {/* ===== LINKS DESKTOP ===== */}
       <nav className="navbar-links-desktop desktop-only">
-
-        <NavLink to="/dashboard" className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/dashboard"
+          className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
+        >
           Dashboard
         </NavLink>
 
-        <NavLink to="/registrar-rm" className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/registrar-rm"
+          className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
+        >
           RM
         </NavLink>
 
-        <NavLink to="/wods" className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/wods"
+          className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
+        >
           WOD
         </NavLink>
 
-        <NavLink to="/pda" className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}>
+        <NavLink
+          to="/pda"
+          className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
+        >
           PDA
         </NavLink>
 
         {isAdmin && (
-          <NavLink to="/admin/users" className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}>
+          <NavLink
+            to="/admin/users"
+            className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
+          >
             Personas
           </NavLink>
         )}
 
         {isAdmin && (
-          <NavLink to="/admin" className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}>
+          <NavLink
+            to="/admin"
+            end
+            className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
+          >
             Admin
           </NavLink>
         )}
-
       </nav>
 
-      {/* RIGHT */}
+      {/* ===== MOBILE USER ===== */}
+      <div className="navbar-left mobile-only">
+        <div className="user-chip">
+          <AvatarUser />
+          <span className="user-name">{safeNombre}</span>
+        </div>
+      </div>
 
+      {/* ===== OVERLAY ===== */}
+      {menuOpen && (
+        <button
+          className="nav-overlay"
+          aria-label="Cerrar menú"
+          onClick={closeMenu}
+          type="button"
+        />
+      )}
+
+      {/* ===== MOBILE MENU ===== */}
+      <nav className={`navbar-links ${menuOpen ? "open" : ""}`}>
+        <Link to="/dashboard" onClick={closeMenu}>
+          Dashboard
+        </Link>
+
+        <Link to="/registrar-rm" onClick={closeMenu}>
+          RM
+        </Link>
+
+        <Link to="/wods" onClick={closeMenu}>
+          WOD
+        </Link>
+
+        <Link to="/pda" onClick={closeMenu}>
+          PDA
+        </Link>
+
+        {isAdmin && (
+          <Link to="/admin/users" onClick={closeMenu}>
+            Personas
+          </Link>
+        )}
+
+        {isAdmin && (
+          <Link to="/admin" onClick={closeMenu}>
+            Admin
+          </Link>
+        )}
+      </nav>
+
+      {/* ===== DESKTOP RIGHT ===== */}
       <div className="navbar-right desktop-only">
-
         <div className="user-chip">
           <AvatarUser />
           <span className="user-role">{safeNombre}</span>
@@ -166,34 +241,35 @@ export default function Navbar() {
         <button
           className="logout-btn"
           onClick={logout}
+          type="button"
           title="Cerrar sesión"
+          aria-label="Cerrar sesión"
         >
           <LogoutIcon />
         </button>
-
       </div>
 
-      {/* MOBILE */}
-
+      {/* ===== MOBILE ACTIONS ===== */}
       <div className="navbar-actions mobile-only">
-
         <button
           className="logout-btn"
           onClick={logout}
+          type="button"
           title="Cerrar sesión"
+          aria-label="Cerrar sesión"
         >
           <LogoutIcon />
         </button>
 
         <button
           className="menu-toggle"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={toggleMenu}
+          type="button"
+          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
         >
           {menuOpen ? "✕" : "☰"}
         </button>
-
       </div>
-
     </header>
   )
 }

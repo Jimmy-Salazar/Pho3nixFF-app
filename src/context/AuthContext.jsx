@@ -1,3 +1,5 @@
+// src/context/AuthContext.jsx
+
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { supabase } from "../supabase"
 
@@ -12,12 +14,15 @@ const needsMensualidad = (role) => {
 
 function todayISO() {
   const d = new Date()
-  return d.toISOString().slice(0, 10)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
 }
 
 function parseDate(d) {
   if (!d) return null
-  const [y, m, day] = d.split("-").map(Number)
+  const [y, m, day] = String(d).split("-").map(Number)
   return new Date(y, m - 1, day)
 }
 
@@ -35,9 +40,24 @@ function isBirthdayToday(fecha) {
   if (!fecha) return false
 
   const today = todayISO().split("-")
-  const f = fecha.split("-")
+  const f = String(fecha).split("-")
 
   return today[1] === f[1] && today[2] === f[2]
+}
+
+function consumeRecentManualLoginFlag() {
+  const raw = sessionStorage.getItem("login_intent_at")
+  sessionStorage.removeItem("login_intent_at")
+
+  if (!raw) return false
+
+  const at = Number(raw)
+  if (!Number.isFinite(at)) return false
+
+  const ageMs = Date.now() - at
+
+  // válido solo si ocurrió hace poco
+  return ageMs >= 0 && ageMs <= 15000
 }
 
 export function AuthProvider({ children }) {
@@ -72,6 +92,7 @@ export function AuthProvider({ children }) {
 
       setLoading(false)
       setProfileLoading(false)
+      setBirthdayPopup(null)
     }
 
     const loadIdentityAndAccess = async (sessionUser, options = {}) => {
@@ -82,10 +103,12 @@ export function AuthProvider({ children }) {
         setProfileLoading(true)
 
         let resolvedNombre =
-          sessionUser.user_metadata?.nombre || sessionUser.email
+          sessionUser.user_metadata?.nombre ||
+          sessionUser.email
 
         let resolvedRol =
-          sessionUser.user_metadata?.role || null
+          sessionUser.user_metadata?.role ||
+          null
 
         let fechaNacimiento = null
 
@@ -125,7 +148,9 @@ export function AuthProvider({ children }) {
             dias >= 0
 
           if (!ok) {
-            await denyAccess("Tu membresía está inactiva o vencida")
+            await denyAccess(
+              "Tu membresía está inactiva o vencida"
+            )
             return
           }
 
@@ -145,12 +170,12 @@ export function AuthProvider({ children }) {
         setRol(resolvedRol)
         setNombre(resolvedNombre)
 
-        // ✅ SOLO mostrar cumpleaños en login real
         if (showBirthdayPopup && isBirthdayToday(fechaNacimiento)) {
           setBirthdayPopup({
             nombre: resolvedNombre,
+			rol: resolvedRol,
           })
-        } else {
+        } else if (!showBirthdayPopup) {
           setBirthdayPopup(null)
         }
 
@@ -173,10 +198,8 @@ export function AuthProvider({ children }) {
         return
       }
 
-      // ✅ sesión restaurada: NO mostrar cumpleaños
-      await loadIdentityAndAccess(u, {
-        showBirthdayPopup: false,
-      })
+      // ✅ recarga / sesión restaurada: NO cumpleaños
+      await loadIdentityAndAccess(u, { showBirthdayPopup: false })
     }
 
     bootstrap()
@@ -192,12 +215,10 @@ export function AuthProvider({ children }) {
         if (!u) {
           clearAuth()
           setLoading(false)
-          setProfileLoading(false)
           return
         }
 
-        // ✅ solo SIGNED_IN debe mostrar cumpleaños
-        const shouldShowBirthday = event === "SIGNED_IN"
+        const shouldShowBirthday = consumeRecentManualLoginFlag()
 
         setTimeout(() => {
           loadIdentityAndAccess(u, {
@@ -233,6 +254,8 @@ export function AuthProvider({ children }) {
         mensualidadWarning,
         dismissBirthdayPopup,
         dismissMensualidadWarning,
+        setBirthdayPopup,
+        setMensualidadWarning,
       }}
     >
       {children}

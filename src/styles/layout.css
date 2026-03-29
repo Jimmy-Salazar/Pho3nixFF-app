@@ -29,17 +29,24 @@ html, body { width: 100%; overflow-x: hidden; }
 
 .logo{ font-size:18px; font-weight:800; }
 
-.navbar-left{ display:flex; align-items:center; }
+.navbar-left{ display:flex; align-items:center; min-width:0; }
 .navbar-right, .navbar-actions{ display:flex; align-items:center; gap:10px; }
 
-.user-chip{ display:flex; align-items:center; gap:8px; min-width:0; }
+.user-chip{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  max-width:100%;
+}
 
 .user-name, .user-role{
+  display:block;
   font-size:13px; color:rgba(255,255,255,.85); font-weight:800;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px;
 }
 
-/* ✅ Avatar del usuario (default 🐦‍🔥, futuro foto) */
+/* Avatar del usuario */
 .avatar-user{
   width:30px; height:30px;
   border-radius:50%;
@@ -48,6 +55,7 @@ html, body { width: 100%; overflow-x: hidden; }
   background:rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.12);
   box-shadow: 0 0 6px rgba(255,120,60,.40), 0 0 14px rgba(255,80,0,.30);
+  flex-shrink:0;
 }
 .avatar-user-img{ width:100%; height:100%; object-fit:cover; }
 .avatar-user-phoenix{ font-size:16px; line-height:1; }
@@ -59,6 +67,10 @@ html, body { width: 100%; overflow-x: hidden; }
   padding:8px 12px; border-radius:10px; color:white; cursor:pointer;
   box-shadow:0 0 22px rgba(255,90,80,.18);
   font-weight:800; font-size:13px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
 }
 .logout-btn:hover{ filter:brightness(1.08); }
 
@@ -71,6 +83,7 @@ html, body { width: 100%; overflow-x: hidden; }
   width:40px; height:38px; font-size:18px;
   color:white; cursor:pointer;
   position:relative; z-index:60;
+  flex-shrink:0;
 }
 
 /* Main */
@@ -80,7 +93,7 @@ html, body { width: 100%; overflow-x: hidden; }
 .desktop-only{ display:flex; }
 .mobile-only{ display:none; }
 
-/* ===== PC SaaS links ===== */
+/* Desktop links */
 .navbar-links-desktop{
   display:flex;
   align-items:center;
@@ -124,8 +137,36 @@ html, body { width: 100%; overflow-x: hidden; }
   .desktop-only{ display:none; }
   .mobile-only{ display:flex; }
 
+  .navbar{
+    gap:8px;
+    padding:12px 10px;
+  }
+
   .navbar-links-desktop{ display:none; }
   .menu-toggle{ display:block; }
+
+  /* ✅ esto arregla el nombre en móvil */
+  .navbar-left.mobile-only{
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+  }
+
+  .navbar-actions.mobile-only{
+    margin-left:auto;
+    flex-shrink:0;
+    gap:8px;
+  }
+
+  .user-chip{
+    min-width:0;
+    max-width:100%;
+  }
+
+  .user-name{
+    max-width:calc(100vw - 130px);
+    font-size:13px;
+  }
 
   /* Overlay */
   .nav-overlay{
@@ -134,7 +175,7 @@ html, body { width: 100%; overflow-x: hidden; }
     border:0; padding:0; cursor:pointer;
   }
 
-  /* Drawer más pequeño */
+  /* Drawer */
   .navbar-links{
     position:fixed; top:0; right:0; height:100vh;
     width:min(78vw, 300px);
@@ -165,21 +206,15 @@ html, body { width: 100%; overflow-x: hidden; }
     color:#e5e7eb;
     transition:.25s;
   }
-
-  .user-name{ max-width:38vw; }
 }
 
-/* ==========================
-   PHOENIX FIRE MENU (MOBILE)
-   visible SIEMPRE cuando open
-   ========================== */
+/* Phoenix fire menu mobile */
 .navbar-links.open a{
   position:relative;
   overflow:hidden;
   background:transparent !important;
 }
 
-/* capa fuego animada */
 .navbar-links.open a::before{
   content:"";
   position:absolute;
@@ -200,7 +235,6 @@ html, body { width: 100%; overflow-x: hidden; }
   animation:phoenixFlames 1.6s ease-in-out infinite;
 }
 
-/* glass arriba para legibilidad */
 .navbar-links.open a::after{
   content:"";
   position:absolute;
@@ -211,7 +245,6 @@ html, body { width: 100%; overflow-x: hidden; }
   border-radius:12px;
 }
 
-/* texto por encima */
 .navbar-links.open a{
   z-index:2;
   box-shadow:0 0 18px rgba(255,110,60,0.18);
@@ -267,21 +300,6 @@ html, body { width: 100%; overflow-x: hidden; }
 
 .phoenix-logo {
   animation: phoenixFloat 3s ease-in-out infinite;
-}
-
-@keyframes fadeUp {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-up {
-  animation: fadeUp 1s ease forwards;
 }
 
 @keyframes fadeUp {
@@ -467,18 +485,21 @@ html, body { width: 100%; overflow-x: hidden; }
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .logo-img {
   width: 32px;
   height: 32px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 .logo-text {
   font-weight: 600;
   font-size: 16px;
   color: white;
+  white-space: nowrap;
 }
 
 .footer {

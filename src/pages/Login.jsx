@@ -21,47 +21,54 @@ export default function Login() {
     }
   }, [])
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
+const handleLogin = async (e) => {
+  e.preventDefault()
 
-    if (loading) {
-      console.log("[LOGIN] blocked: already loading")
-      return
-    }
-
-    try {
-      console.log("[LOGIN] submit")
-      console.log("[LOGIN] email:", email?.trim())
-
-      setLoading(true)
-      setError(null)
-
-      console.log("[LOGIN] before signInWithPassword")
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      })
-
-      console.log("[LOGIN] after signInWithPassword", {
-        hasSession: !!data?.session,
-        hasUser: !!data?.user,
-        userId: data?.user?.id || data?.session?.user?.id || null,
-        error: error ? error.message : null,
-      })
-
-      if (error) throw error
-
-      console.log("[LOGIN] navigate -> /dashboard")
-      navigate("/dashboard")
-    } catch (err) {
-      console.error("[LOGIN] catch:", err)
-      setError(err?.message || "No se pudo iniciar sesión.")
-    } finally {
-      console.log("[LOGIN] finally -> setLoading(false)")
-      setLoading(false)
-    }
+  if (loading) {
+    console.log("[LOGIN] blocked: already loading")
+    return
   }
+
+  try {
+    console.log("[LOGIN] submit")
+    console.log("[LOGIN] email:", email?.trim())
+
+    setLoading(true)
+    setError(null)
+
+    // ✅ marcar intento de login manual ANTES del signIn
+    sessionStorage.setItem("login_intent_at", String(Date.now()))
+
+    console.log("[LOGIN] before signInWithPassword")
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
+    })
+
+    console.log("[LOGIN] after signInWithPassword", {
+      hasSession: !!data?.session,
+      hasUser: !!data?.user,
+      userId: data?.user?.id || data?.session?.user?.id || null,
+      error: error ? error.message : null,
+    })
+
+    if (error) throw error
+
+    console.log("[LOGIN] navigate -> /dashboard")
+    navigate("/dashboard")
+  } catch (err) {
+    console.error("[LOGIN] catch:", err)
+
+    // ✅ limpiar si falló
+    sessionStorage.removeItem("login_intent_at")
+
+    setError(err?.message || "No se pudo iniciar sesión.")
+  } finally {
+    console.log("[LOGIN] finally -> setLoading(false)")
+    setLoading(false)
+  }
+}
 
   return (
     <div className="fixed inset-0 login-bg overflow-hidden">
@@ -237,14 +244,8 @@ export default function Login() {
                         return
                       }
 
-                      console.log("[LOGIN] resetPasswordForEmail ->", email.trim())
-
                       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
                         redirectTo: `${window.location.origin}/set-password`,
-                      })
-
-                      console.log("[LOGIN] resetPasswordForEmail result", {
-                        error: error ? error.message : null,
                       })
 
                       if (error) setError(error.message)

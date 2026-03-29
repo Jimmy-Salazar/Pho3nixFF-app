@@ -29,12 +29,13 @@ export default function AppLayout({ children }) {
 
       {!hasOverlayPopup ? <Footer /> : null}
 
-      {birthdayPopup ? (
-        <BirthdayPopup
-          nombre={birthdayPopup.nombre}
-          onClose={dismissBirthdayPopup}
-        />
-      ) : null}
+		{birthdayPopup ? (
+		  <BirthdayPopup
+			nombre={birthdayPopup.nombre}
+			rol={birthdayPopup.rol}
+			onClose={dismissBirthdayPopup}
+		  />
+		) : null}
 
       {mensualidadWarning ? (
         <MensualidadWarningPopup
@@ -164,7 +165,7 @@ function BirthdayPopupStyles() {
   )
 }
 
-function BirthdayPopup({ nombre, onClose }) {
+function BirthdayPopup({ nombre, rol, onClose }) {
   useEffect(() => {
     let audioCtx = null
 
@@ -245,6 +246,8 @@ function BirthdayPopup({ nombre, onClose }) {
     []
   )
 
+  const content = getBirthdayContent(rol, nombre)
+
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/75 p-4">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -302,7 +305,7 @@ function BirthdayPopup({ nombre, onClose }) {
           </div>
 
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-orange-300">
-            Pho3nix Functional Fitness
+            {content.badge}
           </p>
 
           <h2 className="mt-3 text-3xl font-black tracking-tight text-white">
@@ -312,13 +315,11 @@ function BirthdayPopup({ nombre, onClose }) {
           <p className="mt-2 text-xl font-semibold text-orange-300">{nombre}</p>
 
           <p className="mt-5 text-sm leading-7 text-white/75 sm:text-base">
-            Hoy celebramos tu día y el compromiso que pones en cada entrenamiento.
-            Todo el equipo de <span className="font-semibold text-white">Pho3nix</span> te desea salud,
-            fuerza y nuevos logros en este nuevo año.
+            {content.message}
           </p>
 
           <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/75">
-            Que este nuevo ciclo venga con más disciplina, evolución y energía para seguir renaciendo más fuerte. 🔥
+            {content.footer}
           </div>
 
           <button
@@ -332,6 +333,38 @@ function BirthdayPopup({ nombre, onClose }) {
       </div>
     </div>
   )
+}
+
+function getBirthdayContent(rol, nombre) {
+  const role = String(rol || "").toLowerCase().trim()
+
+  if (role === "admin" || role === "administrador") {
+    return {
+      badge: "Pho3nix Functional Fitness",
+      message:
+        `Hoy celebramos tu día, ${nombre}. Gracias por ser parte fundamental del crecimiento de Pho3nix y por impulsar esta comunidad con visión, liderazgo y compromiso.`,
+      footer:
+        "Que este nuevo año venga con salud, claridad, fuerza y grandes logros para seguir construyendo algo extraordinario. 🔥",
+    }
+  }
+
+  if (role === "coach") {
+    return {
+      badge: "Equipo Pho3nix",
+      message:
+        `Hoy celebramos tu día, ${nombre}. Gracias por tu energía, tu disciplina y por inspirar a otros a mejorar en cada entrenamiento dentro de Pho3nix.`,
+      footer:
+        "Que este nuevo año venga con más fortaleza, evolución y grandes metas cumplidas dentro y fuera del box. 🔥",
+    }
+  }
+
+  return {
+    badge: "Pho3nix Functional Fitness",
+    message:
+      `Hoy celebramos tu día, ${nombre}. Todo el equipo de Pho3nix te desea salud, fuerza y muchos logros en este nuevo año. Gracias por ser parte de esta comunidad.`,
+    footer:
+      "Que este nuevo ciclo venga con más disciplina, evolución y energía para seguir renaciendo más fuerte. 🔥",
+  }
 }
 
 function MensualidadWarningPopup({ diasRestantes, fechaFin, onClose }) {
