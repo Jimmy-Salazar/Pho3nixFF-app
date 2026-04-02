@@ -14,6 +14,10 @@ import Wods from "./pages/Wods"
 import AdminWods from "./pages/admin/Wods"
 import PDA from "./pages/PDA"
 import PDAAdmin from "./pages/admin/PDAAdmin"
+import Competencias from "./pages/Competencias"
+import CompetenciasAdmin from "./pages/admin/CompetenciasAdmin"
+import CompetenciaDetalleAdmin from "./pages/admin/CompetenciaDetalleAdmin"
+import CompetidoresAdmin from "./pages/admin/CompetidoresAdmin"
 
 // Layout
 import AppLayout from "./layout/AppLayout"
@@ -89,6 +93,30 @@ export default function App() {
           }
         />
 
+        <Route
+          path="/competencias"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Competencias />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+		
+		<Route
+		  path="/admin/competencias/competidores"
+		  element={
+			<ProtectedRoute>
+			  <AppLayout>
+				<ProtectedAdminRoute>
+				  <CompetidoresAdmin />
+				</ProtectedAdminRoute>
+			  </AppLayout>
+			</ProtectedRoute>
+		  }
+		/>
+
         {/* ADMIN */}
         <Route
           path="/admin"
@@ -142,8 +170,34 @@ export default function App() {
           }
         />
 
+        <Route
+          path="/admin/competencias"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <ProtectedAdminRoute>
+                  <CompetenciasAdmin />
+                </ProtectedAdminRoute>
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/competencias/:id"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <ProtectedAdminRoute>
+                  <CompetenciaDetalleAdmin />
+                </ProtectedAdminRoute>
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
         {/* fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   )

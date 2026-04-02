@@ -164,6 +164,15 @@ export default function Navbar() {
 
         {isAdmin && (
           <NavLink
+            to="/admin/competencias"
+            className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
+          >
+            Challenger
+          </NavLink>
+        )}
+
+        {isAdmin && (
+          <NavLink
             to="/admin/users"
             className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
           >
@@ -217,6 +226,12 @@ export default function Navbar() {
         <Link to="/pda" onClick={closeMenu}>
           PDA
         </Link>
+
+        {isAdmin && (
+          <Link to="/admin/competencias" onClick={closeMenu}>
+            Challenger
+          </Link>
+        )}
 
         {isAdmin && (
           <Link to="/admin/users" onClick={closeMenu}>

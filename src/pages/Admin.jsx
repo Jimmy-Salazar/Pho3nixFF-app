@@ -22,10 +22,10 @@ const adminModules = [
   {
     key: "competencias",
     title: "Competencias",
-    badge: "Próximamente",
+    badge: "Eventos",
     description:
-      "Administra eventos, competiciones internas, fechas especiales y participación del box.",
-    to: null,
+      "Administra competencias mensuales, fechas de publicación, participación y control general del evento.",
+    to: "/admin/competencias",
     tone: "blue",
   },
   {
