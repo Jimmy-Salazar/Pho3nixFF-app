@@ -16,8 +16,7 @@ import PDA from "./pages/PDA"
 import PDAAdmin from "./pages/admin/PDAAdmin"
 import Competencias from "./pages/Competencias"
 import CompetenciasAdmin from "./pages/admin/CompetenciasAdmin"
-import CompetenciaDetalleAdmin from "./pages/admin/CompetenciaDetalleAdmin"
-import CompetidoresAdmin from "./pages/admin/CompetidoresAdmin"
+import Challenger from "./pages/Challenger"
 
 // Layout
 import AppLayout from "./layout/AppLayout"
@@ -103,19 +102,17 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-		
-		<Route
-		  path="/admin/competencias/competidores"
-		  element={
-			<ProtectedRoute>
-			  <AppLayout>
-				<ProtectedAdminRoute>
-				  <CompetidoresAdmin />
-				</ProtectedAdminRoute>
-			  </AppLayout>
-			</ProtectedRoute>
-		  }
-		/>
+
+        <Route
+          path="/challenger"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <Challenger />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* ADMIN */}
         <Route
@@ -177,19 +174,6 @@ export default function App() {
               <AppLayout>
                 <ProtectedAdminRoute>
                   <CompetenciasAdmin />
-                </ProtectedAdminRoute>
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/admin/competencias/:id"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ProtectedAdminRoute>
-                  <CompetenciaDetalleAdmin />
                 </ProtectedAdminRoute>
               </AppLayout>
             </ProtectedRoute>

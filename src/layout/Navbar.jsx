@@ -162,14 +162,12 @@ export default function Navbar() {
           PDA
         </NavLink>
 
-        {isAdmin && (
-          <NavLink
-            to="/admin/competencias"
-            className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
-          >
-            Challenger
-          </NavLink>
-        )}
+        <NavLink
+          to="/challenger"
+          className={({ isActive }) => `navlink ${isActive ? "active" : ""}`}
+        >
+          Challenge
+        </NavLink>
 
         {isAdmin && (
           <NavLink
@@ -227,11 +225,9 @@ export default function Navbar() {
           PDA
         </Link>
 
-        {isAdmin && (
-          <Link to="/admin/competencias" onClick={closeMenu}>
-            Challenger
-          </Link>
-        )}
+        <Link to="/challenger" onClick={closeMenu}>
+          Challenge
+        </Link>
 
         {isAdmin && (
           <Link to="/admin/users" onClick={closeMenu}>
