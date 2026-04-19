@@ -594,15 +594,15 @@ export default function Challenger() {
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
-      <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-6 lg:px-8">
-        <section className="relative overflow-hidden rounded-[32px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.14),transparent_28%),linear-gradient(135deg,#071122_0%,#050816_45%,#02040a_100%)] p-6 shadow-[0_30px_120px_rgba(0,0,0,0.45)] md:p-8">
+      <div className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-4 md:px-6 lg:px-8">
+        <section className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.18),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.14),transparent_28%),linear-gradient(135deg,#071122_0%,#050816_45%,#02040a_100%)] p-4 shadow-[0_30px_120px_rgba(0,0,0,0.45)] sm:p-5 md:rounded-[32px] md:p-8">
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:28px_28px] opacity-20" />
           <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.28em] text-cyan-300">
                 Challenges Board
               </div>
-              <h1 className="text-3xl font-black uppercase tracking-tight text-white md:text-5xl">
+              <h1 className="text-2xl font-black uppercase tracking-tight text-white sm:text-3xl md:text-5xl">
                 Challenges
               </h1>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-white/70 md:text-base">
@@ -611,7 +611,7 @@ export default function Challenger() {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4">
               <MiniStat label="Próximo" value={computed.upcoming ? 1 : 0} />
               <MiniStat label="Activo" value={computed.active ? 1 : 0} />
               <MiniStat label="Pasados" value={computed.closed.length} />
@@ -636,19 +636,19 @@ export default function Challenger() {
         )}
 
         {loading && (
-          <div className="mt-8 rounded-3xl border border-white/10 bg-black/20 p-8 text-center text-white/60">
+          <div className="mt-8 rounded-3xl border border-white/10 bg-black/20 p-6 text-center text-white/60 sm:p-8">
             Cargando Challenges...
           </div>
         )}
 
         {!loading && computed.closed.length > 0 && (
-          <section className="mt-8 rounded-[30px] border border-white/10 bg-white/[0.035] p-5 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur md:p-6">
+          <section className="mt-8 rounded-[26px] border border-white/10 bg-white/[0.035] p-4 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur sm:p-5 md:rounded-[30px] md:p-6">
             <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <p className="mb-2 text-xs font-black uppercase tracking-[0.24em] text-zinc-300/80">
                   Historial de Challenges
                 </p>
-                <h2 className="text-2xl font-black uppercase tracking-tight text-white md:text-3xl">
+                <h2 className="text-xl font-black uppercase tracking-tight text-white sm:text-2xl md:text-3xl">
                   Challenges pasados
                 </h2>
                 <p className="mt-2 max-w-3xl text-sm leading-6 text-white/60">
@@ -656,7 +656,7 @@ export default function Challenger() {
                 </p>
               </div>
 
-              <div className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white/55">
+              <div className="self-start rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] text-white/55">
                 Archive
               </div>
             </div>
@@ -673,9 +673,9 @@ export default function Challenger() {
                     <button
                       type="button"
                       onClick={() => togglePastCompetition(competencia.id)}
-                      className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03]"
+                      className="flex w-full flex-col items-start justify-between gap-4 px-4 py-4 text-left transition hover:bg-white/[0.03] sm:flex-row sm:items-center sm:px-5"
                     >
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-[11px] font-black uppercase tracking-[0.22em] text-zinc-300/80">
                           Challenge cerrado
                         </p>
@@ -688,7 +688,7 @@ export default function Challenger() {
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] ${
                             COMPETENCIA_STATUS_STYLES[competencia.estado] ||
@@ -702,7 +702,7 @@ export default function Challenger() {
                     </button>
 
                     {isOpen && (
-                      <div className="border-t border-white/10 p-5">
+                      <div className="border-t border-white/10 p-4 sm:p-5">
                         <div className="mb-6 grid gap-4 md:grid-cols-4">
                           <MiniPanel title="Atletas" value={competencia.competidoresDeCompetencia.length} subtitle="Final" />
                           <MiniPanel
@@ -714,11 +714,11 @@ export default function Challenger() {
                           <MiniPanel title="Rankings" value={competencia.rankingGeneralDeCompetencia.length} subtitle="Reales" />
                         </div>
 
-                        <div className="mb-6 rounded-[28px] border border-white/10 bg-black/20 p-5">
+                        <div className="mb-6 rounded-[24px] border border-white/10 bg-black/20 p-4 sm:rounded-[28px] sm:p-5">
                           <div className="mb-4">
                             <h4 className="text-lg font-black uppercase tracking-tight text-white">Podio</h4>
                             <p className="mt-1 text-sm text-white/60">
-                              Principiantes primero y luego avanzados. Se muestran repeticiones totales.
+                              Principiantes primero y luego avanzados. El top 3 se muestra como medallas y el resto en tabla compacta.
                             </p>
                           </div>
 
@@ -727,62 +727,95 @@ export default function Challenger() {
                               No hay ranking general disponible para este Challenge.
                             </div>
                           ) : (
-                            <div className="space-y-6">
+                            <div className="space-y-7">
                               {competencia.podioSections.map((section) => (
-                                <div
-                                  key={`${competencia.id}-${section.key}`}
-                                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-4"
-                                >
-                                  <div className="mb-4">
+                                <div key={`${competencia.id}-${section.key}`} className="space-y-5">
+                                  <div className="flex items-center justify-between gap-3">
                                     <h5 className="text-base font-black uppercase tracking-tight text-white">
                                       {section.title}
                                     </h5>
+                                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white/45">
+                                      Leaderboard
+                                    </span>
                                   </div>
 
-                                  <div className="space-y-4">
-                                    {section.items.map(({ categoria, top3 }) => (
-                                      <div key={`${competencia.id}-${section.key}-${categoria}`}>
-                                        <div className="mb-3">
-                                          <h6 className="text-sm font-black uppercase tracking-[0.16em] text-white/75">
-                                            {categoria}
-                                          </h6>
-                                        </div>
+                                  <div className="space-y-5">
+                                    {section.items.map(({ categoria, top3, total }) => {
+                                      const rankingCompleto = competencia.rankingGeneralDeCompetencia.filter(
+                                        (item) => item.categoria === categoria
+                                      )
+                                      const restantes = rankingCompleto.slice(3)
 
-                                        <div className="overflow-hidden rounded-2xl border border-white/10">
-                                          <table className="w-full text-sm">
-                                            <thead className="bg-white/5 text-xs uppercase tracking-[0.12em] text-white/60">
-                                              <tr>
-                                                <th className="px-4 py-3 text-left">#</th>
-                                                <th className="px-4 py-3 text-left">Atleta</th>
-                                                <th className="px-4 py-3 text-left">Repeticiones totales</th>
-                                                <th className="px-4 py-3 text-right">Acción</th>
-                                              </tr>
-                                            </thead>
-                                            <tbody>
-                                              {top3.filter(Boolean).map((item, index) => (
-                                                <tr
-                                                  key={`${competencia.id}-${section.key}-${categoria}-${item.competidor_id}`}
-                                                  className={`border-t border-white/10 hover:bg-white/[0.04] ${getRowHighlight(index + 1)}`}
-                                                >
-                                                  <td className="px-4 py-3 font-bold">{index + 1}</td>
-                                                  <td className="px-4 py-3 font-semibold uppercase">{item.nombre_completo}</td>
-                                                  <td className="px-4 py-3 text-white/70">{item.repeticiones_totales}</td>
-                                                  <td className="px-4 py-3 text-right">
-                                                    <button
-                                                      type="button"
-                                                      onClick={() => openAthleteModal(competencia, item)}
-                                                      className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300 hover:bg-cyan-400/20"
-                                                    >
-                                                      Ver
-                                                    </button>
-                                                  </td>
-                                                </tr>
-                                              ))}
-                                            </tbody>
-                                          </table>
+                                      return (
+                                        <div key={`${competencia.id}-${section.key}-${categoria}`} className="space-y-4">
+                                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                            <h6 className="text-sm font-black uppercase tracking-[0.16em] text-white/75">
+                                              {categoria}
+                                            </h6>
+                                            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/35">
+                                              {total} atletas
+                                            </span>
+                                          </div>
+
+                                          <div className="grid gap-3 md:grid-cols-3">
+                                            {[1, 2, 3].map((position) => {
+                                              const athlete = top3[position - 1] || null
+                                              return (
+                                                <MedalAthleteCard
+                                                  key={`${competencia.id}-${section.key}-${categoria}-medal-${position}`}
+                                                  athlete={athlete}
+                                                  position={position}
+                                                  onClick={() => athlete && openAthleteModal(competencia, athlete)}
+                                                />
+                                              )
+                                            })}
+                                          </div>
+
+                                          {restantes.length > 0 && (
+                                            <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#081120]/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                                              <div className="overflow-x-auto">
+                                                <table className="w-full table-fixed min-w-[270px] text-[10px] sm:min-w-[320px] sm:text-[11px] md:min-w-0 md:text-sm">
+                                                  <thead className="bg-white/5 text-[10px] uppercase tracking-[0.12em] text-white/60">
+                                                    <tr>
+                                                      <th className="w-8 px-2 py-2 text-left md:w-10 md:px-3 md:py-3">#</th>
+                                                      <th className="px-2 py-2 text-left md:px-3 md:py-3">Atleta</th>
+                                                      <th className="w-16 whitespace-nowrap px-2 py-2 text-left md:w-24 md:px-3 md:py-3">
+                                                        <span className="md:hidden">Reps</span>
+                                                        <span className="hidden md:inline">Repeticiones</span>
+                                                      </th>
+                                                    </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                    {restantes.map((item) => (
+                                                      <tr
+                                                        key={`${competencia.id}-${section.key}-${categoria}-${item.competidor_id}-rest`}
+                                                        className={`border-t border-white/10 transition duration-300 hover:-translate-y-[1px] hover:bg-white/[0.05] ${getRowHighlight(item.puesto_general)}`}
+                                                      >
+                                                        <td className="w-8 px-2 py-2 font-bold text-white/85 md:w-10 md:px-3 md:py-3">
+                                                          {item.puesto_general}
+                                                        </td>
+                                                        <td className="max-w-0 px-2 py-2 md:px-3 md:py-3">
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => openAthleteModal(competencia, item)}
+                                                            className="block w-full truncate text-left text-[10px] font-semibold uppercase leading-tight text-white transition duration-300 hover:text-cyan-300 sm:text-[11px] md:text-sm"
+                                                          >
+                                                            {item.nombre_completo}
+                                                          </button>
+                                                        </td>
+                                                        <td className="w-16 whitespace-nowrap px-2 py-2 text-white/70 md:w-24 md:px-3 md:py-3">
+                                                          {item.repeticiones_totales}
+                                                        </td>
+                                                      </tr>
+                                                    ))}
+                                                  </tbody>
+                                                </table>
+                                              </div>
+                                            </div>
+                                          )}
                                         </div>
-                                      </div>
-                                    ))}
+                                      )
+                                    })}
                                   </div>
                                 </div>
                               ))}
@@ -790,7 +823,7 @@ export default function Challenger() {
                           )}
                         </div>
 
-                        <div className="rounded-[28px] border border-white/10 bg-black/20 p-5">
+                        <div className="rounded-[24px] border border-white/10 bg-black/20 p-4 sm:rounded-[28px] sm:p-5">
                           <div className="mb-4">
                             <h4 className="text-lg font-black uppercase tracking-tight text-white">
                               WODs de Competencia
@@ -800,7 +833,7 @@ export default function Challenger() {
                             </p>
                           </div>
 
-                          <div className="grid gap-4 md:grid-cols-2">
+                          <div className="grid gap-3 md:grid-cols-2 md:gap-4">
                             <button
                               type="button"
                               onClick={() => openWodLevelModal(competencia, "principiante")}
@@ -834,7 +867,7 @@ export default function Challenger() {
                             </button>
                           </div>
 
-                          <div className="mt-4 flex justify-end">
+                          <div className="mt-4 flex justify-stretch sm:justify-end">
                             <button
                               type="button"
                               onClick={() =>
@@ -843,7 +876,7 @@ export default function Challenger() {
                                   tab: "wod",
                                 })
                               }
-                              className="rounded-xl border border-violet-400/20 bg-violet-400/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-violet-300 transition hover:bg-violet-400/20"
+                              className="w-full rounded-xl border border-violet-400/20 bg-violet-400/10 px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.14em] text-violet-300 transition hover:bg-violet-400/20 sm:w-auto"
                             >
                               Ver resultados
                             </button>
@@ -859,14 +892,14 @@ export default function Challenger() {
         )}
 
         {selectedWodLevelModal && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/75 px-4 py-6 backdrop-blur-sm">
-            <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[30px] border border-white/10 bg-[#071122] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] md:p-6">
-              <div className="mb-5 flex items-start justify-between gap-4">
-                <div>
+          <div className="fixed inset-0 z-[300] flex items-start justify-center overflow-y-auto bg-black/75 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6 md:items-center">
+            <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[24px] border border-white/10 bg-[#071122] p-4 shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:rounded-[30px] sm:p-5 md:p-6">
+              <div className="mb-5 flex flex-col items-start justify-between gap-4 sm:flex-row">
+                <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300/80">
                     {selectedWodLevelModal.nivel === "principiante" ? "WODs Principiantes" : "WODs Avanzados"}
                   </p>
-                  <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-white">
+                  <h2 className="mt-2 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
                     {selectedWodLevelModal.competenciaTitulo}
                   </h2>
                 </div>
@@ -874,7 +907,7 @@ export default function Challenger() {
                 <button
                   type="button"
                   onClick={closeWodLevelModal}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10 sm:w-auto"
                 >
                   Cerrar
                 </button>
@@ -924,14 +957,14 @@ export default function Challenger() {
         )}
 
         {selectedAthleteModal && selectedAthleteModal.tipo === "tabla" && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/75 px-4 py-6 backdrop-blur-sm">
-            <div className="max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[30px] border border-white/10 bg-[#071122] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] md:p-6">
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <div>
+          <div className="fixed inset-0 z-[300] flex items-start justify-center overflow-y-auto bg-black/75 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6 md:items-center">
+            <div className="max-h-[92vh] w-full max-w-6xl overflow-y-auto rounded-[24px] border border-white/10 bg-[#071122] p-4 shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:rounded-[30px] sm:p-5 md:p-6">
+              <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row">
+                <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300/80">
                     Tabla de posiciones
                   </p>
-                  <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-white">
+                  <h2 className="mt-2 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
                     {selectedAthleteModal.competenciaTitulo}
                   </h2>
                 </div>
@@ -939,7 +972,7 @@ export default function Challenger() {
                 <button
                   type="button"
                   onClick={closeAthleteModal}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white hover:bg-white/10"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white hover:bg-white/10 sm:w-auto"
                 >
                   Cerrar
                 </button>
@@ -977,23 +1010,23 @@ export default function Challenger() {
                 <div className="space-y-6">
                   {groupByCategoria(selectedAthleteModal.rankingGeneral).map(({ categoria, items }) => (
                     <div key={categoria} className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-black uppercase tracking-[0.18em] text-white">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <h3 className="text-xs font-black uppercase tracking-[0.16em] text-white sm:text-sm sm:tracking-[0.18em]">
                           {categoria}
                         </h3>
-                        <span className="text-xs text-white/40">{items.length} atletas</span>
+                        <span className="text-[11px] text-white/40 sm:text-xs">{items.length} atletas</span>
                       </div>
 
-                      <div className="overflow-hidden rounded-2xl border border-white/10">
-                        <div className="max-h-[340px] overflow-auto">
-                          <table className="w-full text-sm">
+                      <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#081120]/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                        <div className="max-h-[340px] overflow-y-auto">
+                          <div className="overflow-x-auto">
+                            <table className="w-full table-fixed min-w-[320px] text-[11px] sm:min-w-[360px] md:min-w-[520px] md:text-sm">
                             <thead className="sticky top-0 z-10 bg-[#0d172a] text-xs uppercase tracking-[0.12em] text-white/60">
                               <tr>
-                                <th className="px-4 py-3 text-left">#</th>
-                                <th className="px-4 py-3 text-left">Atleta</th>
-                                <th className="px-4 py-3 text-left">Repeticiones totales</th>
-                                <th className="px-4 py-3 text-right">Acción</th>
-                              </tr>
+                                <th className="w-8 px-2 py-2 text-left md:w-10 md:px-4 md:py-3">#</th>
+                                <th className="px-2 py-2 text-left md:px-4 md:py-3">Atleta</th>
+                                <th className="w-20 whitespace-nowrap px-2 py-2 text-left md:w-36 md:px-4 md:py-3"><span className="md:hidden">Reps</span><span className="hidden md:inline">Repeticiones totales</span></th>
+                                                              </tr>
                             </thead>
 
                             <tbody>
@@ -1002,11 +1035,10 @@ export default function Challenger() {
                                   key={`${item.inscripcion_id}-${item.nombre_completo}`}
                                   className={`border-t border-white/10 hover:bg-white/[0.04] ${getRowHighlight(item.puesto_general)}`}
                                 >
-                                  <td className="px-4 py-3 font-bold">{item.puesto_general}</td>
-                                  <td className="px-4 py-3 font-semibold uppercase">{item.nombre_completo}</td>
-                                  <td className="px-4 py-3 text-white/70">{item.repeticiones_totales}</td>
-                                  <td className="px-4 py-3 text-right">
+                                  <td className="w-8 px-2 py-2 font-bold md:w-10 md:px-4 md:py-3">{item.puesto_general}</td>
+                                  <td className="max-w-0 px-2 py-2 md:px-4 md:py-3">
                                     <button
+                                      type="button"
                                       onClick={() => {
                                         const athleteLevel = getNivelFromCategoria(item.categoria)
                                         const athleteWods = selectedAthleteModal.rankingWod.filter(
@@ -1025,15 +1057,17 @@ export default function Challenger() {
                                           resultados: athleteWods,
                                         })
                                       }}
-                                      className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-bold text-cyan-300 hover:bg-cyan-400/20"
+                                      className="block w-full truncate text-left text-[11px] font-semibold uppercase leading-tight text-white transition hover:text-cyan-300 md:text-sm"
                                     >
-                                      Ver
+                                      {item.nombre_completo}
                                     </button>
                                   </td>
+                                  <td className="w-20 whitespace-nowrap px-2 py-2 text-white/70 md:w-24 md:px-4 md:py-3">{item.repeticiones_totales}</td>
                                 </tr>
                               ))}
                             </tbody>
-                          </table>
+                            </table>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1045,7 +1079,7 @@ export default function Challenger() {
                 <div className="space-y-6">
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <h3 className="text-sm font-black uppercase tracking-[0.18em] text-white">
+                      <h3 className="text-xs font-black uppercase tracking-[0.16em] text-white sm:text-sm sm:tracking-[0.18em]">
                         Filtro por WOD
                       </h3>
                       <p className="mt-1 text-sm text-white/50">Elige el WOD que deseas consultar.</p>
@@ -1054,7 +1088,7 @@ export default function Challenger() {
                     <select
                       value={selectedModalWodId}
                       onChange={(e) => setSelectedModalWodId(e.target.value)}
-                      className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none md:w-auto"
                     >
                       {modalGroupedWods.map((wod) => (
                         <option key={wod.wod_id} value={wod.wod_id} className="bg-[#071122]">
@@ -1085,16 +1119,16 @@ export default function Challenger() {
                             {categoria}
                           </h4>
 
-                          <div className="overflow-hidden rounded-2xl border border-white/10">
-                            <div className="max-h-[340px] overflow-auto">
-                              <table className="w-full text-sm">
+                          <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#081120]/70 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                            <div className="max-h-[340px] overflow-y-auto">
+                              <div className="overflow-x-auto">
+                                <table className="w-full table-fixed min-w-[320px] text-[11px] sm:min-w-[360px] md:min-w-[520px] md:text-sm">
                                 <thead className="sticky top-0 z-10 bg-[#0d172a] text-xs uppercase tracking-[0.12em] text-white/60">
                                   <tr>
-                                    <th className="px-4 py-3 text-left">#</th>
-                                    <th className="px-4 py-3 text-left">Atleta</th>
-                                    <th className="px-4 py-3 text-left">Repeticiones</th>
-                                    <th className="px-4 py-3 text-right">Acción</th>
-                                  </tr>
+                                    <th className="w-8 px-2 py-2 text-left md:w-10 md:px-4 md:py-3">#</th>
+                                    <th className="px-2 py-2 text-left md:px-4 md:py-3">Atleta</th>
+                                    <th className="w-16 whitespace-nowrap px-2 py-2 text-left md:w-24 md:px-4 md:py-3">Reps</th>
+                                                                      </tr>
                                 </thead>
 
                                 <tbody>
@@ -1103,11 +1137,10 @@ export default function Challenger() {
                                       key={`${item.wod_id}-${item.inscripcion_id}`}
                                       className={`border-t border-white/10 hover:bg-white/[0.04] ${getRowHighlight(item.puesto_wod)}`}
                                     >
-                                      <td className="px-4 py-3 font-bold">{item.puesto_wod}</td>
-                                      <td className="px-4 py-3 font-semibold uppercase">{item.nombre_completo}</td>
-                                      <td className="px-4 py-3 text-white/70">{item.resultado_valor}</td>
-                                      <td className="px-4 py-3 text-right">
+                                      <td className="w-8 px-2 py-2 font-bold md:w-10 md:px-4 md:py-3">{item.puesto_wod}</td>
+                                      <td className="max-w-0 px-2 py-2 md:px-4 md:py-3">
                                         <button
+                                          type="button"
                                           onClick={() => {
                                             const athleteGeneral = selectedAthleteModal.rankingGeneral.find(
                                               (g) => g.competidor_id === item.competidor_id
@@ -1130,15 +1163,17 @@ export default function Challenger() {
                                               resultados: athleteWods,
                                             })
                                           }}
-                                          className="rounded-lg border border-violet-400/20 bg-violet-400/10 px-3 py-1 text-xs font-bold text-violet-300 hover:bg-violet-400/20"
+                                          className="block w-full truncate text-left text-[11px] font-semibold uppercase leading-tight text-white transition hover:text-violet-300 md:text-sm"
                                         >
-                                          Ver
+                                          {item.nombre_completo}
                                         </button>
                                       </td>
+                                      <td className="w-20 whitespace-nowrap px-2 py-2 text-white/70 md:w-24 md:px-4 md:py-3">{item.resultado_valor}</td>
                                     </tr>
                                   ))}
                                 </tbody>
-                              </table>
+                                </table>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1152,14 +1187,14 @@ export default function Challenger() {
         )}
 
         {selectedAthleteModal && selectedAthleteModal.tipo === "atleta" && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/75 px-4 py-6 backdrop-blur-sm">
-            <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[30px] border border-white/10 bg-[#071122] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] md:p-6">
-              <div className="mb-5 flex items-start justify-between gap-4">
-                <div>
+          <div className="fixed inset-0 z-[300] flex items-start justify-center overflow-y-auto bg-black/75 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6 md:items-center">
+            <div className="max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-[24px] border border-white/10 bg-[#071122] p-4 shadow-[0_30px_120px_rgba(0,0,0,0.55)] sm:rounded-[30px] sm:p-5 md:p-6">
+              <div className="mb-5 flex flex-col items-start justify-between gap-4 sm:flex-row">
+                <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.24em] text-cyan-300/80">
                     Detalle del atleta
                   </p>
-                  <h2 className="mt-2 text-2xl font-black uppercase tracking-tight text-white">
+                  <h2 className="mt-2 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
                     {selectedAthleteModal.nombre}
                   </h2>
                   <p className="mt-2 text-sm text-white/60">
@@ -1170,7 +1205,7 @@ export default function Challenger() {
                 <button
                   type="button"
                   onClick={closeAthleteModal}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10 sm:w-auto"
                 >
                   Cerrar
                 </button>
@@ -1250,7 +1285,7 @@ export default function Challenger() {
                                 !resultado.evidencia_url
                               )
                             }
-                            className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-sm font-bold uppercase tracking-[0.14em] text-cyan-300 transition hover:bg-cyan-400/20"
+                            className="w-full rounded-xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-3 text-center text-sm font-bold uppercase tracking-[0.14em] text-cyan-300 transition hover:bg-cyan-400/20 sm:w-auto"
                           >
                             Ver hoja de evidencia
                           </button>
@@ -1265,10 +1300,10 @@ export default function Challenger() {
         )}
 
         {selectedEvidenceModal && (
-          <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/85 px-4 py-6 backdrop-blur-sm">
-            <div className="max-h-[95vh] w-full max-w-5xl overflow-hidden rounded-[30px] border border-white/10 bg-[#071122] shadow-[0_30px_120px_rgba(0,0,0,0.65)]">
-              <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
-                <div>
+          <div className="fixed inset-0 z-[400] flex items-start justify-center overflow-y-auto bg-black/85 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6 md:items-center">
+            <div className="max-h-[95vh] w-full max-w-5xl overflow-hidden rounded-[24px] border border-white/10 bg-[#071122] shadow-[0_30px_120px_rgba(0,0,0,0.65)] sm:rounded-[30px]">
+              <div className="flex flex-col items-start justify-between gap-4 border-b border-white/10 px-4 py-4 sm:flex-row sm:px-5">
+                <div className="min-w-0">
                   <p className="text-xs font-black uppercase tracking-[0.22em] text-cyan-300/80">
                     {selectedEvidenceModal.isDefault ? "Imagen por defecto" : "Evidencia"}
                   </p>
@@ -1280,7 +1315,7 @@ export default function Challenger() {
                 <button
                   type="button"
                   onClick={closeEvidenceModal}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/10 sm:w-auto"
                 >
                   Cerrar
                 </button>
@@ -1300,6 +1335,113 @@ export default function Challenger() {
         )}
       </div>
     </div>
+  )
+}
+
+
+function getMedalVisual(position) {
+  if (position === 1) {
+    return {
+      emoji: "🥇",
+      label: "1er lugar",
+      badgeClass:
+        "border-yellow-400/25 bg-yellow-400/12 text-yellow-200",
+      cardClass:
+        "border-yellow-400/20 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.16),transparent_55%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))]",
+      ringClass: "shadow-[0_0_0_1px_rgba(250,204,21,0.14),0_18px_45px_rgba(250,204,21,0.12)]",
+    }
+  }
+
+  if (position === 2) {
+    return {
+      emoji: "🥈",
+      label: "2do lugar",
+      badgeClass:
+        "border-slate-300/25 bg-slate-300/10 text-slate-200",
+      cardClass:
+        "border-slate-300/15 bg-[radial-gradient(circle_at_top,rgba(226,232,240,0.12),transparent_55%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))]",
+      ringClass: "shadow-[0_0_0_1px_rgba(226,232,240,0.12),0_18px_45px_rgba(148,163,184,0.10)]",
+    }
+  }
+
+  return {
+    emoji: "🥉",
+    label: "3er lugar",
+    badgeClass:
+      "border-amber-700/25 bg-amber-700/10 text-amber-200",
+    cardClass:
+      "border-amber-700/20 bg-[radial-gradient(circle_at_top,rgba(180,83,9,0.18),transparent_55%),linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.025))]",
+    ringClass: "shadow-[0_0_0_1px_rgba(180,83,9,0.12),0_18px_45px_rgba(120,53,15,0.12)]",
+  }
+}
+
+function MedalAthleteCard({ athlete, position, onClick }) {
+  const medal = getMedalVisual(position)
+
+  if (!athlete) {
+    return (
+      <div
+        className={`rounded-[20px] border px-3 py-2.5 sm:rounded-[24px] sm:p-5 ${medal.cardClass} ${medal.ringClass}`}
+      >
+        <div className="flex items-center justify-between gap-3 sm:block">
+          <div className="flex min-w-0 items-center gap-2.5 sm:block">
+            <div className="text-2xl leading-none sm:text-3xl">{medal.emoji}</div>
+            <div className="truncate text-xs font-black uppercase tracking-[0.04em] text-white/70 sm:mt-4 sm:text-base">
+              Sin atleta
+            </div>
+          </div>
+          <span
+            className={`hidden rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] sm:inline-flex ${medal.badgeClass}`}
+          >
+            {medal.label}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`group w-full rounded-[20px] border px-3 py-2.5 text-left transition duration-300 hover:bg-white/[0.06] sm:rounded-[24px] sm:p-5 sm:hover:-translate-y-1 sm:hover:scale-[1.01] ${medal.cardClass} ${medal.ringClass}`}
+    >
+      <div className="flex items-center justify-between gap-3 sm:block">
+        <div className="flex min-w-0 items-center gap-2.5 sm:block">
+          <div className="text-2xl leading-none transition duration-300 sm:text-3xl sm:group-hover:scale-110">
+            {medal.emoji}
+          </div>
+          <div className="min-w-0 sm:mt-4">
+            <div className="truncate text-xs font-black uppercase tracking-[0.04em] text-white sm:text-base">
+              {athlete.nombre_completo}
+            </div>
+            <div className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40 sm:mt-2 sm:text-[11px] sm:tracking-[0.18em]">
+              {athlete.repeticiones_totales ?? "—"} reps
+            </div>
+          </div>
+        </div>
+
+        <div className="shrink-0 text-right sm:mt-5 sm:flex sm:items-end sm:justify-between sm:gap-4">
+          <span
+            className={`hidden rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] sm:inline-flex ${medal.badgeClass}`}
+          >
+            {medal.label}
+          </span>
+          <div>
+            <div className="hidden text-[10px] font-black uppercase tracking-[0.18em] text-white/40 sm:block">
+              Repeticiones
+            </div>
+            <div className="text-lg font-black text-white sm:mt-1 sm:text-3xl">
+              {athlete.repeticiones_totales ?? "—"}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-2 hidden text-[11px] font-bold uppercase tracking-[0.18em] text-white/45 sm:block">
+        {athlete.categoria}
+      </div>
+    </button>
   )
 }
 
@@ -1354,7 +1496,7 @@ function ExerciseRepsList({ details, description }) {
         {parsedDetails.map((item, index) => (
           <div
             key={`${item.ejercicio || "ejercicio"}-${index}`}
-            className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3"
+            className="flex flex-col items-start justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3 sm:flex-row sm:items-center"
           >
             <div className="text-sm font-semibold text-white/80">
               {item.ejercicio || `Ejercicio ${index + 1}`}
@@ -1373,7 +1515,7 @@ function ExerciseRepsList({ details, description }) {
 
 function MiniStat({ label, value }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-center sm:px-4">
       <div className="text-[11px] font-black uppercase tracking-[0.2em] text-white/45">
         {label}
       </div>
@@ -1384,7 +1526,7 @@ function MiniStat({ label, value }) {
 
 function MiniPanel({ title, value, subtitle }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+    <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-4 sm:px-4">
       <div className="text-[11px] font-black uppercase tracking-[0.2em] text-white/45">
         {title}
       </div>
