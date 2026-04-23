@@ -153,14 +153,16 @@ export default function Wods() {
 
       if (wodError) throw wodError
 
-      const visibleWods = (wodRows || []).filter((item) => {
-        if (!item.fecha) return false
-        if (item.publicado === true && item.fecha_publicacion) {
-          return new Date(item.fecha_publicacion) <= now
-        }
-        return true
-      })
+const visibleWods = (wodRows || []).filter((item) => {
+  if (!item.fecha) return false
 
+  // SOLO mostrar si está publicado y ya pasó la fecha de publicación
+  if (item.publicado === true && item.fecha_publicacion) {
+    return new Date(item.fecha_publicacion) <= now
+  }
+
+  return false
+})
       const resultIds = Array.from(
         new Set(
           visibleWods

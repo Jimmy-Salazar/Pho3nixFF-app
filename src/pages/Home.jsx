@@ -464,9 +464,6 @@ export default function Home() {
                       </p>
                     </div>
 
-                    <div className="mt-5 text-sm text-orange-300">
-                      Disponible hoy en PHO3NIX
-                    </div>
                   </>
                 ) : (
                   <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-5">
