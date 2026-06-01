@@ -2,7 +2,6 @@ import { supabase } from "../../../../supabase"
 import { mensualidadStatusInfo } from "../../../../utils/mensualidades"
 import {
   buildDefaultMembership,
-  buildWeekCaloriesFromResults,
   estimateWodCalories,
   formatDateISO,
   getCurrentWeekRange,
@@ -14,6 +13,9 @@ const TABLES = {
   wods: "wod",
   results: "wod_resultados",
 }
+
+const WOD_SELECT_FIELDS =
+  "id,nombre,descripcion,modo_ranking,modalidad,fecha,activo,publicado,fecha_publicacion,calorias_min,calorias_max,calorias_nota,intensidad_estimada,duracion_estimada"
 
 export async function fetchAlumnoWodData() {
   const { data: authData, error: authError } = await supabase.auth.getUser()
@@ -52,8 +54,12 @@ export async function fetchAlumnoWodData() {
     safeFetch(() => fetchWeekResults(authUser.id, weekRange), []),
   ])
 
-  const estimatedCalories = estimateWodCalories(todayWod)
-  const weeklyCalories = buildWeekCaloriesFromResults(weekResults, weekRange)
+  const estimatedCalories = {
+    ...estimateWodCalories(todayWod),
+    value: getWodMaxCalories(todayWod, estimateWodCalories(todayWod)?.value || 0),
+  }
+
+  const weeklyCalories = buildWeekCaloriesFromResultsMaxCalories(weekResults, weekRange)
 
   return {
     profile,
@@ -70,7 +76,7 @@ export async function fetchAlumnoWodData() {
 async function fetchProfile(authUser) {
   const { data, error } = await supabase
     .from(TABLES.users)
-    .select("id,nombre,email,role,fecha_nacimiento")
+    .select("id,nombre,email,role,fecha_nacimiento,foto_url")
     .eq("id", authUser.id)
     .maybeSingle()
 
@@ -81,6 +87,7 @@ async function fetchProfile(authUser) {
     nombre: authUser.email || "Alumno PHO3NIX",
     email: authUser.email,
     role: "alumno",
+    foto_url: null,
   }
 }
 
@@ -135,7 +142,7 @@ async function fetchMembership(userId, now) {
 async function fetchTodayWod(todayIso, now) {
   const { data, error } = await supabase
     .from(TABLES.wods)
-    .select("id,nombre,descripcion,modo_ranking,modalidad,fecha,activo,publicado,fecha_publicacion")
+    .select(WOD_SELECT_FIELDS)
     .eq("fecha", todayIso)
     .eq("activo", true)
     .limit(5)
@@ -156,7 +163,7 @@ async function fetchTodayWod(todayIso, now) {
 async function fetchPreviousWods(todayIso) {
   const { data, error } = await supabase
     .from(TABLES.wods)
-    .select("id,nombre,descripcion,modo_ranking,modalidad,fecha,activo,publicado,fecha_publicacion")
+    .select(WOD_SELECT_FIELDS)
     .eq("activo", true)
     .lt("fecha", todayIso)
     .order("fecha", { ascending: false })
@@ -174,7 +181,8 @@ async function fetchDayHistory(wodId) {
       *,
       usuarios (
         id,
-        nombre
+        nombre,
+        foto_url
       )
     `
     )
@@ -188,6 +196,7 @@ async function fetchDayHistory(wodId) {
   return (data || []).map((row) => ({
     ...row,
     nombre: row.usuarios?.nombre || row.nombre || "Alumno PHO3NIX",
+    foto_url: row.usuarios?.foto_url || row.foto_url || null,
   }))
 }
 
@@ -202,7 +211,8 @@ async function fetchMyRecentResults(userId) {
         nombre,
         fecha,
         modo_ranking,
-        modalidad
+        modalidad,
+        calorias_max
       )
     `
     )
@@ -212,12 +222,17 @@ async function fetchMyRecentResults(userId) {
 
   if (error) throw error
 
-  return (data || []).map((row) => ({
-    ...row,
-    wod_nombre: row.wod?.nombre,
-    wod_fecha: row.wod?.fecha,
-    fecha: row.wod?.fecha || row.created_at,
-  }))
+  return (data || []).map((row) => {
+    const maxCalories = getWodMaxCalories(row.wod, row.calorias_estimadas)
+
+    return {
+      ...row,
+      calorias_estimadas: maxCalories,
+      wod_nombre: row.wod?.nombre,
+      wod_fecha: row.wod?.fecha,
+      fecha: row.wod?.fecha || row.created_at,
+    }
+  })
 }
 
 async function fetchWeekResults(userId, weekRange) {
@@ -232,7 +247,8 @@ async function fetchWeekResults(userId, weekRange) {
         descripcion,
         fecha,
         modo_ranking,
-        modalidad
+        modalidad,
+        calorias_max
       )
     `
     )
@@ -243,11 +259,16 @@ async function fetchWeekResults(userId, weekRange) {
 
   if (error) throw error
 
-  return (data || []).map((row) => ({
-    ...row,
-    wod_fecha: row.wod?.fecha,
-    fecha: row.fecha || row.wod?.fecha || row.created_at,
-  }))
+  return (data || []).map((row) => {
+    const maxCalories = getWodMaxCalories(row.wod, row.calorias_estimadas)
+
+    return {
+      ...row,
+      calorias_estimadas: maxCalories,
+      wod_fecha: row.wod?.fecha,
+      fecha: row.fecha || row.wod?.fecha || row.created_at,
+    }
+  })
 }
 
 export async function saveAlumnoWodResult({ wod, result, estimatedCalories }) {
@@ -270,7 +291,7 @@ export async function saveAlumnoWodResult({ wod, result, estimatedCalories }) {
     tiempo_texto: result.tiempo_texto || null,
     repeticiones: Number(result.repeticiones || 0),
     notas: result.notas || null,
-    calorias_estimadas: Number(estimatedCalories || 0),
+    calorias_estimadas: getWodMaxCalories(wod, estimatedCalories),
   }
 
   const { data, error } = await supabase
@@ -287,6 +308,88 @@ export async function saveAlumnoWodResult({ wod, result, estimatedCalories }) {
 
   return data
 }
+
+function getWodMaxCalories(wod, fallback = 0) {
+  const maxCalories = Number(wod?.calorias_max || 0)
+
+  if (maxCalories > 0) {
+    return maxCalories
+  }
+
+  const directValue =
+    wod?.calorias_wod ??
+    wod?.calorias ??
+    wod?.calorias_estimadas ??
+    wod?.calorias_estimada ??
+    wod?.kcal ??
+    null
+
+  if (directValue !== null && directValue !== undefined && Number(directValue) > 0) {
+    return Number(directValue)
+  }
+
+  return Number(fallback || 0)
+}
+
+
+function buildWeekCaloriesFromResultsMaxCalories(results = [], weekRange) {
+  const days = buildWeekDays(weekRange)
+  const counted = new Set()
+
+  results.forEach((row) => {
+    const resultDate = row.fecha || row.wod_fecha || row.wod?.fecha || row.created_at
+    const index = getWeekDayIndex(resultDate, weekRange)
+
+    if (index < 0 || index > 6) return
+
+    const uniqueKey = row.wod_id || row.wod?.id || row.id
+
+    if (uniqueKey) {
+      const key = `${index}-${uniqueKey}`
+
+      if (counted.has(key)) return
+      counted.add(key)
+    }
+
+    const calories = getWodMaxCalories(row.wod, row.calorias_estimadas)
+
+    days[index].calories += Number(calories || 0)
+  })
+
+  const total = days.reduce((sum, item) => sum + Number(item.calories || 0), 0)
+
+  return {
+    total,
+    target: 6000,
+    days,
+  }
+}
+
+function buildWeekDays(weekRange) {
+  const labels = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"]
+
+  return labels.map((label) => ({
+    label,
+    calories: 0,
+  }))
+}
+
+function getWeekDayIndex(value, weekRange) {
+  if (!value) return -1
+
+  const dateString = String(value).slice(0, 10)
+  const startString = String(weekRange?.startIso || "").slice(0, 10)
+
+  if (!dateString || !startString) return -1
+
+  const date = new Date(`${dateString}T00:00:00`)
+  const start = new Date(`${startString}T00:00:00`)
+
+  if (Number.isNaN(date.getTime()) || Number.isNaN(start.getTime())) return -1
+
+  return Math.floor((date.getTime() - start.getTime()) / 86400000)
+}
+
 
 async function safeFetch(callback, fallback) {
   try {

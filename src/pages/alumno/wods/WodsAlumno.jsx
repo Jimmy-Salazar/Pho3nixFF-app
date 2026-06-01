@@ -5,7 +5,6 @@ import AlumnoSidebar from "../dashboard/components/AlumnoSidebar"
 import AlumnoMobileNav from "../shared/AlumnoMobileNav"
 
 import WodAlumnoHeader from "./components/WodAlumnoHeader"
-import WodMobileHeader from "./components/WodMobileHeader"
 import WodTodayPanel from "./components/WodTodayPanel"
 import WodCaloriesCard from "./components/WodCaloriesCard"
 import WeeklyCaloriesCard from "./components/WeeklyCaloriesCard"
@@ -13,6 +12,7 @@ import WodHistoryDay from "./components/WodHistoryDay"
 import RegisterResultPanel from "./components/RegisterResultPanel"
 import PreviousWodsPanel from "./components/PreviousWodsPanel"
 import RecentResultsPanel from "./components/RecentResultsPanel"
+import WodAlumnoMobilePro from "./mobile/WodAlumnoMobilePro"
 
 import {
   fetchAlumnoWodData,
@@ -97,7 +97,7 @@ export default function WodsAlumno() {
       await saveAlumnoWodResult({
         wod: data.todayWod,
         result: formPayload,
-        estimatedCalories: data.estimatedCalories?.value || 0,
+        estimatedCalories: getWodMaxCalories(data.todayWod, data.estimatedCalories),
       })
 
       await loadData()
@@ -111,7 +111,21 @@ export default function WodsAlumno() {
 
   return (
     <div className="fixed inset-0 z-[70] w-screen max-w-full overflow-hidden bg-[#050505] text-white">
-      <div className="grid h-full w-full max-w-full grid-cols-1 overflow-hidden lg:grid-cols-[270px_minmax(0,1fr)]">
+      {/* MOBILE NUEVO: solo cambia el frontend móvil. La lógica y el menú inferior se mantienen. */}
+      <div className="lg:hidden">
+        <WodAlumnoMobilePro
+          data={data}
+          loading={loading}
+          saving={saving}
+          error={error}
+          initials={initials}
+          onBack={() => navigate("/alumno/dashboard")}
+          onSaveResult={handleSaveResult}
+        />
+      </div>
+
+      {/* DESKTOP ACTUAL: se mantiene intacto visualmente en pantallas lg+. */}
+      <div className="hidden h-full w-full max-w-full grid-cols-[270px_minmax(0,1fr)] overflow-hidden lg:grid">
         <AlumnoSidebar navigate={navigate} membership={membership} />
 
         <main className="min-w-0 w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] lg:overflow-hidden">
@@ -121,13 +135,6 @@ export default function WodsAlumno() {
             <div className="pointer-events-none absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
 
             <div className="relative mx-auto flex min-h-dvh w-full max-w-[1680px] flex-col gap-3 overflow-x-hidden lg:h-full lg:min-h-0 lg:overflow-hidden">
-              <WodMobileHeader
-                loading={loading}
-                profile={data.profile}
-                initials={initials}
-                onBack={() => navigate("/alumno/dashboard")}
-              />
-
               <div className="hidden min-w-0 w-full max-w-full lg:block">
                 <WodAlumnoHeader
                   loading={loading}
@@ -198,3 +205,26 @@ export default function WodsAlumno() {
     </div>
   )
 }
+
+function getWodMaxCalories(wod, estimatedCalories) {
+  const maxCalories = Number(wod?.calorias_max || 0)
+
+  if (maxCalories > 0) {
+    return maxCalories
+  }
+
+  const directValue =
+    wod?.calorias_wod ??
+    wod?.calorias ??
+    wod?.calorias_estimadas ??
+    wod?.calorias_estimada ??
+    wod?.kcal ??
+    null
+
+  if (directValue !== null && directValue !== undefined && Number(directValue) > 0) {
+    return Number(directValue)
+  }
+
+  return Number(estimatedCalories?.value || 0)
+}
+
