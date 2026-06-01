@@ -30,7 +30,7 @@ import RegistrarRM from "./pages/admin/RegistrarRM"
 import AdminWods from "./pages/admin/Wods"
 import PDAAdmin from "./pages/admin/PDAAdmin"
 import CompetenciasAdmin from "./pages/admin/CompetenciasAdmin"
-import ChallengeAdmin from "./pages/admin/challenge"
+import ChallengeAdmin from "./pages/admin/Challenge"
 import Anuncios from "./pages/admin/Anuncios"
 
 // =======================================================
