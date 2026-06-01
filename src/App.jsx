@@ -26,7 +26,7 @@ import ProfileAlumno from "./pages/alumno/profile/Profile"
 // =======================================================
 import AdminDashboard from "./pages/admin/Dashboard"
 import Users from "./pages/admin/Users"
-import RegistrarRM from "./pages/admin/RegistrarRM"
+import RegistrarRM from "./pages/admin/pr/PR"
 import AdminWods from "./pages/admin/Wods"
 import PDAAdmin from "./pages/admin/PDAAdmin"
 import CompetenciasAdmin from "./pages/admin/CompetenciasAdmin"
