@@ -4,6 +4,9 @@ import { supabase } from "../../supabase"
 import StatCard from "./components/StatCard"
 import HeroCard from "./components/HeroCard"
 import { mensualidadStatusInfo } from "../../utils/mensualidades"
+import DashboardSidebar from "./dashboard/components/DashboardSidebar"
+import DashboardContent from "./dashboard/components/DashboardContent"
+import AdminCoachDashboardMobile from "./dashboard/mobile/AdminCoachDashboardMobile"
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -19,23 +22,38 @@ export default function Dashboard() {
   const [todayWod, setTodayWod] = useState(null)
   const [todayWodLoading, setTodayWodLoading] = useState(true)
 
+  const [currentUser, setCurrentUser] = useState(null)
+  const [eventosBox, setEventosBox] = useState([])
+  const [publicidades, setPublicidades] = useState([])
+
   const [stats, setStats] = useState({
     totalPeople: 0,
     activeStudents: 0,
     expiringSoon: 0,
     upcomingBirthdays: 0,
+    birthdaysThisMonth: 0,
+    todaysBirthdays: 0,
     nextBirthdayLabel: "Sin próximos cumpleaños",
     nextExpiringLabel: "Sin vencimientos próximos",
+    alumnoExpiringLabel: "Tu mensualidad está activa",
     rolesSummary: "Sin datos",
   })
 
-  const [detailRows, setDetailRows] = useState({
-    activeStudentsRows: [],
-    expiringSoonRows: [],
-    upcomingBirthdaysRows: [],
-  })
+	const [detailRows, setDetailRows] = useState({
+	  activeStudentsRows: [],
+	  expiringSoonRows: [],
+	  upcomingBirthdaysRows: [],
+	  birthdaysThisMonthRows: [],
+	  todaysBirthdaysRows: [],
+	  alumnoExpiringRows: [],
+	  allBirthdaysRows: [], // NUEVO
+	})
 
   const carouselRef = useRef(null)
+  const publicidadRef = useRef(null)
+
+  const currentRole = normalizeRole(currentUser?.role)
+  const isAlumno = currentRole === "alumno"
 
   useEffect(() => {
     let alive = true
@@ -45,12 +63,17 @@ export default function Dashboard() {
         setLoading(true)
         setError("")
 
+        const { data: authData } = await supabase.auth.getUser()
+        const authUser = authData?.user || null
+
         const { data: users, error: usersError } = await supabase
           .from("usuarios")
           .select("id,nombre,email,role,fecha_nacimiento")
 
         if (usersError) throw usersError
         const safeUsers = users ?? []
+
+        const loggedProfile = safeUsers.find((u) => u.id === authUser?.id) || null
 
         const { data: mensualidades, error: mensualidadesError } = await supabase
           .from("mensualidades")
@@ -61,17 +84,31 @@ export default function Dashboard() {
         if (mensualidadesError) throw mensualidadesError
         const safeMens = mensualidades ?? []
 
-        const cutoffIso = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+        const nowIso = new Date().toISOString()
 
-        const { data: noticias, error: noticiasError } = await supabase
-          .from("noticias")
-          .select("id,titulo,resumen,contenido,fuente,url,imagen_url,fecha_publicacion,categoria")
+        const { data: anunciosRows, error: anunciosError } = await supabase
+          .from("anuncios")
+          .select("id,titulo,contenido,fecha_publicacion,activo,created_at,media_url,media_tipo")
           .eq("activo", true)
-          .gte("fecha_publicacion", cutoffIso)
+          .lte("fecha_publicacion", nowIso)
           .order("fecha_publicacion", { ascending: false })
           .limit(12)
 
-        if (noticiasError) throw noticiasError
+        if (anunciosError) throw anunciosError
+
+        const noticias = (anunciosRows || []).map((a) => ({
+          id: a.id,
+          titulo: a.titulo,
+          resumen: a.contenido,
+          contenido: a.contenido,
+          fuente: "PHO3NIX",
+          url: null,
+          imagen_url: a.media_tipo === "video" ? null : a.media_url,
+          media_url: a.media_url,
+          media_tipo: a.media_tipo,
+          fecha_publicacion: a.fecha_publicacion,
+          categoria: "anuncio",
+        }))
 
         const latestMensMap = new Map()
         for (const m of safeMens) {
@@ -89,13 +126,14 @@ export default function Dashboard() {
         let activeStudents = 0
         let activeStudentsRows = []
         let expiringSoonRows = []
+        let alumnoExpiringRows = []
+        let alumnoExpiringLabel = "Tu mensualidad está activa"
 
         for (const u of students) {
           const m = latestMensMap.get(u.id)
           if (!m) continue
 
           const info = mensualidadStatusInfo(m, now)
-
           if (!info.active) continue
 
           activeStudents += 1
@@ -106,12 +144,22 @@ export default function Dashboard() {
           })
 
           if (info.daysLeft !== null && info.daysLeft >= 0 && info.daysLeft <= 7) {
-            expiringSoonRows.push({
+            const row = {
               id: u.id,
               nombre: u.nombre,
               fechaFin: m.fecha_fin,
               diffDays: info.daysLeft,
-            })
+            }
+
+            expiringSoonRows.push(row)
+
+            if (u.id === authUser?.id) {
+              alumnoExpiringRows.push(row)
+              alumnoExpiringLabel =
+                info.daysLeft === 0
+                  ? "Tu mensualidad vence hoy"
+                  : `Tu mensualidad vence en ${info.daysLeft} día(s)`
+            }
           }
         }
 
@@ -119,21 +167,36 @@ export default function Dashboard() {
         expiringSoonRows.sort((a, b) => a.diffDays - b.diffDays)
 
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const currentMonth = today.getMonth()
 
-        const upcomingBirthdaysRows = safeUsers
+        const birthdayBaseRows = safeUsers
           .filter((u) => !!u.fecha_nacimiento)
           .map((u) => {
             const nextBirthday = getNextBirthday(u.fecha_nacimiento, today)
+            const [, month, day] = String(u.fecha_nacimiento).split("-").map(Number)
+
             return {
               id: u.id,
               nombre: u.nombre,
               nextBirthday,
               fechaNacimiento: u.fecha_nacimiento,
+              birthMonth: month - 1,
+              birthDay: day,
               daysUntil: daysBetween(today, nextBirthday),
             }
           })
+
+        const upcomingBirthdaysRows = birthdayBaseRows
           .filter((x) => x.daysUntil >= 0 && x.daysUntil <= 30)
           .sort((a, b) => a.daysUntil - b.daysUntil)
+
+        const birthdaysThisMonthRows = birthdayBaseRows
+          .filter((x) => x.birthMonth === currentMonth)
+          .sort((a, b) => a.birthDay - b.birthDay)
+
+        const todaysBirthdaysRows = birthdayBaseRows
+          .filter((x) => x.daysUntil === 0)
+          .sort((a, b) => a.nombre.localeCompare(b.nombre))
 
         const nextBirthdayLabel =
           upcomingBirthdaysRows.length > 0
@@ -159,21 +222,31 @@ export default function Dashboard() {
 
         if (!alive) return
 
+        setCurrentUser(loggedProfile)
+
         setStats({
           totalPeople: safeUsers.length,
           activeStudents,
           expiringSoon: expiringSoonRows.length,
           upcomingBirthdays: upcomingBirthdaysRows.length,
+          birthdaysThisMonth: birthdaysThisMonthRows.length,
+          todaysBirthdays: todaysBirthdaysRows.length,
           nextBirthdayLabel,
           nextExpiringLabel,
+          alumnoExpiringLabel,
           rolesSummary,
         })
 
-        setDetailRows({
-          activeStudentsRows,
-          expiringSoonRows,
-          upcomingBirthdaysRows,
-        })
+		setDetailRows({
+		  activeStudentsRows,
+		  expiringSoonRows,
+		  upcomingBirthdaysRows,
+		  birthdaysThisMonthRows,
+		  todaysBirthdaysRows,
+		  alumnoExpiringRows,
+
+		  allBirthdaysRows: birthdayBaseRows, // NUEVO
+		})
 
         setNews(noticias ?? [])
       } catch (e) {
@@ -216,8 +289,16 @@ export default function Dashboard() {
       }
     }
 
+	const loadLocalContent = async () => {
+	  if (!alive) return
+
+	  setEventosBox([])
+	  setPublicidades([])
+	}
+
     loadDashboard()
     loadTodayWod()
+    loadLocalContent()
 
     return () => {
       alive = false
@@ -232,17 +313,7 @@ export default function Dashboard() {
 
     const interval = setInterval(() => {
       if (paused) return
-      const card = container.querySelector("[data-news-card]")
-      if (!card) return
-
-      const cardWidth = card.getBoundingClientRect().width + 16
-      const maxScroll = container.scrollWidth - container.clientWidth
-
-      if (container.scrollLeft + cardWidth >= maxScroll) {
-        container.scrollTo({ left: 0, behavior: "smooth" })
-      } else {
-        container.scrollBy({ left: cardWidth, behavior: "smooth" })
-      }
+      moveCarousel(container)
     }, 3500)
 
     const onEnter = () => {
@@ -267,7 +338,43 @@ export default function Dashboard() {
     }
   }, [news])
 
-  const cards = useMemo(
+  useEffect(() => {
+    if (!publicidadRef.current) return
+
+    const itemsCount = eventosBox.length + publicidades.length
+    if (itemsCount <= 1) return
+
+    const container = publicidadRef.current
+    let paused = false
+
+    const interval = setInterval(() => {
+      if (paused) return
+      moveCarousel(container)
+    }, 4200)
+
+    const onEnter = () => {
+      paused = true
+    }
+
+    const onLeave = () => {
+      paused = false
+    }
+
+    container.addEventListener("mouseenter", onEnter)
+    container.addEventListener("mouseleave", onLeave)
+    container.addEventListener("touchstart", onEnter, { passive: true })
+    container.addEventListener("touchend", onLeave)
+
+    return () => {
+      clearInterval(interval)
+      container.removeEventListener("mouseenter", onEnter)
+      container.removeEventListener("mouseleave", onLeave)
+      container.removeEventListener("touchstart", onEnter)
+      container.removeEventListener("touchend", onLeave)
+    }
+  }, [eventosBox, publicidades])
+
+  const adminCoachCards = useMemo(
     () => [
       {
         key: "activos",
@@ -308,242 +415,96 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white px-4 py-6 md:px-6">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-orange-500/20 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
-              Admin Module
-            </div>
-
-            <h1 className="text-2xl font-black tracking-tight md:text-4xl">
-              Dashboard
-            </h1>
-
-            <p className="mt-2 text-sm text-slate-300 md:text-base">
-              Resumen general del box, alertas, WOD del día y noticias recientes.
-            </p>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {error}
-          </div>
-        ) : null}
-
-        <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-3">
-          {cards.map((card) => (
-            <StatCard
-              key={card.key}
-              icon={card.icon}
-              title={card.title}
-              value={card.value}
-              subtitle={card.subtitle}
-              tone={card.tone}
-              onClick={() => openDetailModal(card.key)}
-            />
-          ))}
-        </div>
-
-        <div className="mt-8">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-white/85 text-lg font-semibold">WOD del día</h2>
-            <span className="text-xs text-white/45">{formatHumanDate(new Date())}</span>
-          </div>
-
-          <div className="mt-4">
-            {todayWodLoading ? (
-              <div className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm text-white/60">
-                Cargando WOD del día...
-              </div>
-            ) : todayWod ? (
-              <button
-                type="button"
-                onClick={() =>
-                  navigate("/wods", {
-                    state: { openTodayWodModal: true },
-                  })
-                }
-                className="w-full rounded-3xl border border-orange-500/20 bg-white/5 p-5 text-left shadow-2xl backdrop-blur-xl transition hover:bg-white/[0.07]"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
-                    WOD Publicado
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/75">
-                      {formatModoRanking(todayWod.modo_ranking)}
-                    </div>
-                    <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/75">
-                      {formatModalidad(todayWod.modalidad)}
-                    </div>
-                  </div>
+    <>
+      <div className={isAlumno ? "block" : "hidden lg:block"}>
+        <div className="min-h-screen bg-slate-950 text-white px-4 py-6 md:px-6">
+          <div className="mx-auto max-w-7xl">
+            <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-orange-500/20 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
+                  {isAlumno ? "Alumno Module" : "Admin Module"}
                 </div>
 
-                <h3 className="mt-4 text-xl font-black text-white">
-                  {todayWod.nombre || "WOD del día"}
-                </h3>
+                <h1 className="text-2xl font-black tracking-tight md:text-4xl">
+                  Dashboard
+                </h1>
 
-                <p className="mt-3 whitespace-pre-line text-sm leading-6 text-white/70">
-                  {todayWod.descripcion || "Sin descripción disponible."}
+                <p className="mt-2 text-sm text-slate-300 md:text-base">
+                  {isAlumno
+                    ? "Tu espacio PHO3NIX: WOD del día, novedades, eventos y comunidad."
+                    : "Resumen general del box, alertas, WOD del día y noticias recientes."}
                 </p>
+              </div>
+            </div>
 
-                <div className="mt-5 text-sm font-medium text-orange-300">
-                  Tocar para registrar ranking →
-                </div>
-              </button>
+            {error ? (
+              <div className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {error}
+              </div>
+            ) : null}
+
+            {isAlumno ? (
+              <AlumnoDashboardExperience
+                loading={loading}
+                todayWod={todayWod}
+                todayWodLoading={todayWodLoading}
+                birthdaysThisMonth={detailRows.birthdaysThisMonthRows}
+                todaysBirthdays={detailRows.todaysBirthdaysRows}
+                eventosBox={eventosBox}
+                publicidades={publicidades}
+                publicidadRef={publicidadRef}
+                navigate={navigate}
+                alumnoExpiringRows={detailRows.alumnoExpiringRows}
+                alumnoExpiringLabel={stats.alumnoExpiringLabel}
+              />
             ) : (
-              <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-5 text-sm text-white/60">
-                No hay WOD publicado para hoy.
-              </div>
+              <AdminCoachFullscreenDashboard
+                loading={loading}
+                stats={stats}
+                detailRows={detailRows}
+                todayWod={todayWod}
+                todayWodLoading={todayWodLoading}
+                news={news}
+                navigate={navigate}
+                openDetailModal={openDetailModal}
+                setSelectedNews={setSelectedNews}
+              />
             )}
+
+            {selectedNews ? (
+              <NewsModal news={selectedNews} onClose={() => setSelectedNews(null)} />
+            ) : null}
+
+            {modalOpen ? (
+              <DashboardDetailModal
+                type={modalType}
+                rows={detailRows}
+                onClose={closeDetailModal}
+              />
+            ) : null}
           </div>
         </div>
+      </div>
 
-        <div className="mt-8">
-          <h2 className="text-white/85 text-lg font-semibold">Alertas</h2>
+      {!isAlumno ? (
+        <AdminCoachDashboardMobile
+          loading={loading}
+          error={error}
+          currentUser={currentUser}
+          stats={stats}
+          detailRows={detailRows}
+          todayWod={todayWod}
+          todayWodLoading={todayWodLoading}
+          news={news}
+          navigate={navigate}
+          openDetailModal={openDetailModal}
+          setSelectedNews={setSelectedNews}
+          formatHumanDate={formatHumanDate}
+          translateNewsTitle={translateNewsTitle}
+        />
+      ) : null}
 
-          <div className="mt-4 grid grid-cols-1 gap-4">
-            <HeroCard
-              title="Resumen del Box"
-              dateText={formatHumanDate(new Date())}
-              description={
-                loading
-                  ? "Cargando información..."
-                  : `Hoy tienes ${stats.activeStudents} alumno(s) activos, ${stats.expiringSoon} mensualidad(es) próximas a vencer y ${stats.upcomingBirthdays} cumpleaños próximos.`
-              }
-              ctaText="Actualizar"
-              onCta={() => window.location.reload()}
-            />
-          </div>
-        </div>
-
-        <div className="mt-10">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-white/85 text-lg font-semibold">Noticias CrossFit</h2>
-            <span className="text-xs text-white/45">Últimos 15 días</span>
-          </div>
-
-          {loading ? (
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-white/60">
-              Cargando noticias...
-            </div>
-          ) : news.length === 0 ? (
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-white/60">
-              Aún no hay noticias cargadas.
-            </div>
-          ) : (
-            <div className="mt-4">
-              <div
-                ref={carouselRef}
-                className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              >
-                {news.map((item) => (
-                  <button
-                    key={item.id}
-                    data-news-card
-                    type="button"
-                    onClick={() => setSelectedNews(item)}
-                    className="snap-start shrink-0 w-[290px] sm:w-[340px] text-left rounded-3xl border border-white/10 bg-white/5 overflow-hidden hover:bg-white/[0.07] transition"
-                  >
-                    <div className="relative h-36 w-full overflow-hidden">
-                      <img
-                        src={item.imagen_url || "/images/news-default.jpg"}
-                        alt={item.titulo || "Noticia CrossFit"}
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = "/images/news-default.jpg"
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
-
-                      <div className="absolute inset-x-0 bottom-0 p-4">
-                        <div className="flex items-center gap-2 text-[11px]">
-                          <span className="rounded-md border border-orange-400/20 bg-orange-500/20 px-2 py-1 text-orange-300">
-                            {item.fuente || "CrossFit"}
-                          </span>
-                          <span className="text-white/75">
-                            {formatHumanDate(item.fecha_publicacion)}
-                          </span>
-                        </div>
-
-                        <div className="mt-2 text-base font-semibold text-white line-clamp-2">
-                          {translateNewsTitle(item.titulo)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4">
-                      <p className="text-sm text-white/65 line-clamp-4 min-h-[84px]">
-                        {translateNewsSummary(item.resumen || item.contenido)}
-                      </p>
-
-                      <div className="mt-4 inline-flex rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white">
-                        Ver más
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-10">
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-white/85 text-lg font-semibold">Acceso rápido</h2>
-            <span className="text-xs text-white/45">Módulos principales</span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => navigate("/registrar-rm")}
-              className="group rounded-3xl border border-white/10 bg-white/5 p-5 text-left transition hover:bg-white/[0.07]"
-            >
-              <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
-                Strength Tracking
-              </div>
-
-              <h3 className="mt-4 text-xl font-bold text-white">RM</h3>
-
-              <p className="mt-2 text-sm text-white/65">
-                Registra marcas personales, revisa evolución y consulta el ranking por ejercicio.
-              </p>
-
-              <div className="mt-5 text-sm font-medium text-orange-300 group-hover:text-orange-200">
-                Ir a RM →
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                navigate("/wods", {
-                  state: { openTodayWodModal: true },
-                })
-              }
-              className="group rounded-3xl border border-white/10 bg-white/5 p-5 text-left transition hover:bg-white/[0.07]"
-            >
-              <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
-                Weekly Training
-              </div>
-
-              <h3 className="mt-4 text-xl font-bold text-white">WOD</h3>
-
-              <p className="mt-2 text-sm text-white/65">
-                Consulta los WODs semanales, rankings por entrenamiento y registra resultados del día.
-              </p>
-
-              <div className="mt-5 text-sm font-medium text-orange-300 group-hover:text-orange-200">
-                Ir a WOD →
-              </div>
-            </button>
-          </div>
-        </div>
-
+      <div className="lg:hidden">
         {selectedNews ? (
           <NewsModal news={selectedNews} onClose={() => setSelectedNews(null)} />
         ) : null}
@@ -555,6 +516,524 @@ export default function Dashboard() {
             onClose={closeDetailModal}
           />
         ) : null}
+      </div>
+    </>
+  )
+}
+
+
+function AdminCoachFullscreenDashboard({
+  loading,
+  stats,
+  detailRows,
+  todayWod,
+  todayWodLoading,
+  news,
+  navigate,
+  openDetailModal,
+  setSelectedNews,
+}) {
+  const statItems = [
+    {
+      key: "activos",
+      icon: "👥",
+      title: "Alumnos activos",
+      value: loading ? "..." : stats.activeStudents,
+      subtitle: loading ? "Cargando..." : stats.rolesSummary,
+      tone: "orange",
+      action: "Ver alumnos",
+      onClick: () => openDetailModal("activos"),
+    },
+    {
+      key: "vencimientos",
+      icon: "💳",
+      title: "Mensualidades por vencer",
+      value: loading ? "..." : stats.expiringSoon,
+      subtitle: loading ? "Cargando..." : stats.nextExpiringLabel,
+      tone: "amber",
+      action: "Ver pendientes",
+      onClick: () => openDetailModal("vencimientos"),
+    },
+    {
+      key: "cumpleanos",
+      icon: "🎂",
+      title: "Cumpleaños este mes",
+      value: loading ? "..." : stats.upcomingBirthdays,
+      subtitle: loading ? "Cargando..." : stats.nextBirthdayLabel,
+      tone: "purple",
+      action: "Ver cumpleaños",
+      onClick: () => openDetailModal("cumpleanos"),
+    },
+    {
+      key: "anuncios",
+      icon: "📣",
+      title: "Anuncios activos",
+      value: loading ? "..." : news.length,
+      subtitle: "Contenido visible para la comunidad",
+      tone: "blue",
+      action: "Ver anuncios",
+      onClick: () => navigate("/admin/anuncios"),
+    },
+  ]
+
+  const quickActions = [
+    {
+      icon: "📣",
+      title: "Registrar anuncio",
+      text: "Publica una novedad con imagen o video.",
+      onClick: () => navigate("/admin/anuncios"),
+    },
+    {
+      icon: "🏋️",
+      title: "Crear WOD",
+      text: "Programa el entrenamiento del día.",
+      onClick: () => navigate("/admin/wods"),
+    },
+    {
+      icon: "👤",
+      title: "Registrar alumno",
+      text: "Gestiona personas y membresías.",
+      onClick: () => navigate("/admin/users"),
+    },
+    {
+      icon: "💳",
+      title: "Ver mensualidades",
+      text: "Revisa vencimientos próximos.",
+      onClick: () => openDetailModal("vencimientos"),
+    },
+  ]
+
+  return (
+    <div className="fixed inset-0 z-[80] overflow-hidden bg-[#05070d] text-white">
+      <div className="grid h-full grid-cols-[270px_1fr] overflow-hidden">
+        <DashboardSidebar navigate={navigate} />
+
+        <DashboardContent
+          loading={loading}
+          stats={stats}
+          statItems={statItems}
+          quickActions={quickActions}
+          recentNews={(news || []).slice(0, 3)}
+          expiringRows={(detailRows.expiringSoonRows || []).slice(0, 3)}
+		  birthdayRows={detailRows.allBirthdaysRows  || []}
+          todayWod={todayWod}
+          todayWodLoading={todayWodLoading}
+          navigate={navigate}
+          openDetailModal={openDetailModal}
+          setSelectedNews={setSelectedNews}
+          formatHumanDate={formatHumanDate}
+          translateNewsTitle={translateNewsTitle}
+        />
+      </div>
+    </div>
+  )
+}
+
+function AlumnoDashboardExperience({
+  loading,
+  todayWod,
+  todayWodLoading,
+  birthdaysThisMonth,
+  todaysBirthdays,
+  eventosBox,
+  publicidades,
+  publicidadRef,
+  navigate,
+  alumnoExpiringRows,
+  alumnoExpiringLabel,
+}) {
+  const heroBirthday = todaysBirthdays?.[0]
+  const nextEvent = eventosBox?.[0]
+  const visualItems = [
+    ...(eventosBox || []).map((item) => ({ ...item, tipoVisual: "Evento" })),
+    ...(publicidades || []).map((item) => ({ ...item, tipoVisual: "Publicidad" })),
+  ]
+
+  return (
+    <>
+      <section className="relative mt-6 overflow-hidden rounded-[2rem] border border-orange-500/20 bg-gradient-to-br from-orange-500/15 via-white/[0.06] to-black p-6 shadow-2xl md:p-8">
+        <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="absolute -bottom-24 left-10 h-64 w-64 rounded-full bg-red-500/10 blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(249,115,22,0.18),transparent_32%),radial-gradient(circle_at_20%_100%,rgba(239,68,68,0.13),transparent_28%)]" />
+
+        <div className="relative z-10 max-w-4xl">
+          <div className="inline-flex rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-orange-300">
+            Hoy en PHO3NIX
+          </div>
+
+          <h2 className="mt-5 text-3xl font-black tracking-tight text-white md:text-5xl">
+            Renace más fuerte hoy.
+          </h2>
+
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65 md:text-base">
+            Revisa tu WOD, novedades del box, eventos activos y movimiento de la comunidad.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3 text-sm">
+            <span className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-white/80">
+              🔥 {todayWod ? "WOD disponible" : "WOD pendiente"}
+            </span>
+
+            <span className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-white/80">
+              🎂 {heroBirthday ? `${heroBirthday.nombre} cumple hoy` : "Sin cumpleañero hoy"}
+            </span>
+
+            <span className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-white/80">
+              📢 {nextEvent ? nextEvent.titulo : "Sin evento activo"}
+            </span>
+
+            {alumnoExpiringRows.length > 0 ? (
+              <span className="rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-2 text-amber-200">
+                💳 {alumnoExpiringLabel}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </section>
+
+      <section className="mt-5 overflow-hidden rounded-3xl border border-purple-400/20 bg-purple-500/10 px-4 py-3">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
+          <span className="shrink-0 text-sm font-bold text-purple-200">
+            🎂 Cumpleaños del mes:
+          </span>
+
+          {loading ? (
+            <span className="text-sm text-white/60">Cargando...</span>
+          ) : birthdaysThisMonth.length === 0 ? (
+            <span className="text-sm text-white/60">
+              No hay cumpleañeros registrados este mes.
+            </span>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {birthdaysThisMonth.map((item) => (
+                <span
+                  key={item.id}
+                  className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/75"
+                >
+                  {item.nombre} · {String(item.birthDay).padStart(2, "0")}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="mt-8">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white/85">WOD del día</h2>
+          <span className="text-xs text-white/40">{formatHumanDate(new Date())}</span>
+        </div>
+
+        {todayWodLoading ? (
+          <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 text-sm text-white/60">
+            Cargando WOD...
+          </div>
+        ) : todayWod ? (
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/wods", {
+                state: { openTodayWodModal: true },
+              })
+            }
+            className="group relative w-full overflow-hidden rounded-[2rem] border border-orange-500/20 bg-black p-6 text-left shadow-2xl transition hover:border-orange-400/40 md:p-8"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 via-white/[0.04] to-transparent" />
+            <div className="absolute -right-16 top-10 h-56 w-56 rounded-full bg-orange-500/20 blur-3xl transition group-hover:bg-orange-500/30" />
+
+            <div className="relative z-10">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-orange-300">
+                  WOD publicado
+                </span>
+
+                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/70">
+                  {formatModoRanking(todayWod.modo_ranking)}
+                </span>
+
+                <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/70">
+                  {formatModalidad(todayWod.modalidad)}
+                </span>
+              </div>
+
+              <h3 className="mt-5 text-3xl font-black text-white md:text-5xl">
+                {todayWod.nombre || "WOD del día"}
+              </h3>
+
+              <p className="mt-5 max-w-3xl whitespace-pre-line text-sm leading-7 text-white/70 md:text-base">
+                {todayWod.descripcion || "Sin descripción disponible."}
+              </p>
+
+              <div className="mt-6 inline-flex rounded-2xl bg-orange-500 px-5 py-3 text-sm font-bold text-black">
+                Registrar resultado →
+              </div>
+            </div>
+          </button>
+        ) : (
+          <div className="rounded-[2rem] border border-dashed border-white/10 bg-white/5 p-6 text-sm text-white/60">
+            No hay WOD publicado para hoy.
+          </div>
+        )}
+      </section>
+
+      <section className="mt-10">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white/85">Promos y eventos</h2>
+          <span className="text-xs text-white/40">PHO3NIX</span>
+        </div>
+
+        <div
+          ref={publicidadRef}
+          className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {visualItems.length === 0 ? (
+            <div className="w-full rounded-[2rem] border border-dashed border-white/10 bg-white/5 p-6 text-sm text-white/60">
+              Aquí aparecerán eventos, promociones y publicidad agregada por Coach/Admin.
+            </div>
+          ) : (
+            visualItems.map((item, index) => {
+              const Wrapper = item.url ? "a" : "div"
+              const wrapperProps = item.url
+                ? {
+                    href: item.url,
+                    target: "_blank",
+                    rel: "noreferrer",
+                  }
+                : {}
+
+              return (
+                <Wrapper
+                  key={`${item.tipoVisual}-${item.id || index}`}
+                  {...wrapperProps}
+                  data-news-card
+                  className="relative h-[260px] w-[310px] shrink-0 snap-start overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 md:w-[460px]"
+                >
+                  <img
+                    src={item.imagen_url || "/images/news-default.jpg"}
+                    alt={item.titulo || "PHO3NIX"}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/news-default.jpg"
+                    }}
+                  />
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
+
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <span className="rounded-full border border-orange-400/20 bg-orange-500/20 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-orange-300">
+                      {item.tipoVisual}
+                    </span>
+
+                    <h3 className="mt-3 text-xl font-black text-white">
+                      {item.titulo || "Anuncio PHO3NIX"}
+                    </h3>
+
+                    <p className="mt-2 line-clamp-2 text-sm text-white/65">
+                      {item.descripcion || "Sin descripción disponible."}
+                    </p>
+                  </div>
+                </Wrapper>
+              )
+            })
+          )}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold text-white/85">Timeline del box</h2>
+
+        <div className="mt-4 space-y-4 border-l border-orange-500/25 pl-5">
+          {todaysBirthdays.length > 0 ? (
+            todaysBirthdays.map((item) => (
+              <TimelineItem
+                key={`birthday-${item.id}`}
+                icon="🎂"
+                title={`${item.nombre} está de cumpleaños`}
+                text="Hoy la comunidad PHO3NIX celebra un cumpleaños."
+              />
+            ))
+          ) : (
+            <TimelineItem
+              icon="🎂"
+              title="Sin cumpleañeros hoy"
+              text="Los cumpleaños del mes aparecen en la barra superior."
+            />
+          )}
+
+          {eventosBox.length > 0 ? (
+            eventosBox.map((item) => (
+              <TimelineItem
+                key={`event-${item.id}`}
+                icon="📢"
+                title={item.titulo || "Evento PHO3NIX"}
+                text={item.descripcion || "Evento agregado por el equipo del box."}
+              />
+            ))
+          ) : (
+            <TimelineItem
+              icon="📢"
+              title="Sin eventos activos"
+              text="Cuando el coach o admin agregue eventos, aparecerán aquí."
+            />
+          )}
+
+          {alumnoExpiringRows.length > 0 ? (
+            <TimelineItem
+              icon="💳"
+              title="Mensualidad por vencer"
+              text={alumnoExpiringLabel}
+            />
+          ) : null}
+        </div>
+      </section>
+
+      <QuickAccessSection navigate={navigate} />
+    </>
+  )
+}
+
+function TimelineItem({ icon, title, text }) {
+  return (
+    <div className="relative">
+      <div className="absolute -left-[31px] top-1 flex h-7 w-7 items-center justify-center rounded-full border border-orange-400/30 bg-slate-950 text-sm">
+        {icon}
+      </div>
+
+      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+        <h3 className="font-bold text-white">{title}</h3>
+        <p className="mt-1 text-sm leading-6 text-white/60">{text}</p>
+      </div>
+    </div>
+  )
+}
+
+function NoticiasCrossfitSection({ loading, news, carouselRef, setSelectedNews }) {
+  return (
+    <div className="mt-10">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-white/85 text-lg font-semibold">Noticias CrossFit</h2>
+        <span className="text-xs text-white/45">Últimos 15 días</span>
+      </div>
+
+      {loading ? (
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-white/60">
+          Cargando noticias...
+        </div>
+      ) : news.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-white/60">
+          Aún no hay noticias cargadas.
+        </div>
+      ) : (
+        <div className="mt-4">
+          <div
+            ref={carouselRef}
+            className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {news.map((item) => (
+              <button
+                key={item.id}
+                data-news-card
+                type="button"
+                onClick={() => setSelectedNews(item)}
+                className="snap-start shrink-0 w-[290px] sm:w-[340px] text-left rounded-3xl border border-white/10 bg-white/5 overflow-hidden hover:bg-white/[0.07] transition"
+              >
+                <div className="relative h-36 w-full overflow-hidden">
+                  <img
+                    src={item.imagen_url || "/images/news-default.jpg"}
+                    alt={item.titulo || "Noticia CrossFit"}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "/images/news-default.jpg"
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <div className="flex items-center gap-2 text-[11px]">
+                      <span className="rounded-md border border-orange-400/20 bg-orange-500/20 px-2 py-1 text-orange-300">
+                        {item.fuente || "CrossFit"}
+                      </span>
+                      <span className="text-white/75">
+                        {formatHumanDate(item.fecha_publicacion)}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 text-base font-semibold text-white line-clamp-2">
+                      {translateNewsTitle(item.titulo)}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <p className="text-sm text-white/65 line-clamp-4 min-h-[84px]">
+                    {translateNewsSummary(item.resumen || item.contenido)}
+                  </p>
+
+                  <div className="mt-4 inline-flex rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs font-medium text-white">
+                    Ver más
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function QuickAccessSection({ navigate }) {
+  return (
+    <div className="mt-10">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-white/85 text-lg font-semibold">Acceso rápido</h2>
+        <span className="text-xs text-white/45">Módulos principales</span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => navigate("/registrar-rm")}
+          className="group rounded-3xl border border-white/10 bg-white/5 p-5 text-left transition hover:bg-white/[0.07]"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
+            Strength Tracking
+          </div>
+
+          <h3 className="mt-4 text-xl font-bold text-white">RM</h3>
+
+          <p className="mt-2 text-sm text-white/65">
+            Registra marcas personales, revisa evolución y consulta el ranking por ejercicio.
+          </p>
+
+          <div className="mt-5 text-sm font-medium text-orange-300 group-hover:text-orange-200">
+            Ir a RM →
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            navigate("/wods", {
+              state: { openTodayWodModal: true },
+            })
+          }
+          className="group rounded-3xl border border-white/10 bg-white/5 p-5 text-left transition hover:bg-white/[0.07]"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
+            Weekly Training
+          </div>
+
+          <h3 className="mt-4 text-xl font-bold text-white">WOD</h3>
+
+          <p className="mt-2 text-sm text-white/65">
+            Consulta los WODs semanales, rankings por entrenamiento y registra resultados del día.
+          </p>
+
+          <div className="mt-5 text-sm font-medium text-orange-300 group-hover:text-orange-200">
+            Ir a WOD →
+          </div>
+        </button>
       </div>
     </div>
   )
@@ -640,8 +1119,13 @@ function getModalConfig(type, rows) {
     }
   }
 
-  if (type === "vencimientos") {
-    const items = (rows.expiringSoonRows || []).map((item) => ({
+  if (type === "vencimientos" || type === "vencimientos-alumno") {
+    const sourceRows =
+      type === "vencimientos-alumno"
+        ? rows.alumnoExpiringRows || []
+        : rows.expiringSoonRows || []
+
+    const items = sourceRows.map((item) => ({
       id: item.id,
       nombre: item.nombre,
       secondary: `Vence: ${formatDateDMY(item.fechaFin)}`,
@@ -678,67 +1162,177 @@ function getModalConfig(type, rows) {
 }
 
 function NewsModal({ news, onClose }) {
+  const videoRef = useRef(null)
+  const [muted, setMuted] = useState(true)
+  const [volume, setVolume] = useState(0)
+
   const translatedTitle = translateNewsTitle(news.titulo)
   const translatedSummary = translateNewsSummary(news.resumen)
   const translatedContent = translateNewsContent(news.contenido || news.resumen)
 
+  const isVideo = news.media_tipo === "video" && news.media_url
+  const visualUrl = news.media_url || news.imagen_url || "/images/news-default.jpg"
+
+  const handleVolumeChange = (value) => {
+    const nextVolume = Number(value) / 100
+    setVolume(Number(value))
+
+    if (videoRef.current) {
+      videoRef.current.volume = nextVolume
+      videoRef.current.muted = nextVolume === 0
+    }
+
+    setMuted(nextVolume === 0)
+  }
+
+  const toggleMute = () => {
+    const nextMuted = !muted
+    setMuted(nextMuted)
+
+    if (videoRef.current) {
+      videoRef.current.muted = nextMuted
+
+      if (!nextMuted && volume === 0) {
+        videoRef.current.volume = 0.35
+        setVolume(35)
+      }
+    }
+  }
+
   return (
-    <div className="fixed inset-0 z-[70]">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 w-[94vw] max-w-3xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-white/10 bg-[#0b0f14] shadow-2xl">
-        <div className="relative h-52 w-full overflow-hidden">
-          <img
-            src={news.imagen_url || "/images/news-default.jpg"}
-            alt={news.titulo || "Noticia CrossFit"}
-            className="h-full w-full object-cover"
-            onError={(e) => {
-              e.currentTarget.src = "/images/news-default.jpg"
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-end">
-            <div className="p-5 sm:p-6">
-              <div className="flex flex-wrap items-center gap-2 text-xs text-white/75">
-                <span className="rounded-md border border-orange-400/20 bg-orange-500/20 px-2 py-1 text-orange-300">
-                  {news.fuente || "CrossFit"}
-                </span>
-                <span>{formatHumanDate(news.fecha_publicacion)}</span>
-              </div>
-              <h3 className="mt-2 text-xl sm:text-2xl font-semibold text-white">
-                {translatedTitle}
-              </h3>
-            </div>
-          </div>
-        </div>
+    <div className="fixed inset-0 z-[150]">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Cerrar"
+      />
 
-        <div className="p-5 sm:p-6">
-          <div className="text-sm leading-6 text-white/75 whitespace-pre-line">
-            {translatedContent || translatedSummary || "Sin detalles disponibles."}
-          </div>
+      <div className="phoenix-card absolute left-1/2 top-1/2 grid max-h-[92vh] w-[94vw] max-w-5xl -translate-x-1/2 -translate-y-1/2 grid-cols-1 overflow-hidden lg:grid-cols-[1.15fr_.85fr]">
+        <div className="relative min-h-[320px] overflow-hidden bg-black">
+          {isVideo ? (
+            <video
+              ref={videoRef}
+              src={visualUrl}
+              className="h-full min-h-[320px] w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls
+            />
+          ) : (
+            <img
+              src={visualUrl}
+              alt={news.titulo || "Anuncio PHO3NIX"}
+              className="h-full min-h-[320px] w-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = "/images/news-default.jpg"
+              }}
+            />
+          )}
 
-          <div className="mt-6 flex flex-wrap gap-2">
-            {news.url ? (
-              <a
-                href={news.url}
-                target="_blank"
-                rel="noreferrer"
-                className="rounded-xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/15"
-              >
-                Abrir noticia original
-              </a>
-            ) : null}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+
+          <div className="absolute left-5 right-5 top-5 flex items-center justify-between gap-3">
+            <span className="rounded-full border border-orange-500/25 bg-orange-500/15 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-orange-300">
+              PHO3NIX Anuncio
+            </span>
 
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-white/10 bg-black/20 px-4 py-2 text-sm font-medium text-white/80 hover:bg-white/10"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/55 text-xl text-white/70 transition hover:border-orange-400/40 hover:text-orange-300"
+              aria-label="Cerrar"
             >
-              Cerrar
+              ×
+            </button>
+          </div>
+
+          {isVideo ? (
+            <div className="absolute bottom-5 left-5 right-5 rounded-2xl border border-white/10 bg-black/60 p-3 backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={toggleMute}
+                  className="rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-sm font-black text-orange-300 transition hover:bg-orange-500/15"
+                >
+                  {muted ? "🔇" : "🔊"}
+                </button>
+
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 text-[11px] font-black uppercase tracking-[0.12em] text-white/45">
+                    Volumen
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={volume}
+                    onChange={(e) => handleVolumeChange(e.target.value)}
+                    className="w-full accent-orange-500"
+                  />
+                </div>
+
+                <div className="w-10 text-right text-xs font-black text-white/70">
+                  {volume}%
+                </div>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex min-h-0 flex-col bg-black/45">
+          <div className="border-b border-orange-500/15 p-5">
+            <div className="text-xs font-black uppercase tracking-[0.18em] text-orange-300">
+              {news.fecha_publicacion ? formatHumanDate(news.fecha_publicacion) : "Sin fecha"}
+            </div>
+
+            <h2 className="mt-3 text-2xl font-black leading-tight text-white">
+              {translatedTitle}
+            </h2>
+
+            {translatedSummary ? (
+              <p className="mt-2 text-sm leading-6 text-white/60">
+                {translatedSummary}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto p-5">
+            <div className="whitespace-pre-line text-sm leading-7 text-white/72">
+              {translatedContent || "Sin contenido adicional."}
+            </div>
+          </div>
+
+          <div className="border-t border-orange-500/15 bg-black/40 p-5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="phoenix-button-primary w-full text-sm"
+            >
+              Cerrar anuncio
             </button>
           </div>
         </div>
       </div>
     </div>
   )
+}
+
+
+function moveCarousel(container) {
+  const card = container.querySelector("[data-news-card]")
+  if (!card) return
+
+  const cardWidth = card.getBoundingClientRect().width + 16
+  const maxScroll = container.scrollWidth - container.clientWidth
+
+  if (container.scrollLeft + cardWidth >= maxScroll) {
+    container.scrollTo({ left: 0, behavior: "smooth" })
+  } else {
+    container.scrollBy({ left: cardWidth, behavior: "smooth" })
+  }
 }
 
 function normalizeRole(role) {

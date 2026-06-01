@@ -1,840 +1,643 @@
 import { Link } from "react-router-dom"
-import { useEffect, useState } from "react"
+import HomeNovedades from "./home/components/HomeNovedades"
+import { useEffect, useMemo, useState } from "react"
+import {
+  Activity,
+  Clock3,
+  Flame,
+  Handshake,
+  Megaphone,
+  Trophy,
+  Users,
+} from "lucide-react"
+
 import { supabase } from "../supabase"
-import heroImage from "../assets/hero-home.png"
+import pho3nixLogo from "../assets/pho3nix-login-logo.png"
 import lycanLogo from "../assets/lycan.png"
-import pho3nixLogo from "../assets/pho3nix-logo.png"
+
+const HERO_IMAGE_URL =
+  "https://rmolvzjluxutxmxzthjp.supabase.co/storage/v1/object/public/images/hero-home.png"
+
+const SOCIAL_LINKS = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/pho3nixff.ec",
+    icon: "◎",
+    text: "@pho3nixff.ec",
+  },
+  {
+    label: "TikTok",
+    href: "https://www.tiktok.com/@pho3nixff.ec",
+    icon: "♪",
+    text: "@pho3nixff.ec",
+  },
+  {
+    label: "WhatsApp",
+    href: "https://wa.me/593",
+    icon: "✆",
+    text: "WhatsApp PHO3NIX",
+  },
+]
+
+const INFO_CARDS = [
+  {
+    key: "about",
+    icon: Users,
+    title: "¿QUIÉNES SOMOS?",
+    mobileTitle: "SOMOS",
+    text: "Conoce nuestra historia, valores y lo que nos mueve.",
+  },
+  {
+    key: "schedule",
+    icon: Clock3,
+    title: "HORARIOS",
+    mobileTitle: "HORARIOS",
+    text: "Descubre nuestros horarios y programaciones.",
+  },
+  {
+    key: "partners",
+    icon: Handshake,
+    title: "PARTNERS",
+    mobileTitle: "PARTNERS",
+    text: "Conoce a nuestros aliados que hacen esto posible.",
+  },
+  {
+    key: "news",
+    icon: Megaphone,
+    title: "NOVEDADES",
+    mobileTitle: "NEWS",
+    text: "Entérate de anuncios, eventos y promociones.",
+  },
+]
+
+const STATS = [
+  {
+    icon: Trophy,
+    label: "DESAFÍOS",
+    value: "Todo el año",
+  },
+  {
+    icon: Activity,
+    label: "RESULTADOS",
+    value: "Transforma tu vida",
+  },
+  {
+    icon: Flame,
+    label: "PASIÓN",
+    value: "Estilo PHO3NIX",
+  },
+]
+
+const SCHEDULES = [
+  {
+    title: "Mañana",
+    times: ["6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM"],
+  },
+  {
+    title: "Tarde",
+    times: ["5:00 PM", "6:00 PM", "7:00 PM"],
+  },
+  {
+    title: "Sábado y feriados",
+    times: ["Open Box 8:00 AM - 10:00 AM"],
+  },
+]
+
+const FALLBACK_NEWS = [
+  {
+    id: "fallback-1",
+    title: "Nuevos retos PHO3NIX",
+    text: "Muy pronto anunciaremos nuevos challenges internos para la comunidad.",
+    imageUrl: "",
+  },
+  {
+    id: "fallback-2",
+    title: "Open Box",
+    text: "Los sábados mantenemos espacios abiertos para técnica, movilidad y recuperación.",
+    imageUrl: "",
+  },
+  {
+    id: "fallback-3",
+    title: "Promos y eventos",
+    text: "Las promociones y anuncios especiales aparecerán aquí.",
+    imageUrl: "",
+  },
+]
 
 export default function Home() {
-  const [todayWod, setTodayWod] = useState(null)
-  const [todayWodLoading, setTodayWodLoading] = useState(true)
+  const [activePopup, setActivePopup] = useState(null)
+  const [newsItems, setNewsItems] = useState(FALLBACK_NEWS)
+
+  const popupTitle = useMemo(() => {
+    if (activePopup === "join") return "Conecta con PHO3NIX"
+    if (activePopup === "about") return "¿Quiénes somos?"
+    if (activePopup === "schedule") return "Horarios"
+    if (activePopup === "partners") return "Partners"
+    if (activePopup === "news") return newsItems?.[0]?.title || "Novedades"
+    return ""
+  }, [activePopup, newsItems])
 
   useEffect(() => {
-    const elements = document.querySelectorAll("[data-reveal]")
+    if (!activePopup) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("revealed")
-          }
-        })
-      },
-      { threshold: 0.14 }
-    )
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") setActivePopup(null)
+    }
 
-    elements.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
-  }, [])
+    window.addEventListener("keydown", onKeyDown)
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown)
+    }
+  }, [activePopup])
 
   useEffect(() => {
     let alive = true
 
-    async function loadTodayWod() {
+    async function loadNews() {
       try {
-        setTodayWodLoading(true)
-
-        const now = new Date()
-        const todayIso = formatDateISO(now)
-
         const { data, error } = await supabase
-          .from("wod")
-          .select(
-            "id,nombre,descripcion,modo_ranking,modalidad,fecha,activo,publicado,fecha_publicacion"
-          )
-          .eq("fecha", todayIso)
+		  .from("anuncios")
+		  .select("id,titulo,contenido,media_url,media_tipo,fecha_publicacion,activo")
           .eq("activo", true)
+          .order("fecha_publicacion", { ascending: false })
           .limit(5)
 
         if (error) throw error
 
-        const safeRows = (data || []).filter((item) => {
-          if (item.publicado === true && item.fecha_publicacion) {
-            return new Date(item.fecha_publicacion) <= now
-          }
-          return true
-        })
+		const mapped = (data || []).map((item) => ({
+		  id: item.id,
+		  title: item.titulo || "Novedad PHO3NIX",
+		  text:
+			item.contenido ||
+			"Nueva actualización disponible para la comunidad.",
+		  imageUrl:
+			item.media_tipo === "video"
+			  ? ""
+			  : item.media_url || "",
+		  mediaUrl: item.media_url || "",
+		  mediaTipo: item.media_tipo || "",
+		  date: item.fecha_publicacion || "",
+		}))
 
-        if (!alive) return
-        setTodayWod(safeRows[0] || null)
+        if (alive && mapped.length > 0) {
+          setNewsItems(mapped)
+        }
       } catch (error) {
-        console.error("Error cargando WOD del día:", error)
-        if (!alive) return
-        setTodayWod(null)
-      } finally {
-        if (alive) setTodayWodLoading(false)
+        console.warn("No se pudieron cargar las novedades:", error)
+        if (alive) setNewsItems(FALLBACK_NEWS)
       }
     }
 
-    loadTodayWod()
+    loadNews()
 
     return () => {
       alive = false
     }
   }, [])
 
-  const weekMorning = ["06:00", "07:00", "08:00", "09:00"]
-  const weekEvening = ["17:00", "18:00", "19:00"]
-
-  const socialLinks = {
-    instagram: "https://instagram.com/pho3nixff.ec",
-    tiktok: "https://www.tiktok.com/@pho3nixff.ec",
-    whatsapp:
-      "https://wa.me/593979727407?text=Hola%20quiero%20informacion%20de%20PHO3NIX",
-    maps: "https://maps.app.goo.gl/qSocV6BHLWw9suH76",
-    lycan:
-      "https://lycan-fitness.com/?srsltid=AfmBOopUbg9AGdXkQgLgQJ5FT71xo7ncg0QxI-oIZCwP2tfAsBcxoRH2",
-  }
-
-  const values = [
-    {
-      title: "Entrena con propósito",
-      description:
-        "Cada clase tiene estructura, intención y exigencia real.",
-    },
-    {
-      title: "Evolución progresiva",
-      description:
-        "El progreso se construye con disciplina, constancia y buena técnica.",
-    },
-    {
-      title: "Mentalidad competitiva",
-      description:
-        "Entrenamos para rendir mejor dentro y fuera del box.",
-    },
-  ]
-
   return (
-    <>
-      <style>{`
-        html {
-          scroll-behavior: smooth;
-        }
+    <main className="relative h-[100dvh] w-full overflow-hidden bg-black text-white">
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url("${HERO_IMAGE_URL}")`,
+        }}
+      />
 
-        .home-text p {
-          text-align: justify;
-          line-height: 1.7;
-          letter-spacing: 0.01em;
-        }
+      <div className="pointer-events-none absolute inset-0 z-[1] hidden items-center justify-center lg:flex">
+        <div className="translate-x-[18%] translate-y-[14%] text-[12rem] font-black uppercase tracking-[0.16em] text-orange-500/10 xl:text-[16rem]">
+          PHO3NIX
+        </div>
+      </div>
 
-        .home-text h1,
-        .home-text h2,
-        .home-text h3,
-        .home-text h4 {
-          text-wrap: balance;
-        }
+      <div className="pointer-events-none absolute inset-0 z-[2] overflow-hidden">
+        <img
+          src={pho3nixLogo}
+          alt=""
+          aria-hidden="true"
+          className="absolute right-[-72px] top-[13%] h-[290px] w-[290px] object-contain opacity-[0.11] mix-blend-screen blur-[0.4px] sm:right-[-40px] sm:top-[9%] sm:h-[420px] sm:w-[420px] md:right-[10%] md:top-[8%] md:h-[520px] md:w-[520px] md:opacity-[0.16] lg:right-[16%] lg:top-[3%] lg:h-[720px] lg:w-[720px] lg:opacity-[0.18]"
+        />
 
-        @media (max-width: 768px) {
-          .home-text p {
-            text-align: left;
-          }
-        }
+        <div className="absolute right-[-48px] top-[20%] h-[280px] w-[280px] rounded-full bg-orange-500/13 blur-[80px] sm:right-[0%] sm:h-[380px] sm:w-[380px] md:right-[17%] md:top-[18%] md:h-[520px] md:w-[520px] md:bg-orange-500/20 md:blur-[120px]" />
+      </div>
 
-        @keyframes heroZoom {
-          0% { transform: scale(1) translateY(0); }
-          50% { transform: scale(1.045) translateY(-6px); }
-          100% { transform: scale(1) translateY(0); }
-        }
+      <div className="absolute inset-0 z-[3] bg-[radial-gradient(circle_at_72%_45%,rgba(249,115,22,0.18),transparent_34%),linear-gradient(90deg,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.84)_35%,rgba(0,0,0,0.42)_65%,rgba(0,0,0,0.80)_100%)]" />
+      <div className="absolute inset-0 z-[4] bg-[linear-gradient(180deg,rgba(0,0,0,0.66)_0%,rgba(0,0,0,0.08)_44%,rgba(0,0,0,0.90)_100%)]" />
+      <div className="absolute -left-24 bottom-12 z-[5] h-72 w-72 rounded-full bg-orange-600/20 blur-3xl" />
+      <div className="absolute right-[22%] top-24 z-[5] h-96 w-96 rounded-full bg-red-500/10 blur-3xl" />
 
-        .hero-cinematic {
-          animation: heroZoom 15s ease-in-out infinite;
-          transform-origin: center center;
-        }
+      <header className="relative z-20 flex h-[58px] items-center justify-between px-3 sm:h-[76px] sm:px-8 lg:px-14">
+        <Link to="/" className="flex items-center gap-2 sm:gap-3">
+          <img
+            src={pho3nixLogo}
+            alt="PHO3NIX"
+            className="h-8 w-8 object-contain sm:h-14 sm:w-14"
+          />
 
-        @keyframes glowText {
-          0% { text-shadow: 0 0 0 rgba(249, 115, 22, 0.18); }
-          50% { text-shadow: 0 0 18px rgba(249, 115, 22, 0.28); }
-          100% { text-shadow: 0 0 0 rgba(249, 115, 22, 0.18); }
-        }
+          <div className="leading-none">
+            <div className="text-base font-black tracking-[0.13em] sm:text-3xl sm:tracking-[0.18em]">
+              PHO<span className="text-orange-500">3</span>NIX
+            </div>
+            <div className="mt-1 text-[7px] font-bold uppercase tracking-[0.32em] text-orange-500 sm:text-[11px] sm:tracking-[0.55em]">
+              Functional Fitness
+            </div>
+          </div>
+        </Link>
 
-        .hero-tagline {
-          animation: glowText 3.5s ease-in-out infinite;
-        }
-
-        @keyframes lineSweep {
-          0% {
-            transform: translateX(-100%);
-            opacity: 0;
-          }
-          20% {
-            opacity: 0.4;
-          }
-          100% {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-        }
-
-        .games-line {
-          background: linear-gradient(
-            90deg,
-            transparent 0%,
-            rgba(249, 115, 22, 0.05) 22%,
-            rgba(249, 115, 22, 0.42) 50%,
-            rgba(249, 115, 22, 0.05) 78%,
-            transparent 100%
-          );
-          animation: lineSweep 5.4s linear infinite;
-        }
-
-        .reveal-base {
-          opacity: 0;
-          transition:
-            opacity 0.9s ease,
-            transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
-          will-change: opacity, transform;
-        }
-
-        .reveal-left {
-          transform: translateX(-56px);
-        }
-
-        .reveal-right {
-          transform: translateX(56px);
-        }
-
-        .reveal-center {
-          transform: translateY(40px) scale(0.985);
-        }
-
-        .revealed {
-          opacity: 1;
-          transform: translateX(0) translateY(0) scale(1);
-        }
-
-        @keyframes pulseSoft {
-          0% { box-shadow: 0 0 0 rgba(249,115,22,0.08); }
-          50% { box-shadow: 0 0 24px rgba(249,115,22,0.15); }
-          100% { box-shadow: 0 0 0 rgba(249,115,22,0.08); }
-        }
-
-        .open-box-card {
-          animation: pulseSoft 3.5s ease-in-out infinite;
-        }
-
-        .section-card {
-          background:
-            linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
-          border: 1px solid rgba(255,255,255,0.08);
-          backdrop-filter: blur(10px);
-        }
-
-        .schedule-grid-card {
-          background:
-            linear-gradient(180deg, rgba(10,10,12,0.55), rgba(255,255,255,0.03));
-          border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .floating-socials {
-          position: fixed;
-          right: 14px;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 60;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-
-        .floating-social-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 52px;
-          height: 52px;
-          border-radius: 18px;
-          border: 1px solid rgba(255,255,255,0.10);
-          background: rgba(8, 11, 18, 0.72);
-          backdrop-filter: blur(10px);
-          color: white;
-          transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.28);
-        }
-
-        .floating-social-btn:hover {
-          transform: translateX(-3px) scale(1.05);
-          background: rgba(249, 115, 22, 0.16);
-          border-color: rgba(249, 115, 22, 0.25);
-        }
-
-        .footer-logo-wrap {
-          transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
-          box-shadow: 0 0 0 rgba(249, 115, 22, 0);
-        }
-
-        .footer-logo-wrap:hover {
-          transform: scale(1.05);
-          border-color: rgba(249, 115, 22, 0.35);
-          box-shadow:
-            0 0 0 1px rgba(249, 115, 22, 0.12),
-            0 0 20px rgba(249, 115, 22, 0.18);
-        }
-
-        @media (max-width: 1024px) {
-          .floating-socials {
-            right: 10px;
-            bottom: 14px;
-            top: auto;
-            transform: none;
-          }
-
-          .floating-social-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .floating-socials {
-            gap: 10px;
-          }
-
-          .floating-social-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 14px;
-          }
-        }
-      `}</style>
-
-      <div className="home-text min-h-screen overflow-x-hidden bg-[#0b0f17] text-white">
-        <div className="floating-socials">
-          <a
-            href={socialLinks.instagram}
-            target="_blank"
-            rel="noreferrer"
-            className="floating-social-btn"
-            aria-label="Instagram"
-            title="Instagram"
+        <nav className="hidden items-center gap-7 text-sm font-bold uppercase tracking-[0.08em] text-white/85 lg:flex">
+          <button className="text-orange-400">Inicio</button>
+          <button
+            type="button"
+            onClick={() => setActivePopup("about")}
+            className="transition hover:text-orange-300"
           >
-            <InstagramIcon />
-          </a>
-
-          <a
-            href={socialLinks.tiktok}
-            target="_blank"
-            rel="noreferrer"
-            className="floating-social-btn"
-            aria-label="TikTok"
-            title="TikTok"
+            Quiénes somos
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePopup("schedule")}
+            className="transition hover:text-orange-300"
           >
-            <TikTokIcon />
-          </a>
-
-          <a
-            href={socialLinks.whatsapp}
-            target="_blank"
-            rel="noreferrer"
-            className="floating-social-btn"
-            aria-label="WhatsApp"
-            title="WhatsApp"
+            Horarios
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePopup("partners")}
+            className="transition hover:text-orange-300"
           >
-            <WhatsAppIcon />
-          </a>
-
-          <a
-            href={socialLinks.maps}
-            target="_blank"
-            rel="noreferrer"
-            className="floating-social-btn"
-            aria-label="Ubicación"
-            title="Ubicación"
+            Partners
+          </button>
+          <button
+            type="button"
+            onClick={() => setActivePopup("news")}
+            className="transition hover:text-orange-300"
           >
-            <MapPinIcon />
-          </a>
+            Novedades
+          </button>
+        </nav>
+
+        <Link
+          to="/login"
+          className="rounded-md border border-orange-500/80 bg-black/40 px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.03em] text-orange-300 shadow-[0_0_24px_rgba(249,115,22,0.18)] transition hover:bg-orange-500 hover:text-black sm:rounded-xl sm:px-5 sm:py-3 sm:text-sm"
+        >
+          Iniciar sesión
+        </Link>
+      </header>
+
+      <section className="relative z-10 flex h-[calc(100dvh-58px)] flex-col justify-between px-3 pb-[46px] sm:h-[calc(100dvh-76px)] sm:px-8 sm:pb-4 lg:px-14">
+        <div className="grid flex-1 grid-cols-1 items-center lg:grid-cols-[minmax(420px,0.68fr)_1fr]">
+          <div className="max-w-[620px] -translate-y-3 pt-1 sm:-translate-y-3 lg:-translate-y-4 lg:pt-0">
+            <div className="mb-2 h-1 w-16 rounded-full bg-orange-500 shadow-[0_0_18px_rgba(249,115,22,0.9)] sm:mb-3 sm:w-24" />
+
+            <h1 className="text-[2rem] font-black uppercase leading-[0.9] tracking-tight min-[390px]:text-[2.3rem] sm:text-[4.5rem] lg:text-[5.4rem] xl:text-[6.3rem]">
+              <span className="block text-white drop-shadow-[0_4px_16px_rgba(255,255,255,0.15)]">
+                Renace.
+              </span>
+              <span className="block text-white">Entrena.</span>
+              <span className="block bg-gradient-to-r from-orange-500 via-red-500 to-orange-300 bg-clip-text text-transparent">
+                Supérate.
+              </span>
+            </h1>
+
+            <p className="mt-2 max-w-xl text-[11px] leading-4 text-white/75 min-[390px]:text-xs min-[390px]:leading-5 sm:mt-4 sm:text-lg sm:leading-8">
+              Más que un gimnasio, somos una comunidad. Entrena con propósito,
+              vive con pasión y renace más fuerte cada día.
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-3 sm:mt-6">
+              <button
+                type="button"
+                onClick={() => setActivePopup("join")}
+                className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-[11px] font-black uppercase text-black shadow-[0_0_26px_rgba(249,115,22,0.35)] transition hover:bg-orange-400 sm:gap-3 sm:rounded-xl sm:px-7 sm:py-3 sm:text-sm"
+              >
+                Únete a PHO3NIX
+                <span>→</span>
+              </button>
+            </div>
+
+            <div className="mt-3 grid max-w-[300px] grid-cols-3 gap-1.5 min-[390px]:max-w-[330px] sm:mt-6 sm:max-w-[460px] sm:gap-3">
+              {STATS.map((item) => {
+                const Icon = item.icon
+
+                return (
+                  <div
+                    key={item.label}
+                    className="aspect-square rounded-xl border border-orange-500/25 bg-black/40 p-1.5 text-center shadow-[0_0_18px_rgba(249,115,22,0.10)] backdrop-blur-md sm:rounded-2xl sm:p-4"
+                  >
+                    <Icon className="mx-auto h-4 w-4 text-orange-500 sm:h-7 sm:w-7" strokeWidth={2.5} />
+                    <div className="mt-1 text-[7px] font-black uppercase text-white sm:text-xs">
+                      {item.label}
+                    </div>
+                    <div className="mt-0.5 text-[7px] leading-tight text-white/65 sm:mt-1 sm:text-sm">
+                      {item.value}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          <div className="hidden lg:block" />
         </div>
 
-        <section className="relative min-h-screen overflow-hidden">
-          <div className="absolute inset-0">
-            <img
-              src={heroImage}
-              alt="Atleta entrenando en PHO3NIX"
-              className="hero-cinematic h-full w-full object-cover object-center"
-            />
-          </div>
+        <div className="relative z-10 grid grid-cols-4 gap-1.5 sm:gap-3">
+          {INFO_CARDS.map((item) => {
+            const Icon = item.icon
 
-          <div className="absolute inset-0 bg-black/60" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(249,115,22,0.20),_transparent_35%),linear-gradient(180deg,_rgba(11,15,23,0.32)_0%,_rgba(11,15,23,0.52)_45%,_rgba(11,15,23,0.84)_100%)]" />
-          <div className="games-line absolute left-0 top-24 h-px w-full opacity-50" />
-
-          <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl items-center px-6 py-16 sm:px-8 lg:px-12">
-            <div className="max-w-3xl">
-              <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-sm text-orange-200 backdrop-blur-sm">
-                <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/30 shadow-lg shadow-orange-500/20">
-                  <img
-                    src={pho3nixLogo}
-                    alt="Pho3nix logo"
-                    className="h-full w-full object-cover"
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setActivePopup(item.key)}
+                className="group min-h-[52px] rounded-xl border border-orange-500/25 bg-black/45 p-1.5 text-center shadow-[0_0_34px_rgba(249,115,22,0.11)] backdrop-blur-md transition hover:-translate-y-1 hover:border-orange-400/60 hover:bg-black/60 sm:min-h-[128px] sm:rounded-2xl sm:p-5 sm:text-left"
+              >
+                <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-start sm:gap-3">
+                  <Icon
+                    className="h-4 w-4 text-orange-500 sm:h-9 sm:w-9"
+                    strokeWidth={2.4}
                   />
-                </div>
-                <span className="text-xs font-bold tracking-[0.25em] sm:text-sm">
-                  PHO3NIX FUNCTIONAL FITNESS
-                </span>
-              </div>
 
-              <h1 className="max-w-3xl text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
-                Fuerza, disciplina y evolución en cada sesión.
-              </h1>
-
-              <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-                Un box diseñado para personas que buscan rendimiento real,
-                comunidad y progreso constante dentro de un entorno exigente,
-                técnico y profesional.
-              </p>
-
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                <Link
-                  to="/login"
-                  className="inline-flex items-center justify-center rounded-2xl bg-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-orange-500/20 transition duration-300 hover:scale-[1.03] hover:bg-orange-400"
-                >
-                  Iniciar sesión
-                </Link>
-
-                <a
-                  href="#wod"
-                  className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition duration-300 hover:bg-white/10"
-                >
-                  Ver inicio
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute bottom-8 right-6 z-10 max-w-md text-right sm:bottom-10 sm:right-10">
-            <p className="hero-tagline text-lg font-bold text-white/95 sm:text-2xl">
-              Renace más fuerte en cada entrenamiento.
-            </p>
-          </div>
-        </section>
-
-        <section
-          id="wod"
-          className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-12"
-        >
-          <div
-            data-reveal
-            className="reveal-base reveal-center section-card rounded-[28px] p-8 md:p-10"
-          >
-            <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-              <div>
-                <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
-                  Wod del día
-                </h2>
-
-                <div className="mt-6 text-sm text-slate-400">
-                  {todayWodLoading
-                    ? "Cargando WOD del día..."
-                    : todayWod
-                    ? "Entrenamiento programado para hoy"
-                    : "No hay WOD publicado"}
-                </div>
-              </div>
-
-              <div className="rounded-[24px] border border-white/10 bg-black/30 p-6">
-                {todayWodLoading ? (
                   <div>
-                    <div className="mb-5">
-                      <div className="h-4 w-28 animate-pulse rounded bg-white/10" />
-                      <div className="mt-3 h-6 w-52 animate-pulse rounded bg-white/10" />
-                    </div>
-
-                    <div className="grid gap-3">
-                      {[1, 2, 3].map((item) => (
-                        <div
-                          key={item}
-                          className="h-16 animate-pulse rounded-2xl border border-white/10 bg-white/5"
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ) : todayWod ? (
-                  <>
-                    <div className="mb-5 flex items-center justify-between gap-3">
-                      <div>
-                        <p className="mt-3 text-2xl font-black text-white">
-                          {todayWod.nombre || "WOD del día"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                      <p className="whitespace-pre-line text-sm leading-7 text-slate-200 sm:text-base">
-                        {todayWod.descripcion || "Sin descripción disponible."}
-                      </p>
-                    </div>
-
-                  </>
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-5">
-                    <p className="text-sm leading-7 text-slate-300">
-                      No hay WOD publicado para hoy.
+                    <h3 className="text-[7px] font-black uppercase leading-tight text-white sm:text-lg">
+                      <span className="sm:hidden">{item.mobileTitle}</span>
+                      <span className="hidden sm:inline">{item.title}</span>
+                    </h3>
+                    <p className="mt-1 hidden text-sm leading-6 text-white/65 sm:block">
+                      {item.text}
                     </p>
+                    <div className="hidden font-black uppercase text-orange-400 sm:mt-4 sm:block sm:text-xs">
+                      Abrir <span className="transition group-hover:translate-x-1">→</span>
+                    </div>
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
+                </div>
+              </button>
+            )
+          })}
+        </div>
 
-        <section
-          id="horarios"
-          className="mx-auto max-w-7xl px-6 py-4 sm:px-8 lg:px-12"
-        >
-          <div className="mb-10">
-            <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
-              Horarios
-            </h2>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-              Distribución clara de sesiones para mantener constancia, orden y
-              disponibilidad durante la semana.
-            </p>
+        <div className="relative z-10 flex items-center justify-between pt-1 text-[9px] text-white/45 sm:pt-2 sm:text-[11px]">
+          <div className="hidden items-center gap-2 sm:flex">
+            <img
+              src={lycanLogo}
+              alt="LYCAN Ecuador"
+              className="h-5 w-auto opacity-60"
+            />
+            <span>Partner oficial LYCAN Ecuador</span>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1fr_1fr_0.95fr]">
-            <div
-              data-reveal
-              className="reveal-base reveal-left schedule-grid-card rounded-[28px] p-6"
-            >
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.20em] text-orange-300">
-                    Bloque mañana
-                  </p>
-                  <p className="mt-1 text-sm text-slate-400">Lunes a viernes</p>
-                </div>
-                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-                  AM
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                {weekMorning.map((time) => (
-                  <div
-                    key={time}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center"
-                  >
-                    <p className="text-lg font-bold text-white">{time}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div
-              data-reveal
-              className="reveal-base reveal-right schedule-grid-card rounded-[28px] p-6"
-            >
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.20em] text-orange-300">
-                    Bloque tarde
-                  </p>
-                  <p className="mt-1 text-sm text-slate-400">Lunes a viernes</p>
-                </div>
-                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-                  PM
-                </div>
-              </div>
-
-              <div className="grid gap-3">
-                {weekEvening.map((time) => (
-                  <div
-                    key={time}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5"
-                  >
-                    <p className="text-center text-lg font-bold text-white">
-                      {time}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div
-              data-reveal
-              className="reveal-base reveal-center open-box-card rounded-[28px] border border-orange-500/20 bg-gradient-to-br from-orange-500/12 to-orange-500/5 p-6"
-            >
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.20em] text-orange-200">
-                    Sábado
-                  </p>
-                  <p className="mt-1 text-sm text-slate-300">Espacio libre</p>
-                </div>
-                <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white">
-                  OPEN BOX
-                </div>
-              </div>
-
-              <div className="rounded-[24px] border border-white/10 bg-black/25 p-6">
-                <p className="text-xs uppercase tracking-[0.22em] text-orange-200">
-                  Horario
-                </p>
-                <p className="mt-3 text-3xl font-black text-white">
-                  08:00 AM - 10:00 AM
-                </p>
-                <p className="mt-4 text-sm leading-6 text-slate-300">
-                  Espacio para práctica, trabajo libre y mejora técnica en un
-                  entorno controlado.
-                </p>
-              </div>
-            </div>
+          <div className="mx-auto sm:mx-0">
+            © 2025 <span className="text-orange-400">PHO3NIX</span> Functional Fitness
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-20 sm:px-8 lg:px-12">
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-            <div
-              data-reveal
-              className="reveal-base reveal-left"
-            >
-              <h2 className="text-sm text-3xl font-semibold uppercase text-orange-300 sm:text-4xl">
-                Quiénes somos
-              </h2>
-              <h2 className="mt-4 text-3xl font-black sm:text-4xl">
-                Más que un box, una comunidad de evolución.
-              </h2>
-              <p className="mt-6 max-w-3xl text-base leading-7 text-slate-300">
-                PHO3NIX Functional Fitness es un espacio orientado al desarrollo
-                físico y mental a través del entrenamiento funcional. Aquí cada
-                sesión está diseñada para exigirte, enseñarte y ayudarte a crecer.
-              </p>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
-                Nuestro enfoque combina intensidad, técnica, progresión y
-                acompañamiento para que principiantes y atletas avanzados puedan
-                evolucionar dentro de una misma comunidad.
-              </p>
-            </div>
-
-            <div
-              data-reveal
-              className="reveal-base reveal-right section-card rounded-[28px] p-6"
-            >
-              <h3 className="text-xl font-bold">Lo que nos define</h3>
-
-              <div className="mt-6 space-y-4">
-                {values.map((item) => (
-                  <div
-                    key={item.title}
-                    className="rounded-2xl border border-white/10 bg-black/20 p-4"
-                  >
-                    <p className="font-semibold text-orange-300">{item.title}</p>
-                    <p className="mt-1 text-sm leading-6 text-slate-400">
-                      {item.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-6 pb-20 sm:px-8 lg:px-12">
-          <div
-            data-reveal
-            className="reveal-base reveal-center rounded-[28px] border border-orange-500/20 bg-gradient-to-br from-orange-500/12 via-orange-500/8 to-transparent p-8 text-center md:p-12"
+      <aside className="absolute right-3 top-1/2 z-20 hidden -translate-y-1/2 flex-col gap-3 sm:flex">
+        {SOCIAL_LINKS.map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={item.label}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-orange-500/35 bg-black/45 text-lg font-black text-orange-300 shadow-[0_0_22px_rgba(249,115,22,0.12)] backdrop-blur-md transition hover:border-orange-400 hover:bg-orange-500 hover:text-black"
+            title={item.label}
           >
-            <h2 className="mt-4 text-3xl font-black sm:text-4xl">
-              ¿Ya formas parte de PHO3NIX?
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-300">
-              Ingresa a tu cuenta para revisar tu progreso, consultar información
-              del box y acceder a los módulos internos de la plataforma.
-            </p>
+            {item.icon}
+          </a>
+        ))}
+      </aside>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-5">
-              <a
-                href={socialLinks.instagram}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                <InstagramIcon />
-                Instagram
-              </a>
-
-              <a
-                href={socialLinks.tiktok}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                <TikTokIcon />
-                TikTok
-              </a>
-
-              <a
-                href={socialLinks.whatsapp}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
-              >
-                <WhatsAppIcon />
-                WhatsApp
-              </a>
-            </div>
-          </div>
-        </section>
-
-        <footer className="border-t border-white/10 bg-black/20">
-          <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-8 text-sm text-slate-400 sm:px-8 lg:px-12 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="footer-logo-wrap h-15 w-15 overflow-hidden rounded-2x1 border border-white/5 bg-black/40">
-                <img
-                  src={pho3nixLogo}
-                  alt="Pho3nix Functional Fitness"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-
-              <div>
-                <p className="font-semibold text-white">PHO3NIX Functional Fitness</p>
-                <p className="mt-1">Disciplina • Fuerza • Evolución</p>
-                <p className="mt-2 text-xs text-slate-500">
-                  ©2026 Pho3nix Functional Fitness — Producto registrado
-                </p>
-				<p className="mt-2 text-xs text-slate-500">
-                  By Neutron
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-5">
-              <a
-                href={socialLinks.instagram}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 hover:text-white"
-              >
-                <InstagramIcon />
-                Instagram
-              </a>
-
-              <a
-                href={socialLinks.tiktok}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 hover:text-white"
-              >
-                <TikTokIcon />
-                TikTok
-              </a>
-
-              <a
-                href={socialLinks.whatsapp}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 hover:text-white"
-              >
-                <WhatsAppIcon />
-                WhatsApp
-              </a>
-
-              <a
-                href={socialLinks.maps}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-3 hover:text-white"
-              >
-                <MapPinIcon />
-                Ubicación
-              </a>
-            </div>
-
-            <a
-              href={socialLinks.lycan}
-              target="_blank"
-              rel="noreferrer"
-              className="group inline-flex items-center gap-4 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 transition hover:border-orange-500/20 hover:bg-white/10"
-            >
-              <img
-                src={lycanLogo}
-                alt="Lycan Ecuador"
-                className="h-12 w-auto object-contain opacity-90 transition duration-300 group-hover:scale-105 group-hover:opacity-100"
-              />
-              <div>
-                <p className="text-xs uppercase tracking-[0.20em] text-slate-500">
-                  Official Equipment Partner
-                </p>
-                <p className="font-semibold text-white group-hover:text-orange-300">
-                  Lycan Ecuador
-                </p>
-              </div>
-            </a>
-          </div>
-        </footer>
+      <div className="absolute bottom-[10px] left-1/2 z-20 flex -translate-x-1/2 gap-2 sm:hidden">
+        {SOCIAL_LINKS.map((item) => (
+          <a
+            key={item.label}
+            href={item.href}
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-orange-500/35 bg-black/60 text-sm font-black text-orange-300 shadow-[0_0_18px_rgba(249,115,22,0.12)]"
+            aria-label={item.label}
+          >
+            {item.icon}
+          </a>
+        ))}
       </div>
-    </>
+
+      {activePopup ? (
+        <HomePopup
+          title={popupTitle}
+          type={activePopup}
+          newsItems={newsItems}
+          onClose={() => setActivePopup(null)}
+        />
+      ) : null}
+    </main>
   )
 }
 
-function formatDateISO(date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
-}
+function HomePopup({ title, type, newsItems, onClose }) {
+  const compactPopup = type === "about" || type === "schedule"
 
-function InstagramIcon() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
-      <path d="M16 11.37a4 4 0 1 1-3.37-3.37A4 4 0 0 1 16 11.37z" />
-      <path d="M17.5 6.5h.01" />
-    </svg>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-3 backdrop-blur-sm sm:px-4">
+      <div className="relative max-h-[92dvh] w-full max-w-3xl overflow-hidden rounded-[1.35rem] border border-orange-500/30 bg-[#080b12] shadow-[0_0_70px_rgba(249,115,22,0.28)] sm:rounded-[2rem]">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative z-10 border-b border-white/10 px-4 py-3 sm:px-7 sm:py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-400 sm:text-xs sm:tracking-[0.25em]">
+                PHO3NIX
+              </div>
+              <h2 className="mt-1 text-lg font-black uppercase text-white sm:text-3xl">
+                {title}
+              </h2>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xl text-white transition hover:border-orange-400 hover:text-orange-300 sm:h-10 sm:w-10"
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div
+          className={[
+            "relative z-10 px-4 py-4 sm:px-7 sm:py-6",
+            compactPopup ? "overflow-hidden" : "max-h-[70dvh] overflow-y-auto",
+          ].join(" ")}
+        >
+          {type === "join" ? <JoinContent /> : null}
+          {type === "about" ? <AboutContent /> : null}
+          {type === "schedule" ? <ScheduleContent /> : null}
+          {type === "partners" ? <PartnersContent /> : null}
+          {type === "news" ? <NewsContent newsItems={newsItems} /> : null}
+        </div>
+      </div>
+    </div>
   )
 }
 
-function TikTokIcon() {
+function JoinContent() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-6 w-6"
-      fill="currentColor"
-    >
-      <path d="M16.5 3c.3 1.7 1.5 3.1 3.2 3.5v3.2c-1.3 0-2.5-.4-3.5-1.1v6.1c0 3.1-2.5 5.6-5.6 5.6S5 17.8 5 14.7s2.5-5.6 5.6-5.6c.3 0 .7 0 1 .1v3.3c-.3-.1-.6-.2-1-.2-1.3 0-2.3 1-2.3 2.3S9.3 17 10.6 17s2.3-1 2.3-2.3V3h3.6z" />
-    </svg>
+    <div className="grid gap-3 sm:grid-cols-2">
+      {SOCIAL_LINKS.map((item) => (
+        <a
+          key={item.label}
+          href={item.href}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-4 transition hover:border-orange-400 hover:bg-orange-500/10"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-orange-500/40 bg-black/30 text-lg font-black text-orange-300">
+              {item.icon}
+            </div>
+
+            <div>
+              <div className="text-sm font-black uppercase tracking-[0.12em] text-orange-300">
+                {item.label}
+              </div>
+              <div className="mt-1 text-xs text-white/55">
+                {item.text}
+              </div>
+            </div>
+          </div>
+        </a>
+      ))}
+    </div>
   )
 }
 
-function WhatsAppIcon() {
+function AboutContent() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 11.5a8.5 8.5 0 0 1-12.56 7.5L3 20.5l1.57-5.18A8.5 8.5 0 1 1 21 11.5Z" />
-      <path d="M9 9.5c.2-.5.4-.5.7-.5h.6c.2 0 .5 0 .7.5.3.7 1 2.3 1.1 2.4.1.2.1.4 0 .6-.1.2-.2.4-.4.6l-.5.5c-.2.2-.3.3-.1.6.2.3.8 1.3 1.8 2 .2.2.5.4.8.6.3.2.5.2.7 0l.8-.9c.2-.2.4-.2.7-.1.3.1 1.8.8 2.1 1 .3.1.5.2.5.4 0 .2 0 1-.6 1.6-.6.6-1.4.9-2 .9-.6 0-1.4-.2-2.6-.7a10.8 10.8 0 0 1-4-2.8 9.7 9.7 0 0 1-2.2-3.6c-.4-1.1-.4-2-.3-2.5.2-.5.7-1.3 1.2-1.5Z" />
-    </svg>
+    <div className="space-y-3 text-xs leading-5 text-white/70 sm:text-base sm:leading-7">
+      <p>
+        PHO3NIX Functional Fitness es una comunidad creada para personas que quieren
+        entrenar con propósito, superar sus límites y construir disciplina dentro y fuera
+        del box.
+      </p>
+
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        {[
+          [Flame, "Pasión", "Entrenamos con intensidad y enfoque."],
+          [Handshake, "Comunidad", "Nadie renace solo; avanzamos juntos."],
+          [Trophy, "Progreso", "Medimos, mejoramos y celebramos cada logro."],
+        ].map(([Icon, title, text]) => (
+          <div
+            key={title}
+            className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:p-4"
+          >
+            <Icon className="h-5 w-5 text-orange-400 sm:h-7 sm:w-7" strokeWidth={2.4} />
+            <div className="mt-2 text-xs font-black uppercase text-white sm:mt-3 sm:text-base">
+              {title}
+            </div>
+            <p className="mt-1 text-[10px] leading-4 text-white/60 sm:mt-2 sm:text-sm sm:leading-5">
+              {text}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
-function MapPinIcon() {
+function ScheduleContent() {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className="h-6 w-6"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 21s-6-5.33-6-10a6 6 0 1 1 12 0c0 4.67-6 10-6 10Z" />
-      <circle cx="12" cy="11" r="2.5" />
-    </svg>
+    <div className="grid gap-2 sm:grid-cols-3 sm:gap-4">
+      {SCHEDULES.map((block) => (
+        <div
+          key={block.title}
+          className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-3 sm:p-4"
+        >
+          <h3 className="text-sm font-black uppercase text-orange-300 sm:text-lg">
+            {block.title}
+          </h3>
+
+          <div className="mt-2 space-y-1.5 sm:mt-4 sm:space-y-2">
+            {block.times.map((time) => (
+              <div
+                key={time}
+                className="rounded-xl border border-white/10 bg-black/30 px-3 py-1.5 text-xs text-white/80 sm:py-2 sm:text-sm"
+              >
+                {time}
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function PartnersContent() {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-xl font-black text-white">LYCAN Ecuador</h3>
+            <p className="mt-2 text-sm leading-6 text-white/60">
+              Partner de equipamiento y comunidad deportiva.
+            </p>
+          </div>
+
+          <img
+            src={lycanLogo}
+            alt="LYCAN Ecuador"
+            className="h-12 w-auto object-contain"
+          />
+        </div>
+      </div>
+
+      <p className="text-sm leading-6 text-white/60">
+        Próximamente se podrán mostrar más aliados, marcas y beneficios para miembros PHO3NIX.
+      </p>
+    </div>
+  )
+}
+
+function NewsContent({ newsItems }) {
+  const safeNews = newsItems?.length ? newsItems : FALLBACK_NEWS
+
+  return (
+    <div className="grid gap-3">
+      {safeNews.map((item, index) => (
+        <article
+          key={item.id || item.title || index}
+          className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04]"
+        >
+		{item.mediaTipo === "video" && item.mediaUrl ? (
+		  <video
+			src={item.mediaUrl}
+			className="h-[260px] w-[50%] mx-auto rounded-t-2x1 object-cover sm:h-[420px]"
+			autoPlay
+			muted
+			loop
+			playsInline
+			controls
+		  />
+		) : item.imageUrl ? (
+		  <img
+			src={item.imageUrl}
+			alt={item.title}
+			className="h-28 w-full object-cover sm:h-36"
+		  />
+		) : null}
+
+          <div className="p-4">
+            <h3 className="text-lg font-black uppercase text-orange-300">
+              {item.title}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-white/60">
+              {item.text}
+            </p>
+          </div>
+        </article>
+      ))}
+    </div>
   )
 }

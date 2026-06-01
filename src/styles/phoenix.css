@@ -1,0 +1,321 @@
+/* =========================
+   PHO3NIX DESIGN SYSTEM
+========================= */
+
+:root{
+  --pho-bg:#030303;
+  --pho-bg-soft:#0a0a0a;
+
+  --pho-orange:#f97316;
+  --pho-orange-soft:#fb923c;
+
+  --pho-red:#dc2626;
+
+  --pho-border:rgba(249,115,22,.18);
+
+  --pho-text:#ffffff;
+  --pho-text-soft:rgba(255,255,255,.65);
+
+  --pho-glow:
+  0 0 20px rgba(249,115,22,.12);
+
+  --pho-glow-strong:
+  0 0 35px rgba(249,115,22,.25);
+}
+
+
+/* página */
+
+.phoenix-page{
+  min-height:100vh;
+
+  background:
+  radial-gradient(
+      circle at top right,
+      rgba(249,115,22,.14),
+      transparent 30%
+  ),
+
+  radial-gradient(
+      circle at bottom left,
+      rgba(220,38,38,.08),
+      transparent 30%
+  ),
+
+  linear-gradient(
+      180deg,
+      #060606,
+      #020202
+  );
+
+  color:white;
+}
+
+
+/* shell */
+
+.phoenix-shell{
+  background:
+  rgba(0,0,0,.45);
+
+  backdrop-filter:
+  blur(18px);
+
+  border:
+  1px solid var(--pho-border);
+
+  box-shadow:
+  var(--pho-glow);
+
+  border-radius:
+  28px;
+}
+
+
+/* cards */
+
+.phoenix-card{
+
+  background:
+  rgba(0,0,0,.35);
+
+  border:
+  1px solid var(--pho-border);
+
+  border-radius:
+  24px;
+
+  box-shadow:
+  var(--pho-glow);
+
+  backdrop-filter:
+  blur(14px);
+
+  transition:.35s;
+}
+
+.phoenix-card:hover{
+
+transform:
+translateY(-2px);
+
+box-shadow:
+var(--pho-glow-strong);
+
+border-color:
+rgba(249,115,22,.35);
+
+}
+
+
+/* cards suaves */
+
+.phoenix-card-soft{
+
+background:
+rgba(255,255,255,.03);
+
+border:
+1px solid rgba(255,255,255,.05);
+
+border-radius:20px;
+
+}
+
+
+/* TITULOS */
+
+.phoenix-title{
+
+font-size:32px;
+
+font-weight:900;
+
+letter-spacing:-1px;
+
+color:white;
+
+}
+
+.phoenix-subtitle{
+
+font-size:14px;
+
+color:var(--pho-text-soft);
+
+}
+
+
+/* BOTONES */
+
+.phoenix-button-primary{
+
+background:
+linear-gradient(
+90deg,
+var(--pho-orange),
+var(--pho-orange-soft)
+);
+
+color:black;
+
+font-weight:800;
+
+padding:
+12px 24px;
+
+border-radius:
+14px;
+
+transition:.35s;
+
+box-shadow:
+var(--pho-glow);
+
+}
+
+.phoenix-button-primary:hover{
+
+transform:
+translateY(-2px);
+
+box-shadow:
+var(--pho-glow-strong);
+
+}
+
+
+.phoenix-button-ghost{
+
+background:
+rgba(255,255,255,.04);
+
+border:
+1px solid var(--pho-border);
+
+color:white;
+
+border-radius:
+14px;
+
+padding:
+10px 18px;
+
+}
+
+
+.phoenix-button-ghost:hover{
+
+border-color:
+rgba(249,115,22,.45);
+
+color:
+var(--pho-orange);
+
+}
+
+
+/* INPUTS */
+
+.phoenix-input{
+
+width:100%;
+
+height:46px;
+
+padding:
+0 16px;
+
+border-radius:
+14px;
+
+background:
+rgba(0,0,0,.3);
+
+border:
+1px solid rgba(255,255,255,.06);
+
+color:white;
+
+outline:none;
+
+transition:.3s;
+
+}
+
+.phoenix-input:focus{
+
+border-color:
+var(--pho-orange);
+
+box-shadow:
+0 0 0 4px
+rgba(249,115,22,.15);
+
+}
+
+
+/* sidebar */
+
+.phoenix-sidebar-item{
+
+display:flex;
+
+align-items:center;
+
+gap:12px;
+
+padding:
+12px;
+
+border-radius:
+16px;
+
+color:
+rgba(255,255,255,.75);
+
+transition:.3s;
+
+}
+
+.phoenix-sidebar-item:hover{
+
+background:
+rgba(255,255,255,.04);
+
+color:white;
+
+}
+
+.phoenix-sidebar-active{
+
+background:
+rgba(249,115,22,.14);
+
+border:
+1px solid
+rgba(249,115,22,.25);
+
+color:
+var(--pho-orange);
+
+box-shadow:
+var(--pho-glow);
+
+}
+
+
+/* tablas */
+
+.phoenix-table-row{
+
+transition:.25s;
+
+}
+
+.phoenix-table-row:hover{
+
+background:
+rgba(249,115,22,.05);
+
+}

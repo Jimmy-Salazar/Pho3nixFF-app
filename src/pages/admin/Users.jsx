@@ -1,6 +1,10 @@
 // src/pages/admin/Users.jsx
-//UND3W9PPUG4M1XJS6QL53CHP
 import { useEffect, useMemo, useRef, useState } from "react"
+import * as XLSX from "xlsx"
+import { saveAs } from "file-saver"
+import { useNavigate } from "react-router-dom"
+import DashboardSidebar from "./dashboard/components/DashboardSidebar"
+import AdminUsersMobile from "./users/mobile/AdminUsersMobile"
 import {
   createStudent,
   fetchUsers,
@@ -14,14 +18,23 @@ import { mensualidadStatusInfo } from "../../utils/mensualidades"
 const ROLE_OPTIONS = ["all", "Alumno", "Admin", "Coach"]
 const ROLE_PICKER_OPTIONS = ["Alumno", "Coach", "Admin"]
 const SEX_OPTIONS = ["Masculino", "Femenino"]
+const FILTER_OPTIONS = [
+  { key: "all", label: "Todos" },
+  { key: "active", label: "Activos" },
+  { key: "expiring", label: "Por vencer" },
+  { key: "inactive", label: "Inactivos" },
+]
 
 export default function Users() {
+  const navigate = useNavigate()
+
   const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState([])
   const [error, setError] = useState("")
 
   const [search, setSearch] = useState("")
   const [role, setRole] = useState("all")
+  const [filter, setFilter] = useState("all")
 
   const [openCreate, setOpenCreate] = useState(false)
   const [creating, setCreating] = useState(false)
@@ -35,14 +48,12 @@ export default function Users() {
   const [editOpen, setEditOpen] = useState(false)
   const [editUser, setEditUser] = useState(null)
 
-  const totalLabel = useMemo(() => `${rows.length} personas`, [rows])
-
   const load = async () => {
     try {
       setError("")
       setLoading(true)
 
-      const users = await fetchUsers({ search, role, limit: 200 })
+      const users = await fetchUsers({ search, role, limit: 300 })
       setRows(users)
 
       const ids = users.map((u) => u.id)
@@ -74,20 +85,73 @@ export default function Users() {
         active: true,
         mensualidad: null,
         forced: true,
+        statusLabel: "Activa",
+        paymentLabel: "Sin pago (Admin)",
+        daysLeft: null,
+        expiring: false,
       }
     }
 
     const m = mensMap.get(u.id)
-    if (!m) return { active: false, mensualidad: null, forced: false }
+    if (!m) {
+      return {
+        active: false,
+        mensualidad: null,
+        forced: false,
+        statusLabel: "Inactiva",
+        paymentLabel: "Sin pago activo",
+        daysLeft: null,
+        expiring: false,
+      }
+    }
 
     const info = mensualidadStatusInfo(m)
+    const daysLeft = getDaysLeft(m.fecha_fin)
+    const expiring = info.active && daysLeft !== null && daysLeft <= 7 && daysLeft >= 0
 
     return {
       active: info.active,
       mensualidad: m,
       forced: false,
+      statusLabel: info.active ? (expiring ? "Por vencer" : "Activa") : "Inactiva",
+      paymentLabel: m.fecha_fin
+        ? `${formatDateReadable(m.fecha_fin)}${daysLeft !== null ? ` · ${daysLeft === 0 ? "Hoy" : `en ${daysLeft} día(s)`}` : ""}`
+        : "Sin fecha",
+      daysLeft,
+      expiring,
     }
   }
+
+  const enrichedRows = useMemo(() => {
+    return rows.map((u) => ({
+      ...u,
+      status: computeStatus(u),
+    }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, mensMap])
+
+  const stats = useMemo(() => {
+    const total = enrichedRows.length
+    const admins = enrichedRows.filter((u) => isAdminRole(u.role)).length
+    const active = enrichedRows.filter((u) => u.status.active && !isAdminRole(u.role)).length
+    const expiring = enrichedRows.filter((u) => u.status.expiring).length
+    const inactive = enrichedRows.filter((u) => !u.status.active && !isAdminRole(u.role)).length
+
+    return { total, active, expiring, inactive, admins }
+  }, [enrichedRows])
+
+  const filteredRows = useMemo(() => {
+    if (filter === "active") {
+      return enrichedRows.filter((u) => u.status.active && !u.status.expiring)
+    }
+    if (filter === "expiring") {
+      return enrichedRows.filter((u) => u.status.expiring)
+    }
+    if (filter === "inactive") {
+      return enrichedRows.filter((u) => !u.status.active)
+    }
+    return enrichedRows
+  }, [enrichedRows, filter])
 
   const openPayment = (u, mensualidad) => {
     setPayUser(u)
@@ -103,8 +167,6 @@ export default function Users() {
 
   const onToggleStatus = async (u) => {
     const roleNorm = String(u.role || "").trim().toLowerCase()
-
-    // Admin no usa mensualidades
     if (roleNorm === "admin" || roleNorm === "administrador") return
 
     const s = computeStatus(u)
@@ -133,201 +195,147 @@ export default function Users() {
 
   const handleDelete = (u) => {
     const ok = window.confirm(
-      `¿Borrar a ${u.nombre}? Recomendado: NO borrar, mejor desactivar membresía.`
+      `¿Borrar a ${u.nombre}? Recomendado: NO borrar, mejor desactivar mensualidad.`
     )
     if (!ok) return
-    alert("Borrado aún no implementado. (Recomendado: desactivar membresía)")
+    alert("Borrado aún no implementado. (Recomendado: desactivar mensualidad)")
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white px-4 py-6 md:px-6">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-4 rounded-3xl border border-orange-500/20 bg-white/5 p-5 shadow-2xl backdrop-blur-xl md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-orange-400/20 bg-orange-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
-              Admin Module
-            </div>
+    <div className="fixed inset-0 z-[80] overflow-hidden bg-black text-white">
+      <div className="hidden h-full overflow-hidden lg:grid lg:grid-cols-[270px_1fr]">
+        <DashboardSidebar navigate={navigate} />
 
-            <h1 className="text-2xl font-black tracking-tight md:text-4xl">
-              Personas
-            </h1>
+        <main className="phoenix-page min-w-0 overflow-hidden p-5">
+          <div className="grid h-full grid-rows-[auto_auto_1fr_auto] gap-4 overflow-hidden">
+            <UsersTopHeader onCreate={() => setOpenCreate(true)} />
 
-            <p className="mt-2 text-sm text-slate-300 md:text-base">
-              Gestión de alumnos, roles, estado y mensualidades.
-            </p>
+            <section className="grid grid-cols-5 gap-3">
+              <UsersMetricCard icon="👥" label="Total alumnos" value={stats.total} note="Todos los miembros" tone="purple" />
+              <UsersMetricCard icon="✅" label="Activos" value={stats.active} note={`${percent(stats.active, Math.max(stats.total - stats.admins, 1))}% del total`} tone="green" />
+              <UsersMetricCard icon="🕘" label="Por vencer (≤ 7 días)" value={stats.expiring} note="Atención requerida" tone="amber" />
+              <UsersMetricCard icon="✕" label="Inactivos" value={stats.inactive} note="Sin mensualidad activa" tone="red" />
+              <UsersMetricCard icon="🛡️" label="Administradores" value={stats.admins} note="Acceso al sistema" tone="blue" />
+            </section>
+
+            <section className="min-h-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] shadow-2xl backdrop-blur-xl">
+              <div className="flex flex-wrap items-center gap-3 border-b border-white/10 bg-white/[0.025] p-4">
+                <div className="relative min-w-[320px] flex-1">
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Buscar alumno por nombre, email, cédula o teléfono..."
+                    className="h-11 w-full rounded-xl border border-white/10 bg-black/25 px-4 pr-11 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-orange-400/45"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40">
+                    ⌕
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {FILTER_OPTIONS.map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setFilter(item.key)}
+                      className={[
+                        "h-11 rounded-xl border px-4 text-sm font-black transition",
+                        filter === item.key
+                          ? "border-orange-500 bg-orange-500/15 text-orange-300 shadow-[0_0_22px_rgba(249,115,22,0.15)]"
+                          : "border-white/10 bg-black/20 text-white/65 hover:border-orange-400/35 hover:text-white",
+                      ].join(" ")}
+                    >
+                      {item.label}
+                      <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-xs">
+                        {getFilterCount(item.key, enrichedRows)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="h-11 rounded-xl border border-white/10 bg-black/25 px-3 text-sm font-bold text-white outline-none focus:border-orange-400/45"
+                >
+                  {ROLE_OPTIONS.map((r) => (
+                    <option key={r} value={r} className="bg-slate-950 text-white">
+                      {r === "all" ? "Todos los roles" : r}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {error ? (
+                <div className="m-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+                  {error}
+                </div>
+              ) : null}
+
+              <div className="hidden h-[calc(100%-76px)] overflow-auto md:block">
+                <UsersDesktopTable
+                  loading={loading}
+                  rows={filteredRows}
+                  onToggleStatus={onToggleStatus}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                />
+              </div>
+
+              <div className="h-[calc(100%-76px)] overflow-y-auto p-3 md:hidden">
+                <UsersMobileCards
+                  loading={loading}
+                  rows={filteredRows}
+                  onToggleStatus={onToggleStatus}
+                  handleEdit={handleEdit}
+                  handleDelete={handleDelete}
+                />
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-orange-500/25 bg-white/[0.04] px-5 py-3 shadow-2xl backdrop-blur-xl">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/15 text-xl">
+                    👥
+                  </div>
+                  <div>
+                    <div className="text-sm font-black text-white">Consejo rápido</div>
+                    <div className="text-xs text-white/50">
+                      Puedes activar, pausar o vencer mensualidades desde el perfil de cada alumno.
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => exportUsersToExcel(filteredRows)}
+                  className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold text-white/75 transition hover:border-orange-400/40 hover:text-orange-300"
+                >
+                  📊 Exportar Excel
+                </button>
+              </div>
+            </section>
           </div>
+        </main>
+      </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setOpenCreate(true)}
-              className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-400 px-5 py-3 font-bold text-slate-950 shadow-lg shadow-orange-500/20 transition hover:scale-[1.02]"
-            >
-              + Nuevo Alumno
-            </button>
-          </div>
-        </div>
+      <AdminUsersMobile
+        loading={loading}
+        error={error}
+        rows={filteredRows}
+        stats={stats}
+        search={search}
+        filter={filter}
+        onSearchChange={setSearch}
+        onFilterChange={setFilter}
+        onCreate={() => setOpenCreate(true)}
+        onToggleStatus={onToggleStatus}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+        navigate={navigate}
+      />
 
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-white/60">{totalLabel}</p>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="flex gap-2">
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por nombre, cédula o email…"
-                className="w-full sm:w-80 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-white/25"
-              />
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-sm outline-none focus:border-white/25"
-              >
-                {ROLE_OPTIONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r === "all" ? "Todos" : r}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {error ? (
-          <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
-            {error}
-          </div>
-        ) : null}
-
-        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm hidden md:table">
-              <thead className="text-white/70">
-                <tr className="border-b border-white/10">
-                  <th className="text-left px-4 py-3 font-medium">Usuario</th>
-                  <th className="text-left px-4 py-3 font-medium">Rol</th>
-                  <th className="text-left px-4 py-3 font-medium">Cédula</th>
-                  <th className="text-left px-4 py-3 font-medium">Cumpleaños</th>
-                  <th className="text-left px-4 py-3 font-medium">Estado</th>
-                  <th className="text-right px-4 py-3 font-medium">Acciones</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td className="px-4 py-4 text-white/60" colSpan={6}>
-                      Cargando…
-                    </td>
-                  </tr>
-                ) : rows.length === 0 ? (
-                  <tr>
-                    <td className="px-4 py-4 text-white/60" colSpan={6}>
-                      No hay resultados.
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((u) => {
-                    const st = computeStatus(u)
-                    const isForcedAdmin = st.forced === true
-
-                    return (
-                      <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <Avatar fotoUrl={u.foto_url} nombre={u.nombre} />
-                            <div className="min-w-0">
-                              <div className="font-medium truncate">{u.nombre}</div>
-                              <div className="text-white/60 truncate">{u.email}</div>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-4 py-3">
-                          <RolePill role={u.role} />
-                        </td>
-
-                        <td className="px-4 py-3 text-white/80">{u.cedula ?? "-"}</td>
-                        <td className="px-4 py-3 text-white/80">{formatDateDMY(u.fecha_nacimiento)}</td>
-
-                        <td className="px-4 py-3">
-                          <StatusToggle
-                            active={st.active}
-                            endDate={st.mensualidad?.fecha_fin}
-                            disabled={isForcedAdmin}
-                            labelOverride={isForcedAdmin ? "Activo" : undefined}
-                            titleOverride={isForcedAdmin ? "Administrador siempre activo" : undefined}
-                            onToggle={() => onToggleStatus(u)}
-                          />
-                        </td>
-
-                        <td className="px-4 py-3">
-                          <div className="flex justify-end gap-2">
-                            <IconButton title="Editar" onClick={() => handleEdit(u)} icon="✏️" />
-                            <IconButton title="Borrar" danger onClick={() => handleDelete(u)} icon="🗑️" />
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-
-            <table className="min-w-full text-[12px] md:hidden">
-              <thead className="text-white/70">
-                <tr className="border-b border-white/10">
-                  <th className="text-left px-3 py-2.5 font-medium">Usuario</th>
-                  <th className="text-right px-3 py-2.5 font-medium">Acciones</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td className="px-3 py-3 text-white/60" colSpan={2}>
-                      Cargando…
-                    </td>
-                  </tr>
-                ) : rows.length === 0 ? (
-                  <tr>
-                    <td className="px-3 py-3 text-white/60" colSpan={2}>
-                      No hay resultados.
-                    </td>
-                  </tr>
-                ) : (
-                  rows.map((u) => {
-                    const st = computeStatus(u)
-                    const roleLabel = normalizeRoleLabel(u.role)
-
-                    return (
-                      <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
-                        <td className="px-3 py-2.5">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <StatusDot active={st.active} />
-                            <div className="min-w-0">
-                              <div className="font-medium truncate">{u.nombre}</div>
-                              <div className="text-[11px] text-white/55 truncate">{roleLabel}</div>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-3 py-2.5">
-                          <div className="flex justify-end gap-1.5">
-                            <IconButtonSm title="Editar" onClick={() => handleEdit(u)} icon="✏️" />
-                            <IconButtonSm title="Borrar" danger onClick={() => handleDelete(u)} icon="🗑️" />
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
 
         {openCreate ? (
           <CreateStudentModal
@@ -383,19 +391,326 @@ export default function Users() {
             }}
           />
         ) : null}
-      </div>
+
     </div>
   )
 }
 
-/* ---------------- Helpers / UI ---------------- */
+function UsersTopHeader({ onCreate }) {
+  return (
+    <section className="flex items-start justify-between gap-4">
+      <div>
+        <h1 className="text-3xl font-black tracking-tight text-white">
+          Alumnos <span className="text-purple-300">👥</span>
+        </h1>
+        <p className="mt-1 text-base text-white/55">
+          Gestiona a todos los miembros del box.
+        </p>
+      </div>
 
-function normalizeRoleLabel(role) {
+      <div className="flex items-center gap-4">
+        <div className="rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white/80">
+          📅 <span className="ml-2">{formatHumanDate(new Date())}</span>
+        </div>
+
+        <button
+          type="button"
+          onClick={onCreate}
+          className="phoenix-button-primary text-sm uppercase"
+        >
+          + Nuevo alumno
+        </button>
+      </div>
+    </section>
+  )
+}
+
+function UsersMetricCard({ icon, label, value, note, tone }) {
+  const toneClass = {
+    purple: "bg-purple-500/15 text-purple-300",
+    green: "bg-emerald-500/15 text-emerald-300",
+    amber: "bg-amber-500/15 text-amber-300",
+    red: "bg-red-500/15 text-red-300",
+    blue: "bg-blue-500/15 text-blue-300",
+  }[tone]
+
+  return (
+    <article className="phoenix-card p-4">
+      <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${toneClass} text-xl`}>
+        {icon}
+      </div>
+
+      <div className="mt-3 text-3xl font-black text-white">{value}</div>
+      <div className="text-sm font-bold text-white/80">{label}</div>
+      <div className="mt-2 text-xs text-white/45">{note}</div>
+    </article>
+  )
+}
+
+function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDelete }) {
+  return (
+    <div className="h-full overflow-auto">
+      <table className="min-w-full text-sm whitespace-nowrap">
+        <thead className="sticky top-0 z-10 bg-[#11151c] text-xs uppercase tracking-[0.08em] text-white/55">
+          <tr>
+            <th className="px-4 py-3 text-left font-black">Alumno</th>
+            <th className="px-4 py-3 text-left font-black">Mensualidad</th>
+            <th className="px-4 py-3 text-left font-black">Próximo pago</th>
+            <th className="px-4 py-3 text-left font-black">Estado</th>
+            <th className="px-4 py-3 text-left font-black">Acceso</th>
+            <th className="px-4 py-3 text-right font-black">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody className="divide-y divide-white/7">
+          {loading ? (
+            <tr>
+              <td className="px-4 py-6 text-white/60" colSpan={6}>
+                Cargando alumnos…
+              </td>
+            </tr>
+          ) : rows.length === 0 ? (
+            <tr>
+              <td className="px-4 py-6 text-white/60" colSpan={6}>
+                No hay resultados.
+              </td>
+            </tr>
+          ) : (
+            rows.map((u) => {
+              const st = u.status
+              const isForcedAdmin = st.forced === true
+
+              return (
+                <tr key={u.id} className="transition hover:bg-white/[0.035]">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar fotoUrl={u.foto_url} nombre={u.nombre} />
+                      <div className="min-w-0">
+                        <div className="truncate font-black text-white">
+                          {u.nombre}
+                          {isForcedAdmin ? <span className="ml-1 text-amber-300">★</span> : null}
+                        </div>
+                        <div className="truncate text-xs text-white/50">
+                          {u.email || "Sin email"} · {u.telefono || "Sin teléfono"}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <MembershipPill status={st} />
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <div className="text-sm text-white/80">
+                      {st.forced ? "—" : st.mensualidad?.fecha_fin ? formatDateReadable(st.mensualidad.fecha_fin) : "—"}
+                    </div>
+                    <div className="text-xs text-orange-300">
+                      {st.forced ? "Sin pago (Admin)" : st.daysLeft !== null ? (st.daysLeft === 0 ? "Hoy" : `En ${st.daysLeft} día(s)`) : "Sin pago activo"}
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <StatusToggle
+                      active={st.active}
+                      endDate={st.mensualidad?.fecha_fin}
+                      disabled={isForcedAdmin}
+                      labelOverride={isForcedAdmin ? "Activo" : undefined}
+                      titleOverride={isForcedAdmin ? "Administrador siempre activo" : undefined}
+                      onToggle={() => onToggleStatus(u)}
+                    />
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <RolePill role={u.role} />
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <div className="flex justify-end gap-2">
+                      <IconButton title="Editar" onClick={() => handleEdit(u)} icon="✏️" />
+                      <IconButton title="Borrar" danger onClick={() => handleDelete(u)} icon="🗑️" />
+                    </div>
+                  </td>
+                </tr>
+              )
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function UsersMobileCards({ loading, rows, onToggleStatus, handleEdit, handleDelete }) {
+  if (loading) {
+    return <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-white/60">Cargando alumnos…</div>
+  }
+
+  if (!rows.length) {
+    return <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-white/60">No hay resultados.</div>
+  }
+
+  return (
+    <div className="space-y-3">
+      {rows.map((u) => {
+        const st = u.status
+        const isForcedAdmin = st.forced === true
+
+        return (
+          <article key={u.id} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <div className="flex items-center gap-3">
+              <Avatar fotoUrl={u.foto_url} nombre={u.nombre} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate font-black text-white">{u.nombre}</div>
+                <div className="truncate text-xs text-white/50">{u.email}</div>
+              </div>
+              <StatusDot active={st.active} />
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <InfoMini label="Rol" value={normalizeRoleLabel(u.role)} />
+              <InfoMini label="Pago" value={st.forced ? "Admin" : st.daysLeft !== null ? `En ${st.daysLeft} día(s)` : "Sin pago"} />
+            </div>
+
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                disabled={isForcedAdmin}
+                onClick={() => onToggleStatus(u)}
+                className="flex-1 rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-xs font-black text-orange-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {st.active ? "Desactivar" : "Activar"}
+              </button>
+              <IconButtonSm title="Editar" onClick={() => handleEdit(u)} icon="✏️" />
+              <IconButtonSm title="Borrar" danger onClick={() => handleDelete(u)} icon="🗑️" />
+            </div>
+          </article>
+        )
+      })}
+    </div>
+  )
+}
+
+function InfoMini({ label, value }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+      <div className="text-[10px] uppercase tracking-[0.12em] text-white/35">{label}</div>
+      <div className="mt-1 font-bold text-white/80">{value}</div>
+    </div>
+  )
+}
+
+function MembershipPill({ status }) {
+  const cls = status.expiring
+    ? "border-amber-500/25 bg-amber-500/15 text-amber-300"
+    : status.active
+      ? "border-emerald-500/25 bg-emerald-500/15 text-emerald-300"
+      : "border-red-500/25 bg-red-500/15 text-red-300"
+
+  return (
+    <span className={`inline-flex rounded-xl border px-3 py-1.5 text-xs font-black ${cls}`}>
+      {status.statusLabel}
+    </span>
+  )
+}
+
+function getFilterCount(key, rows) {
+  if (key === "active") return rows.filter((u) => u.status.active && !u.status.expiring).length
+  if (key === "expiring") return rows.filter((u) => u.status.expiring).length
+  if (key === "inactive") return rows.filter((u) => !u.status.active).length
+  return rows.length
+}
+
+function getDaysLeft(value) {
+  if (!value) return null
+  const today = new Date()
+  const end = new Date(`${value}T23:59:59`)
+  if (Number.isNaN(end.getTime())) return null
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  const endStart = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+  return Math.ceil((endStart - todayStart) / 86400000)
+}
+
+function formatDateReadable(value) {
+  if (!value) return "—"
+  try {
+    const d = new Date(`${value}T00:00:00`)
+    return d.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    })
+  } catch {
+    return String(value)
+  }
+}
+
+function formatHumanDate(value) {
+  const d = value instanceof Date ? value : new Date(value)
+  return d.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  })
+}
+
+function percent(value, total) {
+  if (!total) return 0
+  return Math.round((value / total) * 100)
+}
+
+function isAdminRole(role) {
   const r = String(role || "").trim().toLowerCase()
-  if (r === "admin" || r === "administrador") return "Administrador"
-  if (r === "coach") return "Coach"
-  if (r === "alumno" || r === "student") return "Alumno"
-  return role || "—"
+  return r === "admin" || r === "administrador"
+}
+
+
+
+function exportUsersToExcel(rows) {
+  const data = rows.map((u) => ({
+    Nombre: u.nombre || "",
+    Email: u.email || "",
+    Telefono: u.telefono || "",
+    Cedula: u.cedula || "",
+    Rol: normalizeRoleLabel(u.role),
+    Estado: u.status?.statusLabel || "",
+    FechaFin: u.status?.mensualidad?.fecha_fin
+      ? formatDateReadable(u.status.mensualidad.fecha_fin)
+      : "",
+    DiasRestantes: u.status?.daysLeft ?? "",
+    Activo: u.status?.active ? "SI" : "NO",
+  }))
+
+  const worksheet = XLSX.utils.json_to_sheet(data)
+  const workbook = XLSX.utils.book_new()
+
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Alumnos")
+
+  worksheet["!cols"] = [
+    { wch: 25 },
+    { wch: 32 },
+    { wch: 18 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 18 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 10 },
+  ]
+
+  const excelBuffer = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+  })
+
+  const file = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  })
+
+  saveAs(
+    file,
+    `pho3nix-alumnos-${new Date().toISOString().slice(0, 10)}.xlsx`
+  )
 }
 
 function formatDateDMY(value) {
@@ -407,6 +722,14 @@ function formatDateDMY(value) {
   } catch {
     return String(value)
   }
+}
+
+function normalizeRoleLabel(role) {
+  const r = String(role || "").trim().toLowerCase()
+  if (r === "admin" || r === "administrador") return "Administrador"
+  if (r === "coach") return "Coach"
+  if (r === "alumno" || r === "student") return "Alumno"
+  return role || "—"
 }
 
 function StatusToggle({
@@ -705,110 +1028,176 @@ function PaymentModal({ user, lastMensualidad, onClose, onSave }) {
 }
 
 function EditUserModal({ user, onClose, onSaved }) {
-  const [telefono, setTelefono] = useState(user.telefono ?? "")
-  const [role, setRole] = useState(user.role ?? "Alumno")
-  const [fechaNacimiento, setFechaNacimiento] = useState(user.fecha_nacimiento ?? "")
-  const [sexo, setSexo] = useState(user.sexo ?? "")
   const [saving, setSaving] = useState(false)
-  const [err, setErr] = useState("")
 
-  const canSave = !saving && role && sexo
+  const [form, setForm] = useState({
+    telefono: user?.telefono || "",
+    role: user?.role || "Alumno",
+    fecha_nacimiento: user?.fecha_nacimiento || "",
+    sexo: user?.sexo || "",
+  })
+
+  const setField = (key, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }))
+  }
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+
+    try {
+      setSaving(true)
+
+      await updateUserBasic(user.id, {
+        telefono: form.telefono.trim() || null,
+        role: form.role,
+        fecha_nacimiento: form.fecha_nacimiento || null,
+        sexo: form.sexo || null,
+      })
+
+      await onSaved()
+    } catch (e) {
+      alert(e?.message || "No se pudo actualizar el usuario.")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-[#0b0f14] p-4">
-        <div className="flex items-center justify-between">
-          <div className="font-semibold">Editar usuario</div>
-          <button className="text-white/70 hover:text-white" onClick={onClose} type="button">
-            ✕
-          </button>
-        </div>
+    <div className="fixed inset-0 z-[140] flex items-center justify-center p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Cerrar"
+      />
 
-        <div className="mt-2 text-sm text-white/70">
-          <b>{user.nombre}</b> <span className="text-white/50">({user.email})</span>
-        </div>
+      <form
+        onSubmit={handleSave}
+        className="phoenix-card relative z-[141] w-full max-w-2xl overflow-hidden"
+      >
+        <div className="relative overflow-hidden border-b border-orange-500/15 bg-black/55 p-5 sm:p-6">
+          <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-orange-500/20 blur-3xl" />
+          <div className="absolute -bottom-24 left-10 h-52 w-52 rounded-full bg-red-500/10 blur-3xl" />
 
-        {err ? (
-          <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
-            {err}
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4">
+              <Avatar fotoUrl={user?.foto_url} nombre={user?.nombre} />
+
+              <div className="min-w-0">
+                <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-orange-300">
+                  Editar usuario
+                </div>
+
+                <h2 className="mt-3 truncate text-2xl font-black text-white sm:text-3xl">
+                  {user?.nombre || "Usuario"}
+                </h2>
+
+                <p className="mt-1 truncate text-sm text-white/55">
+                  {user?.email || "Sin email registrado"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/35 text-lg text-white/70 transition hover:border-orange-400/40 hover:text-orange-300"
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
           </div>
-        ) : null}
+        </div>
 
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <label className="block">
-            <div className="text-white/60 text-xs mb-1">Teléfono</div>
-            <input
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:border-white/25"
+        <div className="p-5 sm:p-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <PhoenixField
+              label="Teléfono"
+              value={form.telefono}
+              onChange={(e) => setField("telefono", e.target.value)}
+              placeholder="Ej: 0990000000"
             />
-          </label>
 
-          <div className="block">
-            <div className="text-white/60 text-xs mb-1">Rol (usuarios.role)</div>
-            <RolePicker value={role} onChange={setRole} />
-          </div>
-
-          <label className="block">
-            <div className="text-white/60 text-xs mb-1">Sexo</div>
-            <SexSelect value={sexo} onChange={setSexo} required />
-          </label>
-
-          <label className="block">
-            <div className="text-white/60 text-xs mb-1">Fecha de nacimiento</div>
-            <input
+            <PhoenixField
+              label="Fecha de nacimiento"
               type="date"
-              value={fechaNacimiento}
-              onChange={(e) => setFechaNacimiento(e.target.value)}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:border-white/25"
+              value={form.fecha_nacimiento}
+              onChange={(e) => setField("fecha_nacimiento", e.target.value)}
             />
-          </label>
+
+            <div>
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/55">
+                Sexo
+              </label>
+
+              <select
+                value={form.sexo}
+                onChange={(e) => setField("sexo", e.target.value)}
+                className="phoenix-input"
+              >
+                <option value="" className="bg-black text-white">
+                  No definido
+                </option>
+
+                {SEX_OPTIONS.map((option) => (
+                  <option key={option} value={option} className="bg-black text-white">
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/55">
+                Rol
+              </label>
+
+              <select
+                value={form.role}
+                onChange={(e) => setField("role", e.target.value)}
+                className="phoenix-input"
+              >
+                {ROLE_PICKER_OPTIONS.map((option) => (
+                  <option key={option} value={option} className="bg-black text-white">
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-2xl border border-orange-500/15 bg-orange-500/10 p-4 text-sm leading-6 text-white/65">
+            <span className="font-black text-orange-300">Importante:</span>{" "}
+            Desde aquí solo editamos datos básicos. La mensualidad se gestiona desde el estado del alumno.
+          </div>
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="flex flex-col-reverse gap-3 border-t border-orange-500/15 bg-black/40 p-5 sm:flex-row sm:justify-end sm:p-6">
           <button
-            onClick={onClose}
-            className="rounded-xl px-4 py-2 text-sm bg-white/5 hover:bg-white/10 border border-white/10"
-            disabled={saving}
             type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="phoenix-button-ghost text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancelar
           </button>
 
           <button
-            onClick={async () => {
-              try {
-                setSaving(true)
-                setErr("")
-                await updateUserBasic(user.id, {
-                  telefono,
-                  role,
-                  fecha_nacimiento: fechaNacimiento || null,
-                  sexo,
-                })
-                await onSaved()
-              } catch (e) {
-                setErr(e?.message ?? "No se pudo guardar (revisa permisos/RLS en usuarios).")
-              } finally {
-                setSaving(false)
-              }
-            }}
-            className="rounded-xl px-4 py-2 text-sm font-medium bg-white/10 hover:bg-white/15 border border-white/10 disabled:opacity-50"
-            disabled={!canSave}
-            type="button"
+            type="submit"
+            disabled={saving}
+            className="phoenix-button-primary text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {saving ? "Guardando…" : "Guardar"}
+            {saving ? "Guardando..." : "Guardar cambios"}
           </button>
         </div>
-
-        <p className="mt-3 text-xs text-white/50">
-          Edita solo: teléfono, rol, sexo y fecha de nacimiento.
-        </p>
-      </div>
+      </form>
     </div>
   )
 }
+
 
 function CreateStudentModal({ onClose, onSubmit, loading }) {
   const [form, setForm] = useState({
@@ -818,106 +1207,235 @@ function CreateStudentModal({ onClose, onSubmit, loading }) {
     telefono: "",
     fecha_nacimiento: "",
     role: "Alumno",
-    sexo: "",
+    sexo: "Masculino",
   })
 
+  const setField = (key, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [key]: value,
+    }))
+  }
+
   const disabled =
-    loading || !form.nombre.trim() || !form.email.trim() || !form.cedula.trim() || !form.sexo
+    loading ||
+    !form.nombre.trim() ||
+    !form.email.trim() ||
+    !form.cedula.trim() ||
+    !form.sexo
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (disabled) return
+
+    onSubmit({
+      nombre: form.nombre.trim(),
+      cedula: form.cedula.trim(),
+      email: form.email.trim().toLowerCase(),
+      telefono: form.telefono.trim() || null,
+      fecha_nacimiento: form.fecha_nacimiento || null,
+      role: form.role,
+      sexo: form.sexo,
+    })
+  }
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-[#0b0f14] p-4">
-        <div className="flex items-center justify-between">
-          <div className="font-semibold">Agregar alumno</div>
-          <button className="text-white/70 hover:text-white" onClick={onClose} type="button">
-            ✕
-          </button>
-        </div>
+    <div className="fixed inset-0 z-[220] flex items-end justify-center p-0 sm:items-center sm:p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/85 backdrop-blur-xl"
+        onClick={onClose}
+        aria-label="Cerrar"
+      />
 
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          <Field label="Nombre">
-            <input
-              value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:border-white/25"
-            />
-          </Field>
+      <form
+        onSubmit={handleSubmit}
+        className="phoenix-card relative z-[221] flex max-h-[94dvh] w-full max-w-3xl flex-col overflow-hidden rounded-t-[2rem] border-orange-500/25 sm:rounded-[2rem]"
+      >
+        <div className="relative shrink-0 overflow-hidden border-b border-orange-500/15 bg-black/55 p-4 sm:p-6">
+          <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-orange-500/20 blur-3xl" />
+          <div className="absolute -bottom-24 left-10 h-52 w-52 rounded-full bg-red-500/10 blur-3xl" />
 
-          <Field label="Cédula">
-            <input
-              value={form.cedula}
-              onChange={(e) => setForm({ ...form, cedula: e.target.value })}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:border-white/25"
-            />
-          </Field>
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-300 sm:text-[11px] sm:tracking-[0.22em]">
+                Nuevo miembro
+              </div>
 
-          <Field label="Email">
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:border-white/25"
-            />
-          </Field>
+              <h2 className="mt-3 text-2xl font-black leading-tight text-white sm:text-3xl">
+                Registrar <span className="text-orange-400">alumno</span>
+              </h2>
 
-          <Field label="Teléfono">
-            <input
-              value={form.telefono}
-              onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:border-white/25"
-            />
-          </Field>
+              <p className="mt-2 max-w-xl text-xs leading-5 text-white/55 sm:text-sm sm:leading-6">
+                Crea el perfil del alumno. Luego podrás activar su mensualidad desde el listado.
+              </p>
+            </div>
 
-          <Field label="Fecha nacimiento">
-            <input
-              type="date"
-              value={form.fecha_nacimiento}
-              onChange={(e) => setForm({ ...form, fecha_nacimiento: e.target.value })}
-              className="w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:border-white/25"
-            />
-          </Field>
-
-          <Field label="Sexo">
-            <SexSelect
-              value={form.sexo}
-              onChange={(nextSexo) => setForm({ ...form, sexo: nextSexo })}
-              required
-            />
-          </Field>
-
-          <div className="block sm:col-span-2">
-            <div className="text-white/60 text-xs mb-1">Rol</div>
-            <RolePicker
-              value={form.role}
-              onChange={(nextRole) => setForm({ ...form, role: nextRole })}
-            />
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/35 text-lg text-white/70 transition hover:border-orange-400/40 hover:text-orange-300"
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="rounded-xl px-4 py-2 text-sm bg-white/5 hover:bg-white/10 border border-white/10"
-            disabled={loading}
-            type="button"
-          >
-            Cancelar
-          </button>
-          <button
-            onClick={() => onSubmit(form)}
-            className="rounded-xl px-4 py-2 text-sm font-medium bg-white/10 hover:bg-white/15 border border-white/10 disabled:opacity-50"
-            disabled={disabled}
-            type="button"
-          >
-            {loading ? "Creando…" : "Crear"}
-          </button>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
+            <PhoenixField
+              label="Nombre completo"
+              required
+              value={form.nombre}
+              onChange={(e) => setField("nombre", e.target.value)}
+              placeholder="Ej: Jimmy Salazar"
+            />
+
+            <PhoenixField
+              label="Cédula"
+              required
+              value={form.cedula}
+              onChange={(e) => setField("cedula", e.target.value)}
+              placeholder="Ej: 0900000000"
+            />
+
+            <PhoenixField
+              label="Email"
+              required
+              type="email"
+              value={form.email}
+              onChange={(e) => setField("email", e.target.value)}
+              placeholder="correo@ejemplo.com"
+            />
+
+            <PhoenixField
+              label="Teléfono"
+              value={form.telefono}
+              onChange={(e) => setField("telefono", e.target.value)}
+              placeholder="Ej: 0990000000"
+            />
+
+            <PhoenixField
+              label="Fecha de nacimiento"
+              type="date"
+              value={form.fecha_nacimiento}
+              onChange={(e) => setField("fecha_nacimiento", e.target.value)}
+            />
+
+            <div>
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/55">
+                Sexo <span className="text-orange-300">*</span>
+              </label>
+
+              <select
+                value={form.sexo}
+                onChange={(e) => setField("sexo", e.target.value)}
+                className="phoenix-input"
+                required
+              >
+                <option value="" className="bg-black text-white">
+                  Seleccionar
+                </option>
+
+                {SEX_OPTIONS.map((option) => (
+                  <option key={option} value={option} className="bg-black text-white">
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/55">
+                Tipo de acceso
+              </label>
+
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+                {ROLE_PICKER_OPTIONS.map((option) => {
+                  const active = form.role === option
+
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setField("role", option)}
+                      className={[
+                        "rounded-2xl border px-4 py-3 text-left transition",
+                        active
+                          ? "border-orange-500/40 bg-orange-500/15 text-orange-300 shadow-[0_0_22px_rgba(249,115,22,0.14)]"
+                          : "border-white/10 bg-black/25 text-white/65 hover:border-orange-400/30 hover:text-white",
+                      ].join(" ")}
+                    >
+                      <div className="text-sm font-black">{option}</div>
+                      <div className="mt-1 text-[11px] text-white/45">
+                        {option === "Alumno"
+                          ? "Acceso regular"
+                          : option === "Coach"
+                            ? "Gestión deportiva"
+                            : "Acceso completo"}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-orange-500/15 bg-orange-500/10 p-3 text-xs leading-5 text-white/65 sm:mt-5 sm:p-4 sm:text-sm sm:leading-6">
+            <span className="font-black text-orange-300">Nota:</span>{" "}
+            Se usará la Edge Function <b>create-student</b> y se enviará el email para que el usuario configure su contraseña.
+          </div>
         </div>
 
-        <p className="mt-3 text-xs text-white/50">
-          Usa la Edge Function <b>create-student</b> y envía el email para setear contraseña.
-        </p>
-      </div>
+        <div className="shrink-0 border-t border-orange-500/15 bg-black/75 p-4 backdrop-blur-xl sm:p-6">
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="phoenix-button-ghost min-h-11 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              disabled={disabled}
+              className="phoenix-button-primary min-h-11 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Creando alumno..." : "Crear alumno"}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+
+function PhoenixField({
+  label,
+  required = false,
+  type = "text",
+  value,
+  onChange,
+  placeholder = "",
+}) {
+  return (
+    <div>
+      <label className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/55">
+        {label} {required ? <span className="text-orange-300">*</span> : null}
+      </label>
+
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="phoenix-input"
+        required={required}
+      />
     </div>
   )
 }
