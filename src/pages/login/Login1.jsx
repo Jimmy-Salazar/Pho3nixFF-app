@@ -15,17 +15,6 @@ export default function Login() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
-  const coachPhone = "593979727407"
-  const whatsappMessage =
-    "Mensaje enviado desde la Web...\nBuen dia, quisiera informacion sobre el Entrenamiento de Crosffit..."
-  const whatsappUrl = `https://wa.me/${coachPhone}?text=${encodeURIComponent(
-    whatsappMessage
-  )}`
-
-  const handleContactAdmin = () => {
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer")
-  }
-
   useEffect(() => {
     const savedEmail = localStorage.getItem("pho3nix_login_email")
 
@@ -191,20 +180,6 @@ export default function Login() {
               <div className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-red-500/10 blur-3xl" />
 
               <div className="relative z-10">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() => navigate("/")}
-                    className="rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-[11px] font-black uppercase tracking-[0.08em] text-orange-300 transition hover:bg-orange-500/15"
-                  >
-                    ← Home
-                  </button>
-
-                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-white/35">
-                    PHO3NIX
-                  </span>
-                </div>
-
                 <div className="text-center">
                   <h2 className="text-2xl font-black uppercase tracking-tight text-white sm:text-4xl">
                     Iniciar <span className="text-orange-500">sesión</span>
@@ -315,13 +290,9 @@ export default function Login() {
 
                 <div className="mt-5 text-center text-xs text-white/55 sm:mt-7 sm:text-sm">
                   ¿No tienes cuenta?{" "}
-                  <button
-                    type="button"
-                    onClick={handleContactAdmin}
-                    className="font-bold text-orange-400 transition hover:text-orange-300"
-                  >
+                  <span className="font-bold text-orange-400">
                     Contacta al administrador
-                  </button>
+                  </span>
                 </div>
               </div>
             </form>
