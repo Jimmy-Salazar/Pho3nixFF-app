@@ -209,6 +209,7 @@ async function fetchMyRecentResults(userId) {
       wod:wod_id (
         id,
         nombre,
+        descripcion,
         fecha,
         modo_ranking,
         modalidad,
@@ -222,17 +223,19 @@ async function fetchMyRecentResults(userId) {
 
   if (error) throw error
 
-  return (data || []).map((row) => {
-    const maxCalories = getWodMaxCalories(row.wod, row.calorias_estimadas)
+  return (data || [])
+    .filter(hasRegisteredResultValue)
+    .map((row) => {
+      const maxCalories = getWodMaxCalories(row.wod, row.calorias_estimadas)
 
-    return {
-      ...row,
-      calorias_estimadas: maxCalories,
-      wod_nombre: row.wod?.nombre,
-      wod_fecha: row.wod?.fecha,
-      fecha: row.wod?.fecha || row.created_at,
-    }
-  })
+      return {
+        ...row,
+        calorias_estimadas: maxCalories,
+        wod_nombre: row.wod?.nombre,
+        wod_fecha: row.wod?.fecha,
+        fecha: row.wod?.fecha || row.created_at,
+      }
+    })
 }
 
 async function fetchWeekResults(userId, weekRange) {
@@ -307,6 +310,20 @@ export async function saveAlumnoWodResult({ wod, result, estimatedCalories }) {
   }
 
   return data
+}
+
+function hasRegisteredResultValue(row) {
+  const hasTime =
+    Number(row?.tiempo_segundos || 0) > 0 ||
+    String(row?.tiempo_texto || "").trim().length > 0
+
+  const hasReps = Number(row?.repeticiones || 0) > 0
+  const hasOldResult =
+    row?.resultado !== null &&
+    row?.resultado !== undefined &&
+    String(row?.resultado).trim() !== ""
+
+  return hasTime || hasReps || hasOldResult
 }
 
 function getWodMaxCalories(wod, fallback = 0) {

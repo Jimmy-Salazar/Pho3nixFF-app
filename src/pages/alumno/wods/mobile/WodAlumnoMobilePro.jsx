@@ -22,6 +22,7 @@ export default function WodAlumnoMobilePro({
   onSaveResult,
 }) {
   const [registerOpen, setRegisterOpen] = useState(false)
+  const [selectedResult, setSelectedResult] = useState(null)
 
   const wod = data?.todayWod || null
   const workoutLines = extractWorkoutLines(wod?.descripcion)
@@ -42,7 +43,9 @@ export default function WodAlumnoMobilePro({
     })
   }, [data?.weeklyCalories, data?.dayHistory, currentUserId, wod, calories])
 
-  const recentResults = data?.recentResults || []
+  const recentResults = (data?.recentResults || []).filter((item) => {
+    return item?.id && (item?.wod_id || item?.wod?.id) && hasRegisteredResultValue(item)
+  })
   const wodType = formatModoRanking(wod?.modo_ranking)
   const wodDate = formatDateLong(wod?.fecha)
 
@@ -98,9 +101,9 @@ export default function WodAlumnoMobilePro({
           </div>
         ) : null}
 
-        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
-          <div className="absolute inset-0 bg-[url('/images/imagenchallenge.png')] bg-cover bg-center opacity-22" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_34%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
+        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/50">
+          <div className="absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-100" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_70%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
           <div className="absolute -right-20 top-14 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
 
           <div className="relative z-10 p-3.5">
@@ -250,11 +253,19 @@ export default function WodAlumnoMobilePro({
         </section>
 
         <section className="relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-black uppercase tracking-[0.1em] text-white/55">
-              Tus últimos resultados
-            </p>
-            <span className="text-lg text-white/35">▥</span>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
+                Tus últimos resultados
+              </p>
+              <p className="mt-0.5 text-[10px] font-bold text-white/35">
+                Solo WODs registrados
+              </p>
+            </div>
+
+            <span className="shrink-0 rounded-xl border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-[10px] font-black uppercase text-orange-300">
+              {recentResults.length}
+            </span>
           </div>
 
           {loading ? (
@@ -262,10 +273,23 @@ export default function WodAlumnoMobilePro({
           ) : recentResults.length === 0 ? (
             <Empty text="Cuando registres resultados, aparecerán aquí." />
           ) : (
-            <div className="space-y-2">
-              {recentResults.slice(0, 3).map((item) => (
-                <RecentResultRow key={item.id} item={item} />
-              ))}
+            <div className="overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
+              <div className="grid grid-cols-[minmax(0,1fr)_72px_58px_16px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
+                <span>WOD</span>
+                <span className="text-center">Resultado</span>
+                <span className="text-center">Cal</span>
+                <span />
+              </div>
+
+              <div className="divide-y divide-white/10">
+                {recentResults.slice(0, 4).map((item) => (
+                  <RecentResultRow
+                    key={item.id}
+                    item={item}
+                    onClick={() => setSelectedResult(item)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </section>
@@ -287,6 +311,15 @@ export default function WodAlumnoMobilePro({
               setRegisterOpen(false)
             }}
           />
+        </MobileModal>
+      ) : null}
+
+      {selectedResult ? (
+        <MobileModal
+          title="Detalle del resultado"
+          onClose={() => setSelectedResult(null)}
+        >
+          <ResultDetail result={selectedResult} />
         </MobileModal>
       ) : null}
     </main>
@@ -311,46 +344,198 @@ function Avatar({ loading, initials, fotoUrl, nombre }) {
   )
 }
 
-function RecentResultRow({ item }) {
+function RecentResultRow({ item, onClick }) {
   const date = formatDateShort(item.fecha || item.created_at)
   const result = formatResultValue(item)
   const kcal = Number(item.calorias || item.calorias_estimadas || item.calorias_wod || 0)
+  const type = getResultType(item)
 
   return (
-    <article className="grid grid-cols-[48px_minmax(0,1fr)_auto] items-center gap-2.5 overflow-hidden rounded-xl border border-white/10 bg-white/[0.03] p-2">
-      <div className="flex h-12 w-10 flex-col items-center justify-center rounded-lg border-l-4 border-orange-500 bg-black/35">
-        <span className="text-sm font-black leading-none text-white">
-          {date.day || "--"}
-        </span>
-        <span className="mt-0.5 text-[9px] font-black uppercase text-white/45">
-          {date.month || ""}
-        </span>
-      </div>
+    <button
+      type="button"
+      onClick={onClick}
+      className="grid w-full grid-cols-[minmax(0,1fr)_72px_58px_16px] items-center gap-2 px-2.5 py-2.5 text-left transition hover:bg-white/[0.03] active:bg-orange-500/10"
+    >
+      <div className="flex min-w-0 items-center gap-2.5">
+        <WodResultIcon type={type} />
 
-      <div className="min-w-0">
-        <p className="truncate text-xs font-black uppercase text-white">
-          {item.wod_nombre || item.wod?.nombre || item.wod?.titulo || "WOD"}
-        </p>
-        <p className="mt-0.5 truncate text-[10px] text-white/45">
-          {item.modalidad || "RX"}
-        </p>
-      </div>
-
-      <div className="shrink-0 text-right">
-        <p className="text-xs font-black text-white">{result}</p>
-        {kcal > 0 ? (
-          <p className="mt-0.5 text-[10px] font-black text-orange-400">
-            {formatKcal(kcal)} CAL
+        <div className="min-w-0">
+          <p className="truncate text-[11px] font-black uppercase leading-tight text-white">
+            {item.wod_nombre || item.wod?.nombre || item.wod?.titulo || "WOD"}
           </p>
-        ) : null}
+
+          <p className="mt-0.5 truncate text-[10px] font-bold text-white/40">
+            {date.day || "--"} {date.month || ""} · {type.label}
+          </p>
+        </div>
       </div>
-    </article>
+
+      <div className="shrink-0 text-center">
+        <p className="text-xs font-black text-white">
+          {result}
+        </p>
+        <p className="mt-0.5 text-[9px] font-bold text-white/35">
+          {type.resultLabel}
+        </p>
+      </div>
+
+      <div className="shrink-0 text-center">
+        <p className="text-xs font-black text-orange-400">
+          {kcal > 0 ? formatKcal(kcal) : "—"}
+        </p>
+        <p className="mt-0.5 text-[9px] font-bold text-white/35">
+          Cal
+        </p>
+      </div>
+
+      <span className="text-lg font-black text-white/35">›</span>
+    </button>
+  )
+}
+
+function WodResultIcon({ type }) {
+  return (
+    <div className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-orange-500/20 bg-orange-500/10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(249,115,22,0.35),transparent_62%)]" />
+      <span className="relative z-10 text-xl">
+        {type.icon}
+      </span>
+    </div>
+  )
+}
+
+function getResultType(item) {
+  const raw =
+    `${item?.wod_nombre || ""} ${item?.wod?.nombre || ""} ${item?.wod?.modo_ranking || ""} ${item?.modalidad || ""}`.toLowerCase()
+
+  const hasTime =
+    Number(item?.tiempo_segundos || 0) > 0 ||
+    String(item?.tiempo_texto || "").trim().length > 0
+
+  if (raw.includes("run") || raw.includes("endurance") || raw.includes("cardio")) {
+    return {
+      label: "Endurance",
+      resultLabel: hasTime ? "Tiempo" : "Reps",
+      icon: "👟",
+    }
+  }
+
+  if (raw.includes("strength") || raw.includes("fuerza") || raw.includes("power")) {
+    return {
+      label: "Strength",
+      resultLabel: hasTime ? "Tiempo" : "Reps",
+      icon: "🏋️",
+    }
+  }
+
+  if (raw.includes("amrap") || raw.includes("metcon")) {
+    return {
+      label: "AMRAP",
+      resultLabel: hasTime ? "Tiempo" : "Reps",
+      icon: "🔥",
+    }
+  }
+
+  if (hasTime) {
+    return {
+      label: "For Time",
+      resultLabel: "Tiempo",
+      icon: "⏱️",
+    }
+  }
+
+  return {
+    label: "WOD",
+    resultLabel: "Reps",
+    icon: "🔥",
+  }
+}
+
+
+function ResultDetail({ result }) {
+  const wod = result?.wod || {}
+  const workoutLines = extractWorkoutLines(wod?.descripcion)
+  const date = formatDateLong(result?.fecha || wod?.fecha || result?.created_at)
+  const resultValue = formatResultValue(result)
+  const kcal = Number(result?.calorias || result?.calorias_estimadas || result?.calorias_wod || 0)
+
+  return (
+    <section className="grid gap-3">
+      <article className="relative overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-4">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(249,115,22,0.22),transparent_36%)]" />
+
+        <div className="relative z-10">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
+            WOD registrado
+          </p>
+
+          <h3 className="mt-2 text-2xl font-black uppercase leading-none text-white">
+            {result?.wod_nombre || wod?.nombre || "WOD PHO3NIX"}
+          </h3>
+
+          <p className="mt-2 text-xs font-bold uppercase text-white/45">
+            {date}
+          </p>
+
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <DetailTile label="Resultado" value={resultValue} />
+            <DetailTile label="Modalidad" value={result?.modalidad || "RX"} />
+            <DetailTile label="Calorías" value={kcal > 0 ? `${formatKcal(kcal)} CAL` : "—"} />
+            <DetailTile label="Ranking" value={formatModoRanking(wod?.modo_ranking)} />
+          </div>
+        </div>
+      </article>
+
+      <article className="rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
+        <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
+          Workout
+        </p>
+
+        {workoutLines.length ? (
+          <div className="space-y-1 text-sm leading-5 text-white/70">
+            {workoutLines.map((line, index) => (
+              <p key={`${line}-${index}`} className="break-words">
+                {line}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="whitespace-pre-line text-sm leading-5 text-white/55">
+            {wod?.descripcion || "No hay descripción del WOD registrada."}
+          </p>
+        )}
+      </article>
+
+      {result?.notas || result?.observacion ? (
+        <article className="rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
+            Observación
+          </p>
+          <p className="mt-2 text-sm leading-5 text-white/65">
+            {result.notas || result.observacion}
+          </p>
+        </article>
+      ) : null}
+    </section>
+  )
+}
+
+function DetailTile({ label, value }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+      <p className="text-[9px] font-black uppercase tracking-[0.12em] text-white/35">
+        {label}
+      </p>
+      <p className="mt-1 truncate text-sm font-black uppercase text-white">
+        {value || "—"}
+      </p>
+    </div>
   )
 }
 
 function MobileModal({ title, onClose, children }) {
   return (
-    <div className="fixed inset-0 z-[220] flex items-end justify-center bg-black/88 p-3 backdrop-blur-2xl">
+    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/88 p-4 backdrop-blur-2xl">
       <button
         type="button"
         className="absolute inset-0 cursor-default"
@@ -358,7 +543,7 @@ function MobileModal({ title, onClose, children }) {
         aria-label="Cerrar"
       />
 
-      <section className="relative z-10 flex max-h-[88dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-[1.6rem] border border-orange-500/25 bg-[#060606] shadow-[0_0_60px_rgba(249,115,22,0.20)]">
+      <section className="relative z-10 flex max-h-[84dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.6rem] border border-orange-500/25 bg-[#060606] shadow-[0_0_60px_rgba(249,115,22,0.20)]">
         <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-2.5">
           <p className="text-xs font-black uppercase tracking-[0.12em] text-orange-400">
             {title}
@@ -388,6 +573,20 @@ function Empty({ text }) {
       {text}
     </div>
   )
+}
+
+function hasRegisteredResultValue(item) {
+  const hasTime =
+    Number(item?.tiempo_segundos || 0) > 0 ||
+    String(item?.tiempo_texto || "").trim().length > 0
+
+  const hasReps = Number(item?.repeticiones || 0) > 0
+  const hasOldResult =
+    item?.resultado !== null &&
+    item?.resultado !== undefined &&
+    String(item?.resultado).trim() !== ""
+
+  return hasTime || hasReps || hasOldResult
 }
 
 function BackgroundOrbs() {
