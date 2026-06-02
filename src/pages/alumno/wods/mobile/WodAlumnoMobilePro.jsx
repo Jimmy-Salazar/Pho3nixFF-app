@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import pho3nixLogo from "../../../../assets/pho3nix-login-logo.png"
+import { supabase } from "../../../../supabase"
 import RegisterResultPanel from "../components/RegisterResultPanel"
 import {
   extractWorkoutLines,
@@ -49,20 +50,28 @@ export default function WodAlumnoMobilePro({
   const wodType = formatModoRanking(wod?.modo_ranking)
   const wodDate = formatDateLong(wod?.fecha)
 
+  const handleMobileLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error("Error cerrando sesión:", error)
+    } finally {
+      window.location.replace("/")
+    }
+  }
+
   return (
     <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white lg:hidden">
       <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <BackgroundOrbs />
 
         <header className="relative z-10 mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-2.5">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-lg text-orange-300"
-            aria-label="Volver al dashboard"
-          >
-            ☰
-          </button>
+          <Avatar
+            loading={loading}
+            initials={initials}
+            fotoUrl={data?.profile?.foto_url}
+            nombre={data?.profile?.nombre}
+          />
 
           <div className="flex min-w-0 items-center gap-2">
             <img
@@ -81,12 +90,15 @@ export default function WodAlumnoMobilePro({
             </div>
           </div>
 
-          <Avatar
-            loading={loading}
-            initials={initials}
-            fotoUrl={data?.profile?.foto_url}
-            nombre={data?.profile?.nombre}
-          />
+          <button
+            type="button"
+            onClick={handleMobileLogout}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-lg text-orange-300"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            ☰
+          </button>
         </header>
 
         <section className="relative z-10 mb-2 flex items-center justify-center">
@@ -101,9 +113,9 @@ export default function WodAlumnoMobilePro({
           </div>
         ) : null}
 
-        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/50">
+        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
           <div className="absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-100" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_70%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_80%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
           <div className="absolute -right-20 top-14 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
 
           <div className="relative z-10 p-3.5">

@@ -487,20 +487,28 @@ function PersonalRecordsMobile({
       .slice(-6)
   }, [data.rms, evolutionTarget?.ejercicio_id])
 
+  const handleMobileLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error("Error cerrando sesión:", error)
+    } finally {
+      window.location.replace("/")
+    }
+  }
+
   return (
     <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
       <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <BackgroundOrbs />
 
         <header className="relative z-10 mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-2.5">
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-lg text-orange-300"
-            aria-label="Volver al dashboard"
-          >
-            ☰
-          </button>
+          <Avatar
+            loading={loading}
+            initials={initials}
+            fotoUrl={data.profile?.foto_url}
+            nombre={profileName}
+          />
 
           <div className="flex min-w-0 items-center gap-2">
             <img
@@ -519,12 +527,15 @@ function PersonalRecordsMobile({
             </div>
           </div>
 
-          <Avatar
-            loading={loading}
-            initials={initials}
-            fotoUrl={data.profile?.foto_url}
-            nombre={profileName}
-          />
+          <button
+            type="button"
+            onClick={handleMobileLogout}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-lg text-orange-300"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            ☰
+          </button>
         </header>
 
         <section className="relative z-10 mb-2 flex items-center justify-center">

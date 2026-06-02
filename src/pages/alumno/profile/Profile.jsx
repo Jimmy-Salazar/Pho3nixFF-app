@@ -5,6 +5,7 @@ import { mensualidadStatusInfo } from "../../../utils/mensualidades"
 
 import AlumnoSidebar from "../dashboard/components/AlumnoSidebar"
 import AlumnoMobileNav from "../shared/AlumnoMobileNav"
+import pho3nixLogo from "../../../assets/pho3nix-login-logo.png"
 
 const DEFAULT_STATE = {
   profile: null,
@@ -402,6 +403,8 @@ function ProfileMobile({
   onPickImage,
   onEdit,
 }) {
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false)
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut()
@@ -413,358 +416,695 @@ function ProfileMobile({
   }
 
   return (
-    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-24 text-white">
-      <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-4 pt-4">
+    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
+      <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <BackgroundOrbs />
 
-        <header className="relative z-10 mb-5 flex items-center justify-between gap-3 border-b border-white/10 pb-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-orange-500/25 bg-orange-500/10 text-xl text-orange-300"
-              aria-label="Cerrar sesión"
-            >
-              ↪
-            </button>
+        <header className="relative z-10 mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-2.5">
+          <ProfileHeaderAvatar
+            loading={loading}
+            initials={initials}
+            fotoUrl={profile?.foto_url}
+            nombre={profileName}
+          />
+
+          <div className="flex min-w-0 items-center gap-2">
+            <img
+              src={pho3nixLogo}
+              alt="PHO3NIX"
+              className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
+            />
 
             <div className="min-w-0">
-              <p className="truncate text-2xl font-black tracking-[0.18em] text-white">
+              <p className="truncate text-xl font-black tracking-[0.14em] text-white">
                 PHO<span className="text-orange-500">3</span>NIX
               </p>
-
-              <p className="text-[10px] font-black uppercase tracking-[0.25em] text-orange-500">
-                Perfil del alumno
+              <p className="truncate text-[8px] font-black uppercase tracking-[0.2em] text-orange-500">
+                Functional Fitness
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={onEdit}
-            className="shrink-0 rounded-2xl border border-orange-500/25 bg-orange-500/10 px-4 py-3 text-xs font-black uppercase text-orange-300"
+            onClick={handleLogout}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-lg text-orange-300"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
           >
-            Editar
+            ☰
           </button>
         </header>
+
+        <section className="relative z-10 mb-3">
+          <h1 className="text-2xl font-black uppercase tracking-[0.08em] text-white">
+            Mi Perfil
+          </h1>
+          <p className="mt-1 max-w-[300px] text-sm leading-5 text-white/55">
+            Administra tu información personal y configuración de cuenta.
+          </p>
+        </section>
 
         {error ? <Alert type="error" text={error} /> : null}
         {success ? <Alert type="success" text={success} /> : null}
 
-        <section className="relative z-10 mb-4 overflow-hidden rounded-[2rem] border border-orange-500/20 bg-black/45 p-5 shadow-2xl shadow-black/30">
-          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-orange-500/20 blur-3xl" />
+        <ProfileIdentityCard
+          loading={loading}
+          profile={profile}
+          initials={initials}
+          profileName={profileName}
+          membership={membership}
+          uploading={uploading}
+          onPickImage={onPickImage}
+        />
 
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="relative">
-              {profile?.foto_url ? (
-                <img
-                  src={profile.foto_url}
-                  alt={profileName}
-                  className="h-32 w-32 rounded-[2rem] border border-orange-500/35 object-cover shadow-[0_0_35px_rgba(249,115,22,0.25)]"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none"
-                  }}
-                />
-              ) : (
-                <div className="flex h-32 w-32 items-center justify-center rounded-[2rem] border border-orange-500/35 bg-orange-500/10 text-4xl font-black text-orange-300 shadow-[0_0_35px_rgba(249,115,22,0.25)]">
-                  {initials}
-                </div>
-              )}
+        <MobilePersonalInfoCard
+          profile={profile}
+          loading={loading}
+          onEdit={onEdit}
+        />
 
-              <button
-                type="button"
-                onClick={onPickImage}
-                disabled={uploading}
-                className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-2xl bg-orange-500 px-4 py-2 text-xs font-black uppercase text-black shadow-xl transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {uploading ? "Subiendo..." : "Cambiar foto"}
-              </button>
-            </div>
-
-            <h1 className="mt-8 max-w-full truncate text-3xl font-black uppercase text-white">
-              {loading ? "Cargando..." : profileName}
-            </h1>
-
-            <p className="mt-1 max-w-full truncate text-sm text-white/50">
-              {profile?.email || "Sin correo registrado"}
-            </p>
-
-            <div className="mt-4 rounded-2xl border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-orange-300">
-              {formatRole(profile?.role)}
-            </div>
-          </div>
-        </section>
-
-        <section className="relative z-10 mb-4 grid grid-cols-2 gap-3">
-          <MobileProfileMetric
-            icon="🏋️"
-            label="PR registrados"
-            value={loading ? "..." : stats.totalPr}
-            footer="Tus marcas"
-          />
-
-          <MobileProfileMetric
-            icon="🔥"
-            label="Mejor marca"
-            value={
-              loading
-                ? "..."
-                : stats.bestGeneral?.peso_libras
-                ? `${stats.bestGeneral.peso_libras} lb`
-                : "--"
-            }
-            footer={
-              stats.bestGeneral?.ejercicio_nombre
-                ? stats.bestGeneral.ejercicio_nombre
-                : "Sin registro"
-            }
-          />
-
-          <MobileProfileMetric
-            icon="📈"
-            label="Último PR"
-            value={
-              loading
-                ? "..."
-                : stats.latestPr?.peso_libras
-                ? `${stats.latestPr.peso_libras} lb`
-                : "--"
-            }
-            footer={
-              stats.latestPr?.fecha
-                ? formatDateShort(stats.latestPr.fecha)
-                : "Sin registro"
-            }
-          />
-
-          <MobileProfileMetric
-            icon="⚡"
-            label="Ejercicio fuerte"
-            value={
-              loading
-                ? "..."
-                : stats.strongestExercise?.ejercicio_nombre
-                ? shortExercise(stats.strongestExercise.ejercicio_nombre)
-                : "--"
-            }
-            footer={
-              stats.strongestExercise?.peso_libras
-                ? `${stats.strongestExercise.peso_libras} lb`
-                : "Sin registro"
-            }
-          />
-        </section>
-
-        <MobileMembershipCard
+        <MobileMembershipCleanCard
           membership={membership}
           mensualidad={mensualidad}
           loading={loading}
         />
 
-        <MobileInfoCard profile={profile} loading={loading} onEdit={onEdit} />
-
-        <MobileRecentPrList items={stats.recentPrs} loading={loading} />
-
-        <MobileTipsCard />
+        <MobileSettingsCard
+          onChangePassword={() => setChangePasswordOpen(true)}
+          onLogout={handleLogout}
+        />
       </div>
+
+      {changePasswordOpen ? (
+        <ChangePasswordModal
+          profile={profile}
+          onClose={() => setChangePasswordOpen(false)}
+          onDone={handleLogout}
+        />
+      ) : null}
 
       <AlumnoMobileNav />
     </main>
   )
 }
 
-function MobileProfileMetric({ icon, label, value, footer }) {
+function ProfileHeaderAvatar({ loading, initials, fotoUrl, nombre }) {
+  if (!loading && fotoUrl) {
+    return (
+      <img
+        src={fotoUrl}
+        alt={nombre || "Alumno"}
+        className="h-9 w-9 shrink-0 rounded-full border border-orange-500/35 object-cover shadow-[0_0_20px_rgba(249,115,22,0.18)]"
+      />
+    )
+  }
+
   return (
-    <article className="relative min-w-0 overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/45 p-4 shadow-2xl shadow-black/30">
-      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-orange-500/15 blur-3xl" />
-
-      <div className="relative z-10 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 text-2xl">
-          {icon}
-        </div>
-
-        <p className="mt-3 truncate text-2xl font-black text-white">
-          {value}
-        </p>
-
-        <p className="mt-1 truncate text-[10px] font-black uppercase tracking-[0.12em] text-orange-400">
-          {label}
-        </p>
-
-        <p className="mt-1 truncate text-[11px] text-white/50">
-          {footer}
-        </p>
-      </div>
-    </article>
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-orange-500/35 bg-orange-500/10 text-[11px] font-black text-orange-300 shadow-[0_0_20px_rgba(249,115,22,0.18)]">
+      {loading ? "..." : initials}
+    </div>
   )
 }
 
-function MobileMembershipCard({ membership, mensualidad, loading }) {
+function ProfileIdentityCard({
+  loading,
+  profile,
+  initials,
+  profileName,
+  membership,
+  uploading,
+  onPickImage,
+}) {
   return (
-    <article className="relative z-10 mb-4 overflow-hidden rounded-[1.7rem] border border-white/10 bg-black/45 p-5 shadow-2xl shadow-black/30">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_35%,rgba(249,115,22,0.16),transparent_34%)]" />
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
+      <div className="absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-14" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_84%_28%,rgba(249,115,22,0.20),transparent_34%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.94)_52%,rgba(5,5,5,0.70)_100%)]" />
+      <div className="absolute -right-20 top-10 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
 
-      <div className="relative z-10">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-400">
-          Membresía
-        </p>
+      <div className="relative z-10 grid grid-cols-[104px_minmax(0,1fr)] items-center gap-3 p-3.5">
+        <div className="relative mx-auto">
+          {profile?.foto_url ? (
+            <img
+              src={profile.foto_url}
+              alt={profileName}
+              className="h-24 w-24 rounded-[1.45rem] border border-orange-500/35 object-cover shadow-[0_0_28px_rgba(249,115,22,0.26)]"
+              onError={(event) => {
+                event.currentTarget.style.display = "none"
+              }}
+            />
+          ) : (
+            <div className="flex h-24 w-24 items-center justify-center rounded-[1.45rem] border border-orange-500/35 bg-orange-500/10 text-3xl font-black text-orange-300 shadow-[0_0_28px_rgba(249,115,22,0.26)]">
+              {initials}
+            </div>
+          )}
 
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h3
-              className={[
-                "truncate text-3xl font-black uppercase",
-                membership.status === "activa"
-                  ? "text-emerald-300"
-                  : membership.status === "por_vencer"
-                  ? "text-amber-300"
-                  : "text-red-300",
-              ].join(" ")}
-            >
-              {loading ? "..." : membership.title}
-            </h3>
-
-            <p className="mt-1 truncate text-sm text-white/55">
-              {membership.subtitle}
-            </p>
-          </div>
-
-          <div className="shrink-0 text-4xl">💳</div>
+          <button
+            type="button"
+            onClick={onPickImage}
+            disabled={uploading}
+            className="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500 text-lg text-black shadow-xl transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label="Cambiar foto"
+            title="Cambiar foto"
+          >
+            {uploading ? "…" : "📷"}
+          </button>
         </div>
 
-        <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
-          <div
-            className={[
-              "h-full rounded-full",
-              membership.status === "activa"
-                ? "bg-emerald-400"
-                : membership.status === "por_vencer"
-                ? "bg-orange-500"
-                : "bg-red-500",
-            ].join(" ")}
-            style={{ width: `${membership.progress}%` }}
-          />
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <MiniInfo
-            label="Inicio"
-            value={formatDateShort(mensualidad?.fecha_inicio)}
-          />
-
-          <MiniInfo
-            label="Fin"
-            value={formatDateShort(mensualidad?.fecha_fin)}
-          />
-        </div>
-      </div>
-    </article>
-  )
-}
-
-function MobileInfoCard({ profile, loading, onEdit }) {
-  return (
-    <article className="relative z-10 mb-4 overflow-hidden rounded-[1.7rem] border border-white/10 bg-black/45 p-5 shadow-2xl shadow-black/30">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-400">
-            Información personal
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
+            Atleta PHO3NIX
           </p>
 
-          <h3 className="mt-1 text-xl font-black uppercase text-white">
-            Datos del alumno
-          </h3>
+          <h2 className="mt-2 truncate text-2xl font-black uppercase leading-none text-white">
+            {loading ? "Cargando..." : profileName}
+          </h2>
+
+          <p className="mt-2 truncate text-xs text-white/55">
+            ✉️ {profile?.email || "Sin correo registrado"}
+          </p>
+
+          <div
+            className={[
+              "mt-3 inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-black uppercase",
+              membership.status === "activa"
+                ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-300"
+                : membership.status === "por_vencer"
+                ? "border-amber-500/35 bg-amber-500/10 text-amber-300"
+                : "border-red-500/35 bg-red-500/10 text-red-300",
+            ].join(" ")}
+          >
+            <span className="h-2 w-2 rounded-full bg-current" />
+            <span className="truncate">Membresía {membership.title}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function MobilePersonalInfoCard({ profile, loading, onEdit }) {
+  const age = getProfileAge(profile?.fecha_nacimiento)
+
+  return (
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
+            Información personal
+          </p>
+          <p className="mt-0.5 text-[10px] font-bold text-white/35">
+            Datos básicos del alumno
+          </p>
         </div>
 
         <button
           type="button"
           onClick={onEdit}
-          className="rounded-xl border border-orange-500/25 px-3 py-2 text-xs font-black uppercase text-orange-300 transition hover:bg-orange-500/10"
+          className="shrink-0 rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-[10px] font-black uppercase text-orange-300"
         >
-          Editar
+          Editar ✎
         </button>
       </div>
 
-      <div className="grid gap-3">
-        <InfoItem label="Nombre" value={loading ? "..." : profile?.nombre} />
-        <InfoItem label="Correo" value={loading ? "..." : profile?.email} />
-        <InfoItem label="Teléfono" value={loading ? "..." : profile?.telefono} />
-        <InfoItem label="Cédula" value={loading ? "..." : profile?.cedula} />
-        <InfoItem
-          label="Nacimiento"
-          value={loading ? "..." : formatDateShort(profile?.fecha_nacimiento)}
+      <div className="grid gap-2">
+        <ProfileInfoRow
+          icon="📞"
+          label="Teléfono"
+          value={loading ? "..." : profile?.telefono || "Sin teléfono"}
         />
-        <InfoItem label="Rol" value={loading ? "..." : formatRole(profile?.role)} />
+        <ProfileInfoRow
+          icon="🪪"
+          label="Cédula"
+          value={loading ? "..." : profile?.cedula || "Sin cédula"}
+        />
+        <ProfileInfoRow
+          icon="🎂"
+          label="Fecha de nacimiento"
+          value={
+            loading
+              ? "..."
+              : profile?.fecha_nacimiento
+              ? `${formatDateShort(profile.fecha_nacimiento)}${age ? ` · ${age} años` : ""}`
+              : "Sin fecha"
+          }
+        />
+        <ProfileInfoRow
+          icon="🛡️"
+          label="Rol"
+          value={loading ? "..." : formatRole(profile?.role)}
+        />
+        <ProfileInfoRow
+          icon="✉️"
+          label="Correo"
+          value={loading ? "..." : profile?.email || "Sin correo"}
+        />
       </div>
-    </article>
+    </section>
   )
 }
 
-function MobileRecentPrList({ items = [], loading = false }) {
+function ProfileInfoRow({ icon, label, value }) {
   return (
-    <article className="relative z-10 mb-4 overflow-hidden rounded-[1.7rem] border border-white/10 bg-black/45 p-5 shadow-2xl shadow-black/30">
-      <div className="mb-4">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-400">
-          Rendimiento
+    <article className="grid grid-cols-[42px_minmax(0,1fr)_16px] items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-orange-500/20 bg-orange-500/10 text-lg text-orange-300">
+        {icon}
+      </div>
+
+      <div className="min-w-0">
+        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-white/35">
+          {label}
         </p>
-
-        <h3 className="mt-1 text-xl font-black uppercase text-white">
-          Últimos PR
-        </h3>
+        <p className="mt-0.5 truncate text-sm font-bold text-white/80">
+          {value || "-"}
+        </p>
       </div>
 
-      {loading ? (
-        <EmptyCard text="Cargando marcas..." />
-      ) : items.length === 0 ? (
-        <EmptyCard text="Aún no tienes PR registrados." />
-      ) : (
-        <div className="space-y-2">
-          {items.slice(0, 4).map((item) => (
-            <article
-              key={item.id}
-              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black uppercase text-white">
-                  {item.ejercicio_nombre}
-                </p>
-
-                <p className="mt-1 text-xs text-white/45">
-                  {formatDateShort(item.fecha)}
-                </p>
-              </div>
-
-              <div className="shrink-0 text-lg font-black text-orange-400">
-                {item.peso_libras} lb
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
+      <span className="text-lg font-black text-white/25">›</span>
     </article>
   )
 }
 
-function MobileTipsCard() {
+function MobileMembershipCleanCard({ membership, mensualidad, loading }) {
+  const circumference = 2 * Math.PI * 30
+  const progress = Math.min(Math.max(Number(membership.progress || 0), 0), 100)
+  const offset = circumference - (progress / 100) * circumference
+
   return (
-    <article className="relative z-10 mb-4 overflow-hidden rounded-[1.7rem] border border-orange-500/20 bg-orange-500/10 p-4 shadow-2xl shadow-black/30">
-      <div className="grid gap-3 grid-cols-[auto_minmax(0,1fr)] items-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-500/25 bg-orange-500/10 text-2xl">
-          🧠
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_34%,rgba(249,115,22,0.18),transparent_32%)]" />
+
+      <div className="relative z-10">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-lg text-orange-400">👑</span>
+          <p className="text-xs font-black uppercase tracking-[0.1em] text-white/70">
+            Mi membresía
+          </p>
         </div>
 
-        <div className="min-w-0">
-          <p className="text-sm font-black uppercase text-white">
-            Tip PHO3NIX
-          </p>
+        <div className="grid grid-cols-[92px_minmax(0,1fr)] items-center gap-3">
+          <div className="relative h-[86px] w-[86px]">
+            <svg viewBox="0 0 86 86" className="h-full w-full -rotate-90">
+              <circle
+                cx="43"
+                cy="43"
+                r="30"
+                fill="none"
+                stroke="rgba(255,255,255,0.10)"
+                strokeWidth="8"
+              />
+              <circle
+                cx="43"
+                cy="43"
+                r="30"
+                fill="none"
+                stroke="#f97316"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={circumference}
+                strokeDashoffset={offset}
+              />
+            </svg>
 
-          <p className="mt-1 text-sm text-white/55">
-            Registra tus PR y mantén tus datos actualizados.
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <p className="text-xl font-black leading-none text-orange-400">
+                {progress}%
+              </p>
+              <p className="mt-1 text-[8px] font-bold uppercase text-white/45">
+                Progreso
+              </p>
+            </div>
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span
+                className={[
+                  "h-2.5 w-2.5 rounded-full",
+                  membership.status === "activa"
+                    ? "bg-emerald-400"
+                    : membership.status === "por_vencer"
+                    ? "bg-amber-400"
+                    : "bg-red-400",
+                ].join(" ")}
+              />
+              <p
+                className={[
+                  "truncate text-2xl font-black uppercase",
+                  membership.status === "activa"
+                    ? "text-emerald-300"
+                    : membership.status === "por_vencer"
+                    ? "text-amber-300"
+                    : "text-red-300",
+                ].join(" ")}
+              >
+                {loading ? "..." : membership.title}
+              </p>
+            </div>
+
+            <p className="mt-1 truncate text-sm text-white/60">
+              {membership.subtitle}
+            </p>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <MembershipDateBox
+                label="Inicio"
+                value={formatDateShort(mensualidad?.fecha_inicio)}
+              />
+              <MembershipDateBox
+                label="Fin"
+                value={formatDateShort(mensualidad?.fecha_fin)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-orange-500 shadow-[0_0_18px_rgba(249,115,22,0.30)]"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function MembershipDateBox({ label, value }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
+      <p className="text-[9px] font-black uppercase tracking-[0.1em] text-white/35">
+        {label}
+      </p>
+      <p className="mt-1 truncate text-xs font-black text-white">
+        {value || "-"}
+      </p>
+    </div>
+  )
+}
+
+function MobileSettingsCard({ onChangePassword, onLogout }) {
+  return (
+    <section className="relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+      <div className="mb-3 flex items-center gap-2">
+        <span className="text-lg text-orange-400">⚙️</span>
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.1em] text-white/70">
+            Configuración
+          </p>
+          <p className="mt-0.5 text-[10px] font-bold text-white/35">
+            Seguridad de la cuenta
           </p>
         </div>
       </div>
-    </article>
+
+      <div className="grid gap-2">
+        <SettingsRow
+          icon="🔒"
+          label="Cambiar contraseña"
+          onClick={onChangePassword}
+        />
+
+        <SettingsRow
+          icon="↪"
+          label="Cerrar sesión"
+          onClick={onLogout}
+          danger
+        />
+      </div>
+    </section>
   )
+}
+
+function SettingsRow({ icon, label, onClick, danger = false }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "grid w-full grid-cols-[42px_minmax(0,1fr)_16px] items-center gap-2.5 rounded-xl border p-2.5 text-left transition active:scale-[0.99]",
+        danger
+          ? "border-red-500/20 bg-red-500/10 active:bg-red-500/15"
+          : "border-white/10 bg-white/[0.03] active:bg-orange-500/10",
+      ].join(" ")}
+    >
+      <div
+        className={[
+          "flex h-10 w-10 items-center justify-center rounded-xl border text-lg",
+          danger
+            ? "border-red-500/25 bg-red-500/10 text-red-300"
+            : "border-orange-500/20 bg-orange-500/10 text-orange-300",
+        ].join(" ")}
+      >
+        {icon}
+      </div>
+
+      <p
+        className={[
+          "truncate text-sm font-bold",
+          danger ? "text-red-200" : "text-white/80",
+        ].join(" ")}
+      >
+        {label}
+      </p>
+
+      <span className="text-lg font-black text-white/25">›</span>
+    </button>
+  )
+}
+
+function ChangePasswordModal({ profile, onClose, onDone }) {
+  const [form, setForm] = useState({
+    email: profile?.email || "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [saving, setSaving] = useState(false)
+  const [localError, setLocalError] = useState("")
+  const [localSuccess, setLocalSuccess] = useState("")
+
+  const updateField = (field, value) => {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }))
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+
+    try {
+      setSaving(true)
+      setLocalError("")
+      setLocalSuccess("")
+
+      const registeredEmail = String(profile?.email || "").trim().toLowerCase()
+      const typedEmail = String(form.email || "").trim().toLowerCase()
+
+      if (!registeredEmail) {
+        throw new Error("No se encontró el correo registrado del alumno.")
+      }
+
+      if (typedEmail !== registeredEmail) {
+        throw new Error("El correo debe ser el mismo registrado en tu perfil.")
+      }
+
+      if (!form.currentPassword) {
+        throw new Error("Ingresa tu contraseña actual.")
+      }
+
+      if (!form.newPassword || form.newPassword.length < 6) {
+        throw new Error("La nueva contraseña debe tener al menos 6 caracteres.")
+      }
+
+      if (form.newPassword !== form.confirmPassword) {
+        throw new Error("La nueva contraseña y la confirmación no coinciden.")
+      }
+
+      if (form.currentPassword === form.newPassword) {
+        throw new Error("La nueva contraseña debe ser diferente a la actual.")
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        email: registeredEmail,
+        current_password: form.currentPassword,
+        password: form.newPassword,
+      })
+
+      if (updateError) {
+        const message = String(updateError.message || "").toLowerCase()
+
+        if (
+          message.includes("current") ||
+          message.includes("password") ||
+          message.includes("invalid")
+        ) {
+          throw new Error("No se pudo cambiar la contraseña. Verifica tu contraseña actual e intenta de nuevo.")
+        }
+
+        throw updateError
+      }
+
+      setLocalSuccess("Contraseña actualizada. Cerrando sesión...")
+
+      window.setTimeout(() => {
+        onDone?.()
+      }, 900)
+    } catch (error) {
+      console.error("Error cambiando contraseña:", error)
+      setLocalError(error.message || "No se pudo cambiar la contraseña.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/88 p-4 backdrop-blur-2xl">
+      <button
+        type="button"
+        className="absolute inset-0 cursor-default"
+        onClick={saving ? undefined : onClose}
+        aria-label="Cerrar"
+      />
+
+      <form
+        onSubmit={handleSubmit}
+        className="relative z-10 flex max-h-[88dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.6rem] border border-orange-500/25 bg-[#060606] shadow-[0_0_60px_rgba(249,115,22,0.20)]"
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-2.5">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-orange-400">
+              Cambiar contraseña
+            </p>
+            <p className="mt-0.5 text-[10px] font-bold text-white/35">
+              Usa el correo registrado en tu perfil
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-black/55 text-lg text-white/70 disabled:opacity-40"
+            aria-label="Cerrar"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto p-3">
+          {localError ? (
+            <div className="mb-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+              {localError}
+            </div>
+          ) : null}
+
+          {localSuccess ? (
+            <div className="mb-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+              {localSuccess}
+            </div>
+          ) : null}
+
+          <div className="grid gap-3 rounded-[1.25rem] border border-white/10 bg-black/45 p-3">
+            <PasswordField label="Correo registrado">
+              <input
+                type="email"
+                value={form.email}
+                readOnly
+                className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 text-sm text-white/70 outline-none"
+              />
+            </PasswordField>
+
+            <PasswordField label="Contraseña actual">
+              <input
+                type="password"
+                value={form.currentPassword}
+                onChange={(event) =>
+                  updateField("currentPassword", event.target.value)
+                }
+                autoComplete="current-password"
+                className="h-11 w-full rounded-xl border border-white/10 bg-black/55 px-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-orange-500/60"
+                placeholder="Ingresa tu contraseña actual"
+              />
+            </PasswordField>
+
+            <PasswordField label="Nueva contraseña">
+              <input
+                type="password"
+                value={form.newPassword}
+                onChange={(event) =>
+                  updateField("newPassword", event.target.value)
+                }
+                autoComplete="new-password"
+                className="h-11 w-full rounded-xl border border-white/10 bg-black/55 px-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-orange-500/60"
+                placeholder="Nueva contraseña"
+              />
+            </PasswordField>
+
+            <PasswordField label="Confirmar nueva contraseña">
+              <input
+                type="password"
+                value={form.confirmPassword}
+                onChange={(event) =>
+                  updateField("confirmPassword", event.target.value)
+                }
+                autoComplete="new-password"
+                className="h-11 w-full rounded-xl border border-white/10 bg-black/55 px-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-orange-500/60"
+                placeholder="Repite la nueva contraseña"
+              />
+            </PasswordField>
+
+            <div className="rounded-xl border border-orange-500/15 bg-orange-500/10 p-3 text-xs leading-5 text-orange-100/75">
+              Después de guardar, la sesión se cerrará y deberás ingresar con tu nueva contraseña.
+            </div>
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="h-11 rounded-xl bg-orange-500 text-xs font-black uppercase text-black transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? "Guardando..." : "Guardar nueva contraseña"}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+function PasswordField({ label, children }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-xs font-bold text-white/60">
+        {label}
+      </span>
+      {children}
+    </label>
+  )
+}
+
+
+function getProfileAge(value) {
+  if (!value) return null
+
+  try {
+    const birth = new Date(`${value}T00:00:00`)
+    const today = new Date()
+
+    if (Number.isNaN(birth.getTime())) return null
+
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age -= 1
+    }
+
+    return age >= 0 ? age : null
+  } catch {
+    return null
+  }
 }
 
 /* =======================================================
