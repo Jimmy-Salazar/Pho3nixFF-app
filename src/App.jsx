@@ -20,6 +20,7 @@ import AlumnoDashboard from "./pages/alumno/Dashboard"
 import WodsAlumno from "./pages/alumno/wods/WodsAlumno"
 import PersonalRecordsAlumno from "./pages/alumno/pr/PersonalRecordsAlumno"
 import ProfileAlumno from "./pages/alumno/profile/Profile"
+import RetosAlumno from "./pages/alumno/retos/RetosAlumno"
 
 // =======================================================
 // PÁGINAS ADMIN / COACH
@@ -165,6 +166,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ProfileAlumno />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/alumno/retos"
+          element={
+            <ProtectedRoute>
+              <RetosAlumno />
             </ProtectedRoute>
           }
         />

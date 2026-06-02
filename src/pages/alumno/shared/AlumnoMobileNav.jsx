@@ -17,7 +17,7 @@ const ITEMS = [
     key: "challenge",
     label: "Retos",
     icon: "🏆",
-    to: "/competencias",
+    to: "/alumno/retos",
   },
   {
     key: "personalrecord",
@@ -47,7 +47,11 @@ function getActiveKey(pathname) {
     return "personalrecord"
   }
 
-  if (path.startsWith("/competencias") || path.includes("challenge")) {
+  if (
+    path.startsWith("/alumno/retos") ||
+    path.startsWith("/competencias") ||
+    path.includes("challenge")
+  ) {
     return "challenge"
   }
 
