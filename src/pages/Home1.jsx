@@ -12,7 +12,6 @@ import {
 } from "lucide-react"
 
 import { supabase } from "../supabase"
-import { useSemiAutoTranslation } from "../i18n/useSemiAutoTranslation"
 import pho3nixLogo from "../assets/pho3nix-login-logo.png"
 import lycanLogo from "../assets/lycan.png"
 
@@ -73,19 +72,16 @@ const INFO_CARDS = [
 
 const STATS = [
   {
-    key: "challenges",
     icon: Trophy,
     label: "DESAFÍOS",
     value: "Todo el año",
   },
   {
-    key: "results",
     icon: Activity,
     label: "RESULTADOS",
     value: "Transforma tu vida",
   },
   {
-    key: "passion",
     icon: Flame,
     label: "PASIÓN",
     value: "Estilo PHO3NIX",
@@ -94,17 +90,14 @@ const STATS = [
 
 const SCHEDULES = [
   {
-    key: "morning",
     title: "Mañana",
     times: ["6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM"],
   },
   {
-    key: "afternoon",
     title: "Tarde",
     times: ["5:00 PM", "6:00 PM", "7:00 PM"],
   },
   {
-    key: "saturday",
     title: "Sábado y feriados",
     times: ["Open Box 8:00 AM - 10:00 AM"],
   },
@@ -113,125 +106,36 @@ const SCHEDULES = [
 const FALLBACK_NEWS = [
   {
     id: "fallback-1",
-    titleKey: "home.news.fallback.1.title",
-    textKey: "home.news.fallback.1.text",
     title: "Nuevos retos PHO3NIX",
     text: "Muy pronto anunciaremos nuevos challenges internos para la comunidad.",
     imageUrl: "",
   },
   {
     id: "fallback-2",
-    titleKey: "home.news.fallback.2.title",
-    textKey: "home.news.fallback.2.text",
     title: "Open Box",
     text: "Los sábados mantenemos espacios abiertos para técnica, movilidad y recuperación.",
     imageUrl: "",
   },
   {
     id: "fallback-3",
-    titleKey: "home.news.fallback.3.title",
-    textKey: "home.news.fallback.3.text",
     title: "Promos y eventos",
     text: "Las promociones y anuncios especiales aparecerán aquí.",
     imageUrl: "",
   },
 ]
 
-
-const HOME_TRANSLATIONS = [
-  ["home.nav.home", "Inicio", "Home"],
-  ["home.nav.about", "Quiénes somos", "About us"],
-  ["home.nav.schedule", "Horarios", "Schedule"],
-  ["home.nav.partners", "Partners", "Partners"],
-  ["home.nav.news", "Novedades", "News"],
-  ["home.login", "Iniciar sesión", "Log in"],
-  ["home.hero.renace", "Renace.", "Rise."],
-  ["home.hero.entrena", "Entrena.", "Train."],
-  ["home.hero.superate", "Supérate.", "Evolve."],
-  [
-    "home.hero.description",
-    "Más que un gimnasio, somos una comunidad. Entrena con propósito, vive con pasión y renace más fuerte cada día.",
-    "More than a gym, we are a community. Train with purpose, live with passion, and rise stronger every day."
-  ],
-  ["home.join.cta", "Únete a PHO3NIX", "Join PHO3NIX"],
-  ["home.stats.challenges.label", "DESAFÍOS", "CHALLENGES"],
-  ["home.stats.challenges.value", "Todo el año", "All year"],
-  ["home.stats.results.label", "RESULTADOS", "RESULTS"],
-  ["home.stats.results.value", "Transforma tu vida", "Transform your life"],
-  ["home.stats.passion.label", "PASIÓN", "PASSION"],
-  ["home.stats.passion.value", "Estilo PHO3NIX", "PHO3NIX style"],
-  ["home.info.about.title", "¿QUIÉNES SOMOS?", "ABOUT US"],
-  ["home.info.about.mobile", "SOMOS", "ABOUT"],
-  ["home.info.about.text", "Conoce nuestra historia, valores y lo que nos mueve.", "Discover our story, values, and what drives us."],
-  ["home.info.schedule.title", "HORARIOS", "SCHEDULE"],
-  ["home.info.schedule.mobile", "HORARIOS", "HOURS"],
-  ["home.info.schedule.text", "Descubre nuestros horarios y programaciones.", "Check our class times and programming."],
-  ["home.info.partners.title", "PARTNERS", "PARTNERS"],
-  ["home.info.partners.mobile", "PARTNERS", "PARTNERS"],
-  ["home.info.partners.text", "Conoce a nuestros aliados que hacen esto posible.", "Meet the partners who make this possible."],
-  ["home.info.news.title", "NOVEDADES", "NEWS"],
-  ["home.info.news.mobile", "NEWS", "NEWS"],
-  ["home.info.news.text", "Entérate de anuncios, eventos y promociones.", "Stay updated on announcements, events, and promotions."],
-  ["home.open", "Abrir", "Open"],
-  ["home.partner.lycan", "Partner oficial LYCAN Ecuador", "Official partner LYCAN Ecuador"],
-  ["home.popup.join.title", "Conecta con PHO3NIX", "Connect with PHO3NIX"],
-  ["home.popup.about.title", "¿Quiénes somos?", "About us"],
-  ["home.popup.schedule.title", "Horarios", "Schedule"],
-  ["home.popup.partners.title", "Partners", "Partners"],
-  ["home.popup.news.title", "Novedades", "News"],
-  ["home.close", "Cerrar", "Close"],
-  [
-    "home.about.paragraph",
-    "PHO3NIX Functional Fitness es una comunidad creada para personas que quieren entrenar con propósito, superar sus límites y construir disciplina dentro y fuera del box.",
-    "PHO3NIX Functional Fitness is a community built for people who want to train with purpose, push their limits, and build discipline inside and outside the box."
-  ],
-  ["home.about.passion.title", "Pasión", "Passion"],
-  ["home.about.passion.text", "Entrenamos con intensidad y enfoque.", "We train with intensity and focus."],
-  ["home.about.community.title", "Comunidad", "Community"],
-  ["home.about.community.text", "Nadie renace solo; avanzamos juntos.", "No one rises alone; we move forward together."],
-  ["home.about.progress.title", "Progreso", "Progress"],
-  ["home.about.progress.text", "Medimos, mejoramos y celebramos cada logro.", "We measure, improve, and celebrate every achievement."],
-  ["home.schedule.morning", "Mañana", "Morning"],
-  ["home.schedule.afternoon", "Tarde", "Afternoon"],
-  ["home.schedule.saturday", "Sábado y feriados", "Saturday and holidays"],
-  ["home.partners.lycan.title", "LYCAN Ecuador", "LYCAN Ecuador"],
-  ["home.partners.lycan.text", "Partner de equipamiento y comunidad deportiva.", "Equipment and sports community partner."],
-  [
-    "home.partners.coming",
-    "Próximamente se podrán mostrar más aliados, marcas y beneficios para miembros PHO3NIX.",
-    "Soon we will show more partners, brands, and benefits for PHO3NIX members."
-  ],
-  ["home.news.default.title", "Novedades", "News"],
-  ["home.news.default.empty", "Sin contenido disponible.", "No content available."],
-  ["home.news.fallback.1.title", "Nuevos retos PHO3NIX", "New PHO3NIX challenges"],
-  ["home.news.fallback.1.text", "Muy pronto anunciaremos nuevos challenges internos para la comunidad.", "Very soon we will announce new internal challenges for the community."],
-  ["home.news.fallback.2.title", "Open Box", "Open Box"],
-  ["home.news.fallback.2.text", "Los sábados mantenemos espacios abiertos para técnica, movilidad y recuperación.", "On Saturdays we keep open sessions for technique, mobility, and recovery."],
-  ["home.news.fallback.3.title", "Promos y eventos", "Promos and events"],
-  ["home.news.fallback.3.text", "Las promociones y anuncios especiales aparecerán aquí.", "Promotions and special announcements will appear here."],
-]
-
-
 export default function Home() {
   const [activePopup, setActivePopup] = useState(null)
   const [newsItems, setNewsItems] = useState(FALLBACK_NEWS)
-  const { language, toggleLanguage, t } = useSemiAutoTranslation({
-    modulo: "home",
-    entries: HOME_TRANSLATIONS,
-  })
 
   const popupTitle = useMemo(() => {
-    if (activePopup === "join") return t("home.popup.join.title", "Conecta con PHO3NIX")
-    if (activePopup === "about") return t("home.popup.about.title", "¿Quiénes somos?")
-    if (activePopup === "schedule") return t("home.popup.schedule.title", "Horarios")
-    if (activePopup === "partners") return t("home.popup.partners.title", "Partners")
-    if (activePopup === "news") {
-      const firstNews = newsItems?.[0]
-      if (firstNews?.titleKey) return t(firstNews.titleKey, firstNews.title || "Novedades")
-      return firstNews?.title || t("home.popup.news.title", "Novedades")
-    }
+    if (activePopup === "join") return "Conecta con PHO3NIX"
+    if (activePopup === "about") return "¿Quiénes somos?"
+    if (activePopup === "schedule") return "Horarios"
+    if (activePopup === "partners") return "Partners"
+    if (activePopup === "news") return newsItems?.[0]?.title || "Novedades"
     return ""
-  }, [activePopup, newsItems, t])
+  }, [activePopup, newsItems])
 
   useEffect(() => {
     if (!activePopup) return
@@ -342,54 +246,43 @@ export default function Home() {
         </Link>
 
         <nav className="hidden items-center gap-7 text-sm font-bold uppercase tracking-[0.08em] text-white/85 lg:flex">
-          <button className="text-orange-400">{t("home.nav.home", "Inicio")}</button>
+          <button className="text-orange-400">Inicio</button>
           <button
             type="button"
             onClick={() => setActivePopup("about")}
             className="transition hover:text-orange-300"
           >
-            {t("home.nav.about", "Quiénes somos")}
+            Quiénes somos
           </button>
           <button
             type="button"
             onClick={() => setActivePopup("schedule")}
             className="transition hover:text-orange-300"
           >
-            {t("home.nav.schedule", "Horarios")}
+            Horarios
           </button>
           <button
             type="button"
             onClick={() => setActivePopup("partners")}
             className="transition hover:text-orange-300"
           >
-            {t("home.nav.partners", "Partners")}
+            Partners
           </button>
           <button
             type="button"
             onClick={() => setActivePopup("news")}
             className="transition hover:text-orange-300"
           >
-            {t("home.nav.news", "Novedades")}
+            Novedades
           </button>
         </nav>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            className="rounded-md border border-white/15 bg-black/40 px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.03em] text-white/70 transition hover:border-orange-500/60 hover:text-orange-300 sm:rounded-xl sm:px-3 sm:py-3 sm:text-xs"
-            title="Cambiar idioma"
-          >
-            {language === "es" ? "EN" : "ES"}
-          </button>
-
-          <Link
-            to="/login"
-            className="rounded-md border border-orange-500/80 bg-black/40 px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.03em] text-orange-300 shadow-[0_0_24px_rgba(249,115,22,0.18)] transition hover:bg-orange-500 hover:text-black sm:rounded-xl sm:px-5 sm:py-3 sm:text-sm"
-          >
-            {t("home.login", "Iniciar sesión")}
-          </Link>
-        </div>
+        <Link
+          to="/login"
+          className="rounded-md border border-orange-500/80 bg-black/40 px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.03em] text-orange-300 shadow-[0_0_24px_rgba(249,115,22,0.18)] transition hover:bg-orange-500 hover:text-black sm:rounded-xl sm:px-5 sm:py-3 sm:text-sm"
+        >
+          Iniciar sesión
+        </Link>
       </header>
 
       <section className="relative z-10 flex h-[calc(100dvh-58px)] flex-col justify-between px-3 pb-[46px] sm:h-[calc(100dvh-76px)] sm:px-8 sm:pb-4 lg:px-14">
@@ -399,19 +292,17 @@ export default function Home() {
 
             <h1 className="text-[2rem] font-black uppercase leading-[0.9] tracking-tight min-[390px]:text-[2.3rem] sm:text-[4.5rem] lg:text-[5.4rem] xl:text-[6.3rem]">
               <span className="block text-white drop-shadow-[0_4px_16px_rgba(255,255,255,0.15)]">
-                {t("home.hero.renace", "Renace.")}
+                Renace.
               </span>
-              <span className="block text-white">{t("home.hero.entrena", "Entrena.")}</span>
+              <span className="block text-white">Entrena.</span>
               <span className="block bg-gradient-to-r from-orange-500 via-red-500 to-orange-300 bg-clip-text text-transparent">
-                {t("home.hero.superate", "Supérate.")}
+                Supérate.
               </span>
             </h1>
 
             <p className="mt-2 max-w-xl text-[11px] leading-4 text-white/75 min-[390px]:text-xs min-[390px]:leading-5 sm:mt-4 sm:text-lg sm:leading-8">
-              {t(
-                "home.hero.description",
-                "Más que un gimnasio, somos una comunidad. Entrena con propósito, vive con pasión y renace más fuerte cada día."
-              )}
+              Más que un gimnasio, somos una comunidad. Entrena con propósito,
+              vive con pasión y renace más fuerte cada día.
             </p>
 
             <div className="mt-3 flex flex-wrap gap-3 sm:mt-6">
@@ -420,7 +311,7 @@ export default function Home() {
                 onClick={() => setActivePopup("join")}
                 className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-[11px] font-black uppercase text-black shadow-[0_0_26px_rgba(249,115,22,0.35)] transition hover:bg-orange-400 sm:gap-3 sm:rounded-xl sm:px-7 sm:py-3 sm:text-sm"
               >
-                {t("home.join.cta", "Únete a PHO3NIX")}
+                Únete a PHO3NIX
                 <span>→</span>
               </button>
             </div>
@@ -436,10 +327,10 @@ export default function Home() {
                   >
                     <Icon className="mx-auto h-4 w-4 text-orange-500 sm:h-7 sm:w-7" strokeWidth={2.5} />
                     <div className="mt-1 text-[7px] font-black uppercase text-white sm:text-xs">
-                      {t(`home.stats.${item.key}.label`, item.label)}
+                      {item.label}
                     </div>
                     <div className="mt-0.5 text-[7px] leading-tight text-white/65 sm:mt-1 sm:text-sm">
-                      {t(`home.stats.${item.key}.value`, item.value)}
+                      {item.value}
                     </div>
                   </div>
                 )
@@ -469,14 +360,14 @@ export default function Home() {
 
                   <div>
                     <h3 className="text-[7px] font-black uppercase leading-tight text-white sm:text-lg">
-                      <span className="sm:hidden">{t(`home.info.${item.key}.mobile`, item.mobileTitle)}</span>
-                      <span className="hidden sm:inline">{t(`home.info.${item.key}.title`, item.title)}</span>
+                      <span className="sm:hidden">{item.mobileTitle}</span>
+                      <span className="hidden sm:inline">{item.title}</span>
                     </h3>
                     <p className="mt-1 hidden text-sm leading-6 text-white/65 sm:block">
-                      {t(`home.info.${item.key}.text`, item.text)}
+                      {item.text}
                     </p>
                     <div className="hidden font-black uppercase text-orange-400 sm:mt-4 sm:block sm:text-xs">
-                      {t("home.open", "Abrir")} <span className="transition group-hover:translate-x-1">→</span>
+                      Abrir <span className="transition group-hover:translate-x-1">→</span>
                     </div>
                   </div>
                 </div>
@@ -492,7 +383,7 @@ export default function Home() {
               alt="LYCAN Ecuador"
               className="h-5 w-auto opacity-60"
             />
-            <span>{t("home.partner.lycan", "Partner oficial LYCAN Ecuador")}</span>
+            <span>Partner oficial LYCAN Ecuador</span>
           </div>
 
           <div className="mx-auto sm:mx-0">
@@ -537,7 +428,6 @@ export default function Home() {
           title={popupTitle}
           type={activePopup}
           newsItems={newsItems}
-          t={t}
           onClose={() => setActivePopup(null)}
         />
       ) : null}
@@ -545,7 +435,7 @@ export default function Home() {
   )
 }
 
-function HomePopup({ title, type, newsItems, t, onClose }) {
+function HomePopup({ title, type, newsItems, onClose }) {
   const compactPopup = type === "about" || type === "schedule"
 
   return (
@@ -567,7 +457,7 @@ function HomePopup({ title, type, newsItems, t, onClose }) {
               type="button"
               onClick={onClose}
               className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xl text-white transition hover:border-orange-400 hover:text-orange-300 sm:h-10 sm:w-10"
-              aria-label={t("home.close", "Cerrar")}
+              aria-label="Cerrar"
             >
               ×
             </button>
@@ -580,18 +470,18 @@ function HomePopup({ title, type, newsItems, t, onClose }) {
             compactPopup ? "overflow-hidden" : "max-h-[70dvh] overflow-y-auto",
           ].join(" ")}
         >
-          {type === "join" ? <JoinContent t={t} /> : null}
-          {type === "about" ? <AboutContent t={t} /> : null}
-          {type === "schedule" ? <ScheduleContent t={t} /> : null}
-          {type === "partners" ? <PartnersContent t={t} /> : null}
-          {type === "news" ? <NewsContent newsItems={newsItems} t={t} /> : null}
+          {type === "join" ? <JoinContent /> : null}
+          {type === "about" ? <AboutContent /> : null}
+          {type === "schedule" ? <ScheduleContent /> : null}
+          {type === "partners" ? <PartnersContent /> : null}
+          {type === "news" ? <NewsContent newsItems={newsItems} /> : null}
         </div>
       </div>
     </div>
   )
 }
 
-function JoinContent({ t }) {
+function JoinContent() {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {SOCIAL_LINKS.map((item) => (
@@ -622,32 +512,31 @@ function JoinContent({ t }) {
   )
 }
 
-function AboutContent({ t }) {
+function AboutContent() {
   return (
     <div className="space-y-3 text-xs leading-5 text-white/70 sm:text-base sm:leading-7">
       <p>
-        {t(
-          "home.about.paragraph",
-          "PHO3NIX Functional Fitness es una comunidad creada para personas que quieren entrenar con propósito, superar sus límites y construir disciplina dentro y fuera del box."
-        )}
+        PHO3NIX Functional Fitness es una comunidad creada para personas que quieren
+        entrenar con propósito, superar sus límites y construir disciplina dentro y fuera
+        del box.
       </p>
 
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
-          [Flame, "passion", "Pasión", "Entrenamos con intensidad y enfoque."],
-          [Handshake, "community", "Comunidad", "Nadie renace solo; avanzamos juntos."],
-          [Trophy, "progress", "Progreso", "Medimos, mejoramos y celebramos cada logro."],
-        ].map(([Icon, key, title, text]) => (
+          [Flame, "Pasión", "Entrenamos con intensidad y enfoque."],
+          [Handshake, "Comunidad", "Nadie renace solo; avanzamos juntos."],
+          [Trophy, "Progreso", "Medimos, mejoramos y celebramos cada logro."],
+        ].map(([Icon, title, text]) => (
           <div
             key={title}
             className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 sm:p-4"
           >
             <Icon className="h-5 w-5 text-orange-400 sm:h-7 sm:w-7" strokeWidth={2.4} />
             <div className="mt-2 text-xs font-black uppercase text-white sm:mt-3 sm:text-base">
-              {t(`home.about.${key}.title`, title)}
+              {title}
             </div>
             <p className="mt-1 text-[10px] leading-4 text-white/60 sm:mt-2 sm:text-sm sm:leading-5">
-              {t(`home.about.${key}.text`, text)}
+              {text}
             </p>
           </div>
         ))}
@@ -656,16 +545,16 @@ function AboutContent({ t }) {
   )
 }
 
-function ScheduleContent({ t }) {
+function ScheduleContent() {
   return (
     <div className="grid gap-2 sm:grid-cols-3 sm:gap-4">
       {SCHEDULES.map((block) => (
         <div
-          key={t(`home.schedule.${block.key}`, block.title)}
+          key={block.title}
           className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-3 sm:p-4"
         >
           <h3 className="text-sm font-black uppercase text-orange-300 sm:text-lg">
-            {t(`home.schedule.${block.key}`, block.title)}
+            {block.title}
           </h3>
 
           <div className="mt-2 space-y-1.5 sm:mt-4 sm:space-y-2">
@@ -684,15 +573,15 @@ function ScheduleContent({ t }) {
   )
 }
 
-function PartnersContent({ t }) {
+function PartnersContent() {
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-xl font-black text-white">{t("home.partners.lycan.title", "LYCAN Ecuador")}</h3>
+            <h3 className="text-xl font-black text-white">LYCAN Ecuador</h3>
             <p className="mt-2 text-sm leading-6 text-white/60">
-              {t("home.partners.lycan.text", "Partner de equipamiento y comunidad deportiva.")}
+              Partner de equipamiento y comunidad deportiva.
             </p>
           </div>
 
@@ -705,16 +594,13 @@ function PartnersContent({ t }) {
       </div>
 
       <p className="text-sm leading-6 text-white/60">
-        {t(
-          "home.partners.coming",
-          "Próximamente se podrán mostrar más aliados, marcas y beneficios para miembros PHO3NIX."
-        )}
+        Próximamente se podrán mostrar más aliados, marcas y beneficios para miembros PHO3NIX.
       </p>
     </div>
   )
 }
 
-function NewsContent({ newsItems, t }) {
+function NewsContent({ newsItems }) {
   const safeNews = newsItems?.length ? newsItems : FALLBACK_NEWS
 
   return (
@@ -744,10 +630,10 @@ function NewsContent({ newsItems, t }) {
 
           <div className="p-4">
             <h3 className="text-lg font-black uppercase text-orange-300">
-              {item.titleKey ? t(item.titleKey, item.title) : item.title}
+              {item.title}
             </h3>
             <p className="mt-2 text-sm leading-6 text-white/60">
-              {item.textKey ? t(item.textKey, item.text) : item.text}
+              {item.text}
             </p>
           </div>
         </article>

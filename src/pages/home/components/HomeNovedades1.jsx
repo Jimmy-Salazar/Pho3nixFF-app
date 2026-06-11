@@ -1,34 +1,10 @@
 import { useEffect, useState } from "react"
 import { supabase } from "../../../supabase"
-import { useSemiAutoTranslation } from "../../../i18n/useSemiAutoTranslation"
-
-
-const HOME_NOVEDADES_TRANSLATIONS = [
-  ["home.news.section.label", "{t("home.news.section.label", "Novedades PHO3NIX")}", "PHO3NIX News"],
-  ["home.news.section.title", "{t("home.news.section.title", "Anuncios del Box")}", "Box Announcements"],
-  [
-    "home.news.section.description",
-    "{t("home.news.section.description", "Comunicados, eventos y actualizaciones oficiales de PHO3NIX.")}",
-    "Official PHO3NIX announcements, events, and updates."
-  ],
-  ["home.news.loading", "{t("home.news.loading", "Cargando novedades...")}", "Loading news..."],
-  ["home.news.empty", "{t("home.news.empty", "Aún no hay anuncios publicados.")}", "There are no published announcements yet."],
-  ["home.news.card.defaultTitle", "Anuncio PHO3NIX", "PHO3NIX Announcement"],
-  ["home.news.card.defaultContent", t("home.news.card.defaultContent", "Sin contenido disponible."), "No content available."],
-  ["home.news.card.viewDetail", "Ver detalle", "View details"],
-  ["home.news.popup.openLink", "Abrir enlace", "Open link"],
-  ["home.news.popup.published", "{t("home.news.popup.published", "Anuncio publicado en PHO3NIX.")}", "Announcement published in PHO3NIX."],
-  ["home.close", "Cerrar", "Close"],
-]
 
 export default function HomeNovedades() {
   const [loading, setLoading] = useState(true)
   const [anuncios, setAnuncios] = useState([])
   const [selectedAnuncio, setSelectedAnuncio] = useState(null)
-  const { t } = useSemiAutoTranslation({
-    modulo: "home",
-    entries: HOME_NOVEDADES_TRANSLATIONS,
-  })
 
   useEffect(() => {
     let alive = true
@@ -82,25 +58,25 @@ export default function HomeNovedades() {
         <div className="relative mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
             <p className="text-xs font-black uppercase tracking-[0.28em] text-orange-500">
-              {t("home.news.section.label", "Novedades PHO3NIX")}
+              Novedades PHO3NIX
             </p>
 
             <h2 className="mt-3 text-4xl font-black uppercase text-white md:text-5xl">
-              {t("home.news.section.title", "Anuncios del Box")}
+              Anuncios del Box
             </h2>
 
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-white/55">
-              {t("home.news.section.description", "Comunicados, eventos y actualizaciones oficiales de PHO3NIX.")}
+              Comunicados, eventos y actualizaciones oficiales de PHO3NIX.
             </p>
           </div>
 
           {loading ? (
             <div className="mt-10 rounded-[2rem] border border-white/10 bg-black/45 p-8 text-center text-white/45">
-              {t("home.news.loading", "Cargando novedades...")}
+              Cargando novedades...
             </div>
           ) : anuncios.length === 0 ? (
             <div className="mt-10 rounded-[2rem] border border-white/10 bg-black/45 p-8 text-center text-white/45">
-              {t("home.news.empty", "Aún no hay anuncios publicados.")}
+              Aún no hay anuncios publicados.
             </div>
           ) : (
             <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -127,17 +103,17 @@ export default function HomeNovedades() {
                     </p>
 
                     <h3 className="mt-3 line-clamp-2 text-xl font-black uppercase text-white">
-                      {item.titulo || t("home.news.card.defaultTitle", "Anuncio PHO3NIX")}
+                      {item.titulo || "Anuncio PHO3NIX"}
                     </h3>
 
                     <p className="mt-3 line-clamp-3 text-sm leading-6 text-white/55">
                       {item.resumen ||
                         item.contenido ||
-                        t("home.news.card.defaultContent", "Sin contenido disponible.")}
+                        "Sin contenido disponible."}
                     </p>
 
                     <span className="mt-5 inline-flex rounded-2xl border border-orange-500/30 px-4 py-2 text-xs font-black uppercase text-orange-300 transition group-hover:bg-orange-500/10">
-                      {t("home.news.card.viewDetail", "Ver detalle")} →
+                      Ver detalle →
                     </span>
                   </div>
                 </button>
@@ -150,7 +126,6 @@ export default function HomeNovedades() {
       {selectedAnuncio ? (
         <AnuncioPopup
           item={selectedAnuncio}
-          t={t}
           onClose={() => setSelectedAnuncio(null)}
         />
       ) : null}
@@ -174,7 +149,7 @@ function AnuncioMedia({ item }) {
     return (
       <img
         src={item.media_url}
-        alt={item.titulo || t("home.news.card.defaultTitle", "Anuncio PHO3NIX")}
+        alt={item.titulo || "Anuncio PHO3NIX"}
         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
       />
     )
@@ -187,7 +162,7 @@ function AnuncioMedia({ item }) {
   )
 }
 
-function AnuncioPopup({ item, t, onClose }) {
+function AnuncioPopup({ item, onClose }) {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") onClose()
@@ -208,7 +183,7 @@ function AnuncioPopup({ item, t, onClose }) {
         type="button"
         onClick={onClose}
         className="absolute inset-0 cursor-default"
-        aria-label={t("home.close", "Cerrar anuncio")}
+        aria-label="Cerrar anuncio"
       />
 
       <article className="relative z-10 max-h-[92dvh] w-full max-w-4xl overflow-hidden rounded-[2.5rem] border border-orange-500/25 bg-[#070707] shadow-2xl shadow-orange-950/40">
@@ -216,7 +191,7 @@ function AnuncioPopup({ item, t, onClose }) {
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 z-20 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-black/65 text-2xl text-white/80 backdrop-blur transition hover:border-orange-500/40 hover:text-orange-300"
-          aria-label={t("home.close", "Cerrar")}
+          aria-label="Cerrar"
         >
           ×
         </button>
@@ -233,7 +208,7 @@ function AnuncioPopup({ item, t, onClose }) {
             ) : item.media_url ? (
               <img
                 src={item.media_url}
-                alt={item.titulo || t("home.news.card.defaultTitle", "Anuncio PHO3NIX")}
+                alt={item.titulo || "Anuncio PHO3NIX"}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -257,7 +232,7 @@ function AnuncioPopup({ item, t, onClose }) {
             </p>
 
             <h2 className="mt-3 text-3xl font-black uppercase leading-tight text-white sm:text-5xl">
-              {item.titulo || t("home.news.card.defaultTitle", "Anuncio PHO3NIX")}
+              {item.titulo || "Anuncio PHO3NIX"}
             </h2>
 
             {item.resumen ? (
@@ -267,7 +242,7 @@ function AnuncioPopup({ item, t, onClose }) {
             ) : null}
 
             <div className="mt-6 whitespace-pre-line text-sm leading-8 text-white/65 sm:text-base">
-              {item.contenido || item.resumen || t("home.news.card.defaultContent", "Sin contenido disponible.")}
+              {item.contenido || item.resumen || "Sin contenido disponible."}
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -278,11 +253,11 @@ function AnuncioPopup({ item, t, onClose }) {
                   rel="noreferrer"
                   className="rounded-2xl bg-orange-500 px-5 py-3 text-center text-sm font-black uppercase text-black transition hover:bg-orange-400"
                 >
-                  {item.boton_texto || t("home.news.popup.openLink", "Abrir enlace")} →
+                  {item.boton_texto || "Abrir enlace"} →
                 </a>
               ) : (
                 <span className="text-sm text-white/35">
-                  {t("home.news.popup.published", "Anuncio publicado en PHO3NIX.")}
+                  Anuncio publicado en PHO3NIX.
                 </span>
               )}
 
@@ -291,7 +266,7 @@ function AnuncioPopup({ item, t, onClose }) {
                 onClick={onClose}
                 className="rounded-2xl border border-white/10 px-5 py-3 text-sm font-black uppercase text-white/70 transition hover:border-orange-500/35 hover:text-orange-300"
               >
-                {t("home.close", "Cerrar")}
+                Cerrar
               </button>
             </div>
           </div>
