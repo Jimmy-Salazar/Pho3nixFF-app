@@ -30,6 +30,7 @@ export async function fetchAlumnoWodData() {
 
   const now = new Date()
   const todayIso = formatDateISO(now)
+  const visibleWodIso = getAlumnoVisibleWodDateISO(now)
   const weekRange = getCurrentWeekRange(now)
 
   const [
@@ -37,11 +38,15 @@ export async function fetchAlumnoWodData() {
     membership,
     todayWod,
     previousWods,
+    currentWeekWods,
+    archivedWods,
   ] = await Promise.all([
     fetchProfile(authUser),
     fetchMembership(authUser.id, now),
-    fetchTodayWod(todayIso, now),
-    fetchPreviousWods(todayIso),
+    fetchTodayWod(visibleWodIso, now),
+    fetchPreviousWods(visibleWodIso),
+    fetchCurrentWeekWods(authUser.id, weekRange, now),
+    fetchArchivedWods(authUser.id, weekRange),
   ])
 
   const [
@@ -66,6 +71,8 @@ export async function fetchAlumnoWodData() {
     membership,
     todayWod,
     previousWods,
+    currentWeekWods,
+    archivedWods,
     dayHistory,
     recentResults,
     weeklyCalories,
@@ -150,11 +157,7 @@ async function fetchTodayWod(todayIso, now) {
   if (error) throw error
 
   const visibleRows = (data || []).filter((item) => {
-    if (item.publicado === true && item.fecha_publicacion) {
-      return new Date(item.fecha_publicacion) <= now
-    }
-
-    return true
+    return isAlumnoWodVisibleByDate(item.fecha, now)
   })
 
   return visibleRows[0] || null
@@ -171,6 +174,113 @@ async function fetchPreviousWods(todayIso) {
 
   if (error) throw error
   return data || []
+}
+
+async function fetchCurrentWeekWods(userId, weekRange, now) {
+  const saturdayIso = addDaysISO(weekRange.startIso, 5)
+
+  const { data, error } = await supabase
+    .from(TABLES.wods)
+    .select(WOD_SELECT_FIELDS)
+    .eq("activo", true)
+    .eq("publicado", true)
+    .gte("fecha", weekRange.startIso)
+    .lte("fecha", saturdayIso)
+    .order("fecha", { ascending: true })
+
+  if (error) throw error
+
+  const visibleWods = (data || []).filter((item) => {
+    return isAlumnoWodVisibleByDate(item.fecha, now)
+  })
+
+  return attachUserResultsToWods(visibleWods, userId)
+}
+
+async function fetchArchivedWods(userId, weekRange) {
+  const { data, error } = await supabase
+    .from(TABLES.wods)
+    .select(WOD_SELECT_FIELDS)
+    .eq("activo", true)
+    .eq("publicado", true)
+    .gte("fecha", "2026-06-01")
+    .lt("fecha", weekRange.startIso)
+    .order("fecha", { ascending: false })
+    .limit(80)
+
+  if (error) throw error
+
+  return attachUserResultsToWods(data || [], userId)
+}
+
+async function attachUserResultsToWods(wods = [], userId) {
+  const safeWods = Array.isArray(wods) ? wods : []
+  const wodIds = safeWods.map((item) => item.id).filter(Boolean)
+
+  if (!userId || wodIds.length === 0) {
+    return safeWods.map((wod) => buildWodListRow(wod, null))
+  }
+
+  const { data, error } = await supabase
+    .from(TABLES.results)
+    .select(
+      "id,wod_id,usuario_id,fecha,modalidad,tiempo_segundos,tiempo_texto,repeticiones,notas,observacion,resultado,calorias_estimadas,created_at"
+    )
+    .eq("usuario_id", userId)
+    .in("wod_id", wodIds)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.warn("No se pudieron cargar resultados del alumno para WODs:", error)
+    return safeWods.map((wod) => buildWodListRow(wod, null))
+  }
+
+  const resultMap = new Map()
+
+  ;(data || []).forEach((result) => {
+    if (!resultMap.has(result.wod_id)) {
+      resultMap.set(result.wod_id, result)
+    }
+  })
+
+  return safeWods.map((wod) => {
+    return buildWodListRow(wod, resultMap.get(wod.id) || null)
+  })
+}
+
+function buildWodListRow(wod, result) {
+  const maxCalories = getWodMaxCalories(wod, result?.calorias_estimadas)
+
+  return {
+    id: `${wod?.id || "wod"}-${result?.id || "sin-resultado"}`,
+    wod_id: wod?.id,
+    wod,
+    wod_nombre: wod?.nombre,
+    wod_fecha: wod?.fecha,
+    fecha: wod?.fecha,
+    registered: !!result && hasRegisteredResultValue(result),
+    result_id: result?.id || null,
+    modalidad: result?.modalidad || null,
+    tiempo_segundos: result?.tiempo_segundos || null,
+    tiempo_texto: result?.tiempo_texto || null,
+    repeticiones: result?.repeticiones || 0,
+    notas: result?.notas || null,
+    observacion: result?.observacion || null,
+    resultado: result?.resultado ?? null,
+    calorias_estimadas: maxCalories,
+    created_at: result?.created_at || wod?.fecha,
+  }
+}
+
+function addDaysISO(value, amount) {
+  const dateString = String(value || "").slice(0, 10)
+  const date = new Date(`${dateString}T00:00:00`)
+
+  if (Number.isNaN(date.getTime())) return dateString
+
+  date.setDate(date.getDate() + Number(amount || 0))
+
+  return formatDateISO(date)
 }
 
 async function fetchDayHistory(wodId) {
@@ -285,16 +395,37 @@ export async function saveAlumnoWodResult({ wod, result, estimatedCalories }) {
     throw new Error("No se encontró una sesión activa.")
   }
 
+  const selectedWod =
+    result?.__selectedWod ||
+    result?.wodSeleccionado ||
+    result?.selectedWod ||
+    null
+
+  const effectiveWod = selectedWod?.id ? selectedWod : wod
+
+  if (!effectiveWod?.id) {
+    throw new Error("No se pudo identificar el WOD seleccionado para registrar el resultado.")
+  }
+
+  const registerAvailability = getAlumnoWodRegisterAvailability(
+    effectiveWod?.fecha,
+    new Date()
+  )
+
+  if (!registerAvailability.canRegister) {
+    throw new Error(registerAvailability.message)
+  }
+
   const payload = {
-    wod_id: wod.id,
+    wod_id: effectiveWod.id,
     usuario_id: authUser.id,
-    fecha: wod.fecha || formatDateISO(new Date()),
+    fecha: effectiveWod.fecha || formatDateISO(new Date()),
     modalidad: result.modalidad || "RX",
     tiempo_segundos: result.tiempo_segundos || null,
     tiempo_texto: result.tiempo_texto || null,
     repeticiones: Number(result.repeticiones || 0),
     notas: result.notas || null,
-    calorias_estimadas: getWodMaxCalories(wod, estimatedCalories),
+    calorias_estimadas: getWodMaxCalories(effectiveWod, estimatedCalories),
   }
 
   const { data, error } = await supabase
@@ -407,6 +538,87 @@ function getWeekDayIndex(value, weekRange) {
   return Math.floor((date.getTime() - start.getTime()) / 86400000)
 }
 
+
+function getAlumnoWodRegisterAvailability(wodDate, now = new Date()) {
+  const window = getAlumnoWodRegisterWindow(wodDate)
+
+  if (!window) {
+    return {
+      canRegister: false,
+      message: "No se pudo validar la fecha del WOD.",
+    }
+  }
+
+  const current = now instanceof Date ? now : new Date(now)
+
+  if (current < window.startAt) {
+    return {
+      canRegister: false,
+      message: "El resultado se puede registrar desde las 4AM del día del WOD.",
+    }
+  }
+
+  return {
+    canRegister: true,
+    message: "",
+  }
+}
+
+function getAlumnoWodRegisterWindow(wodDate) {
+  if (!wodDate) return null
+
+  const dateString = String(wodDate).slice(0, 10)
+  const wodDay = new Date(`${dateString}T00:00:00`)
+
+  if (Number.isNaN(wodDay.getTime())) return null
+
+  const startAt = new Date(wodDay)
+  startAt.setHours(4, 0, 0, 0)
+
+  const endAt = new Date(wodDay)
+  const day = endAt.getDay()
+  const daysUntilSunday = (7 - day) % 7
+
+  endAt.setDate(endAt.getDate() + daysUntilSunday)
+  endAt.setHours(17, 0, 0, 0)
+
+  return {
+    startAt,
+    endAt,
+  }
+}
+
+function getAlumnoVisibleWodDateISO(now = new Date()) {
+  const current = now instanceof Date ? now : new Date(now)
+  const cutoff = new Date(current)
+
+  cutoff.setHours(17, 0, 0, 0)
+
+  if (current >= cutoff) {
+    const tomorrow = new Date(current)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    return formatDateISO(tomorrow)
+  }
+
+  return formatDateISO(current)
+}
+
+function isAlumnoWodVisibleByDate(wodDate, now = new Date()) {
+  if (!wodDate) return true
+
+  const current = now instanceof Date ? now : new Date(now)
+  const dateString = String(wodDate).slice(0, 10)
+  const wodDay = new Date(`${dateString}T00:00:00`)
+
+  if (Number.isNaN(wodDay.getTime())) return true
+
+  const visibleAt = new Date(wodDay)
+  visibleAt.setDate(visibleAt.getDate() - 1)
+  visibleAt.setHours(17, 0, 0, 0)
+
+  return current >= visibleAt
+}
 
 async function safeFetch(callback, fallback) {
   try {

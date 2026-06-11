@@ -25,7 +25,6 @@ export default function Dashboard() {
   const [currentUser, setCurrentUser] = useState(null)
   const [eventosBox, setEventosBox] = useState([])
   const [publicidades, setPublicidades] = useState([])
-  const [adminActivities, setAdminActivities] = useState([])
 
   const [stats, setStats] = useState({
     totalPeople: 0,
@@ -221,14 +220,6 @@ export default function Dashboard() {
           .filter(Boolean)
           .join(" • ")
 
-        const adminActivityRows = await buildAdminActivityRows({
-          supabase,
-          users: safeUsers,
-          expiringSoonRows,
-          anunciosRows: anunciosRows || [],
-          now,
-        })
-
         if (!alive) return
 
         setCurrentUser(loggedProfile)
@@ -258,7 +249,6 @@ export default function Dashboard() {
 		})
 
         setNews(noticias ?? [])
-        setAdminActivities(adminActivityRows)
       } catch (e) {
         if (!alive) return
         setError(e?.message ?? "No se pudo cargar el dashboard")
@@ -506,7 +496,6 @@ export default function Dashboard() {
           todayWod={todayWod}
           todayWodLoading={todayWodLoading}
           news={news}
-          adminActivities={adminActivities}
           navigate={navigate}
           openDetailModal={openDetailModal}
           setSelectedNews={setSelectedNews}
@@ -1344,169 +1333,6 @@ function moveCarousel(container) {
   } else {
     container.scrollBy({ left: cardWidth, behavior: "smooth" })
   }
-}
-
-async function buildAdminActivityRows({
-  supabase,
-  users = [],
-  expiringSoonRows = [],
-  anunciosRows = [],
-  now = new Date(),
-}) {
-  const userMap = new Map((users || []).map((user) => [user.id, user]))
-  const last24 = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-  const activities = []
-
-  try {
-    const { data: recentResults, error: recentResultsError } = await supabase
-      .from("wod_resultados")
-      .select("id,wod_id,usuario_id,created_at,fecha,calorias_estimadas")
-      .gte("created_at", last24.toISOString())
-      .order("created_at", { ascending: false })
-      .limit(30)
-
-    if (recentResultsError) {
-      console.warn("No se pudieron cargar actividades de WOD:", recentResultsError)
-    }
-
-    const wodIds = [
-      ...new Set((recentResults || []).map((item) => item.wod_id).filter(Boolean)),
-    ]
-
-    let wodMap = new Map()
-
-    if (wodIds.length > 0) {
-      const { data: wodRows, error: wodRowsError } = await supabase
-        .from("wod")
-        .select("id,nombre,fecha")
-        .in("id", wodIds)
-
-      if (wodRowsError) {
-        console.warn("No se pudieron cargar nombres de WOD:", wodRowsError)
-      }
-
-      wodMap = new Map((wodRows || []).map((item) => [item.id, item]))
-    }
-
-    ;(recentResults || []).forEach((item) => {
-      const user = userMap.get(item.usuario_id)
-      const wod = wodMap.get(item.wod_id)
-      const createdAt = item.created_at || item.fecha || now.toISOString()
-
-      activities.push({
-        id: `wod-result-${item.id}`,
-        icon: "🏋️",
-        title: `${user?.nombre || "Un alumno"} registró WOD`,
-        subtitle: wod?.nombre ? `Resultado registrado en ${wod.nombre}` : "Resultado de WOD registrado",
-        time: formatAdminActivityTime(createdAt, now),
-        createdAt,
-        sortTime: safeActivityTime(createdAt, now),
-        module: "WOD",
-      })
-    })
-  } catch (error) {
-    console.warn("No se pudieron preparar actividades de WOD:", error)
-  }
-
-  try {
-    const { data: publishedWods, error: publishedWodsError } = await supabase
-      .from("wod")
-      .select("id,nombre,fecha,fecha_publicacion,publicado")
-      .eq("publicado", true)
-      .gte("fecha_publicacion", last24.toISOString())
-      .order("fecha_publicacion", { ascending: false })
-      .limit(10)
-
-    if (publishedWodsError) {
-      console.warn("No se pudieron cargar actividades de WOD publicado:", publishedWodsError)
-    }
-
-    ;(publishedWods || []).forEach((item) => {
-      const createdAt = item.fecha_publicacion || item.fecha || now.toISOString()
-
-      activities.push({
-        id: `wod-published-${item.id}`,
-        icon: "📅",
-        title: "WOD publicado",
-        subtitle: item.nombre || "WOD disponible para alumnos",
-        time: formatAdminActivityTime(createdAt, now),
-        createdAt,
-        sortTime: safeActivityTime(createdAt, now),
-        module: "WOD",
-      })
-    })
-  } catch (error) {
-    console.warn("No se pudieron preparar actividades de WOD publicado:", error)
-  }
-
-  ;(anunciosRows || [])
-    .filter((item) => {
-      const createdAt = item.fecha_publicacion || item.created_at
-      return createdAt && safeActivityTime(createdAt, now) >= last24.getTime()
-    })
-    .forEach((item) => {
-      const createdAt = item.fecha_publicacion || item.created_at
-
-      activities.push({
-        id: `announcement-${item.id}`,
-        icon: "📣",
-        title: "Anuncio publicado",
-        subtitle: item.titulo || "Nuevo anuncio PHO3NIX",
-        time: formatAdminActivityTime(createdAt, now),
-        createdAt,
-        sortTime: safeActivityTime(createdAt, now),
-        module: "Anuncios",
-      })
-    })
-
-  ;(expiringSoonRows || [])
-    .filter((item) => Number(item.diffDays) >= 0 && Number(item.diffDays) <= 3)
-    .forEach((item) => {
-      const diffDays = Number(item.diffDays)
-
-      activities.push({
-        id: `membership-expiring-${item.id}-${item.fechaFin}`,
-        icon: "💳",
-        title: `${item.nombre || "Alumno"} vence mensualidad`,
-        subtitle:
-          diffDays === 0
-            ? "La mensualidad vence hoy"
-            : `La mensualidad vence en ${diffDays} día(s)`,
-        time: "Alerta",
-        createdAt: null,
-        sortTime: now.getTime() - 1,
-        module: "Mensualidad",
-      })
-    })
-
-  return activities
-    .sort((a, b) => Number(b.sortTime || 0) - Number(a.sortTime || 0))
-    .slice(0, 40)
-}
-
-function safeActivityTime(value, fallbackDate = new Date()) {
-  const date = value instanceof Date ? value : new Date(value)
-  const fallback = fallbackDate instanceof Date ? fallbackDate : new Date()
-
-  if (Number.isNaN(date.getTime())) return fallback.getTime()
-
-  return date.getTime()
-}
-
-function formatAdminActivityTime(value, now = new Date()) {
-  const date = value instanceof Date ? value : new Date(value)
-
-  if (Number.isNaN(date.getTime())) return "Ahora"
-
-  const diffMs = Math.max(0, now.getTime() - date.getTime())
-  const diffMinutes = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMinutes / 60)
-
-  if (diffMinutes < 1) return "Ahora"
-  if (diffMinutes < 60) return `${diffMinutes} min`
-  if (diffHours < 24) return `${diffHours} h`
-
-  return "24 h"
 }
 
 function normalizeRole(role) {
