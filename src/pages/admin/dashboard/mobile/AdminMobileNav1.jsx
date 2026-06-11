@@ -7,7 +7,13 @@ const ITEMS = [
     key: "dashboard",
     label: "Dashboard",
     icon: "⌂",
-    to: "/dashboard",
+    to: "/admin/dashboard",
+  },
+  {
+    key: "alumnos",
+    label: "Alumnos",
+    icon: "👥",
+    to: "/admin/alumnos",
   },
   {
     key: "wods",
@@ -16,22 +22,16 @@ const ITEMS = [
     to: "/admin/wods",
   },
   {
-    key: "alumnos",
-    label: "Alumnos",
-    icon: "👥",
-    to: "/admin/users",
+    key: "challenge",
+    label: "Retos",
+    icon: "🏆",
+    to: "/admin/challenge",
   },
   {
     key: "anuncios",
     label: "Anuncios",
     icon: "📣",
     to: "/admin/anuncios",
-  },
-  {
-    key: "pda",
-    label: "PDA",
-    icon: "🎄",
-    to: "/admin/pda",
   },
 ]
 
@@ -42,10 +42,21 @@ function getActiveKey(pathname) {
     return "dashboard"
   }
 
+  if (path.startsWith("/admin/users") || path.startsWith("/admin/alumnos")) {
+    return "alumnos"
+  }
+
   if (path.startsWith("/admin/wods")) return "wods"
-  if (path.startsWith("/admin/users") || path.startsWith("/admin/alumnos")) return "alumnos"
+
+  if (
+    path.startsWith("/admin/challenge") ||
+    path.startsWith("/admin/competencias") ||
+    path.startsWith("/challenger")
+  ) {
+    return "challenge"
+  }
+
   if (path.startsWith("/admin/anuncios")) return "anuncios"
-  if (path.startsWith("/admin/pda")) return "pda"
 
   return "dashboard"
 }

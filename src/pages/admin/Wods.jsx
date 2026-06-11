@@ -323,7 +323,7 @@ export default function Wods() {
       ) : null}
 
       {publishModalOpen && selectedWod ? (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-2 sm:p-4">
           <button
             type="button"
             className="absolute inset-0 bg-black/75 backdrop-blur-sm"
@@ -332,23 +332,23 @@ export default function Wods() {
           />
 
           <div className="phoenix-card relative z-[121] max-h-[92dvh] w-full max-w-lg overflow-y-auto">
-            <div className="border-b border-orange-500/15 bg-orange-500/10 p-4 sm:p-6">
+            <div className="border-b border-orange-500/15 bg-orange-500/10 p-3 sm:p-5">
               <div className="text-xs font-black uppercase tracking-[0.22em] text-orange-300">
                 Publicar WOD
               </div>
 
-              <h3 className="mt-2 text-xl font-black text-white sm:text-2xl">
+              <h3 className="mt-1.5 text-lg font-black text-white sm:text-2xl">
                 {selectedWod.nombre || "WOD sin nombre"}
               </h3>
 
-              <p className="mt-2 text-sm leading-6 text-white/60">
+              <p className="mt-1.5 text-xs leading-5 text-white/60">
                 Al publicarlo se activará a las 23:59 del día anterior.
               </p>
             </div>
 
-            <form onSubmit={handlePublish} className="p-4 sm:p-6">
+            <form onSubmit={handlePublish} className="p-3 sm:p-5">
               <div>
-                <label className="mb-2 block text-sm font-bold text-white/75">
+                <label className="mb-1.5 block text-xs font-bold text-white/75">
                   Fecha del WOD
                 </label>
 
@@ -362,7 +362,7 @@ export default function Wods() {
               </div>
 
               {publishFecha ? (
-                <div className="mt-4 rounded-2xl border border-orange-500/15 bg-orange-500/10 px-4 py-3 text-sm leading-6 text-white/70">
+                <div className="mt-4 rounded-2xl border border-orange-500/15 bg-orange-500/10 px-3 py-2 text-xs leading-6 text-white/70">
                   Publicación automática:{" "}
                   <span className="font-bold text-orange-300">
                     {formatDateTime(buildPreviousDay2359(publishFecha))}
@@ -371,12 +371,12 @@ export default function Wods() {
               ) : null}
 
               {publishError ? (
-                <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
                   {publishError}
                 </div>
               ) : null}
 
-              <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap">
+              <div className="mt-6 grid gap-2 sm:flex sm:flex-wrap">
                 <button
                   type="submit"
                   disabled={publishingId === selectedWod.id}
@@ -467,15 +467,15 @@ function AdminWodsMobile({
   }
 
   return (
-    <main className="block h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-36 text-white lg:hidden">
-      <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-4 pt-4">
+    <main className="block h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-24 text-white lg:hidden">
+      <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-2.5 pt-2.5">
         <BackgroundOrbs />
 
-        <header className="relative z-10 mb-6 flex items-center justify-between gap-3 border-b border-white/10 pb-4">
+        <header className="relative z-10 mb-2 flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
           <button
             type="button"
             onClick={() => navigate("/admin/dashboard")}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-orange-500/25 bg-orange-500/10 text-2xl text-orange-300"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-lg text-orange-300"
             aria-label="Volver al dashboard"
           >
             ☰
@@ -485,14 +485,14 @@ function AdminWodsMobile({
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="h-10 w-10 object-contain drop-shadow-[0_0_20px_rgba(249,115,22,0.35)]"
+              className="h-8 w-8 object-contain drop-shadow-[0_0_20px_rgba(249,115,22,0.35)]"
             />
 
-            <p className="mt-1 text-xl font-black tracking-[0.14em] text-white">
+            <p className="mt-0.5 text-lg font-black tracking-[0.14em] text-white">
               PHO<span className="text-orange-500">3</span>NIX
             </p>
 
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-orange-500">
+            <p className="text-[8px] font-black uppercase tracking-[0.22em] text-orange-500">
               Functional Fitness
             </p>
           </div>
@@ -500,30 +500,30 @@ function AdminWodsMobile({
           <button
             type="button"
             onClick={handleLogout}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-red-500/25 bg-red-500/10 text-xl text-red-300"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 text-lg text-red-300"
             aria-label="Cerrar sesión"
           >
             ↪
           </button>
         </header>
 
-        <section className="relative z-10 mb-5">
+        <section className="relative z-10 mb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <h1 className="text-4xl font-black uppercase leading-none text-white">
+              <h1 className="text-3xl font-black uppercase leading-none text-white">
                 WODs
               </h1>
 
-              <p className="mt-2 text-sm text-white/60">
+              <p className="mt-1 text-xs text-white/55">
                 Gestiona los entrenamientos del box
               </p>
             </div>
 
-            <div className="flex shrink-0 gap-3">
+            <div className="flex shrink-0 gap-2">
               <button
                 type="button"
                 onClick={() => setSearchOpen((current) => !current)}
-                className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-2xl text-white/80"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-base text-white/80"
                 aria-label="Buscar"
               >
                 🔍
@@ -532,28 +532,28 @@ function AdminWodsMobile({
               <button
                 type="button"
                 onClick={onCreate}
-                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-5 text-sm font-black uppercase text-black shadow-[0_0_24px_rgba(249,115,22,0.26)]"
+                className="flex h-10 items-center justify-center gap-1.5 rounded-xl bg-orange-500 px-3 text-[10px] font-black uppercase text-black shadow-[0_0_24px_rgba(249,115,22,0.26)]"
               >
-                <span className="text-xl">＋</span>
+                <span className="text-sm">＋</span>
                 Nuevo WOD
               </button>
             </div>
           </div>
 
           {searchOpen ? (
-            <div className="mt-4">
+            <div className="mt-2">
               <input
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Buscar por nombre, descripción o modalidad..."
-                className="w-full rounded-2xl border border-orange-500/25 bg-black/55 px-4 py-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-orange-500/60"
+                className="w-full rounded-2xl border border-orange-500/25 bg-black/55 px-3 py-2.5 text-xs text-white outline-none placeholder:text-white/35 focus:border-orange-500/60"
               />
             </div>
           ) : null}
         </section>
 
-        <section className="relative z-10 mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <section className="relative z-10 mb-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             { key: "todos", label: "Todos", icon: "▦", count: stats.total },
             { key: "hoy", label: "Hoy", icon: "▣", count: countToday(wods) },
@@ -569,7 +569,7 @@ function AdminWodsMobile({
                 type="button"
                 onClick={() => setStatusFilter(item.key)}
                 className={[
-                  "shrink-0 rounded-2xl border px-4 py-3 transition",
+                  "shrink-0 rounded-xl border px-2.5 py-2 transition",
                   active
                     ? "border-orange-500 bg-orange-500/10 text-orange-300"
                     : "border-white/10 bg-black/35 text-white/55",
@@ -577,7 +577,7 @@ function AdminWodsMobile({
               >
                 <span
                   className={[
-                    "mr-2 text-sm",
+                    "mr-1.5 text-xs",
                     item.key === "activos"
                       ? "text-emerald-400"
                       : item.key === "borradores"
@@ -588,22 +588,22 @@ function AdminWodsMobile({
                   {item.icon}
                 </span>
 
-                <span className="text-sm font-black">{item.label}</span>
+                <span className="text-xs font-black">{item.label}</span>
 
-                <span className="ml-2 text-xs text-white/35">{item.count}</span>
+                <span className="ml-1.5 text-[10px] text-white/35">{item.count}</span>
               </button>
             )
           })}
         </section>
 
-        <section className="relative z-10 mb-5 grid grid-cols-4 gap-3">
+        <section className="relative z-10 mb-3 grid grid-cols-4 gap-3">
           <MobileMetricCard icon="🏋️" value={loading ? "..." : stats.total} label="Total WODs" tone="orange" />
           <MobileMetricCard icon="✅" value={loading ? "..." : stats.activos} label="Activos" tone="green" />
           <MobileMetricCard icon="✏️" value={loading ? "..." : stats.pendientes} label="Borradores" tone="amber" />
           <MobileMetricCard icon="🗃️" value={loading ? "..." : stats.historicos} label="Historial" tone="purple" />
         </section>
 
-        <section className="relative z-10 mb-5">
+        <section className="relative z-10 mb-3">
           <TodayWodCard
             wod={todayWod}
             loading={loading}
@@ -613,23 +613,23 @@ function AdminWodsMobile({
         </section>
 
         {error ? (
-          <div className="relative z-10 mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div className="relative z-10 mb-3 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
             {error}
           </div>
         ) : null}
 
         <section className="relative z-10 mb-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-black uppercase tracking-[0.06em] text-white/75">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-xs font-black uppercase tracking-[0.06em] text-white/75">
               Lista de WODs
             </h2>
 
-            <span className="text-xs text-white/35">
+            <span className="text-[10px] text-white/35">
               {filteredWods.length} resultado(s)
             </span>
           </div>
 
-          <div className="grid gap-3">
+          <div className="grid gap-2">
             {loading ? (
               <MobileEmpty text="Cargando WODs..." />
             ) : filteredWods.length === 0 ? (
@@ -655,9 +655,9 @@ function AdminWodsMobile({
         <button
           type="button"
           onClick={handleLogout}
-          className="relative z-10 mt-5 flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-red-500/45 bg-red-500/10 text-sm font-black uppercase text-red-300 transition hover:bg-red-500/15"
+          className="relative z-10 mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-500/45 bg-red-500/10 text-xs font-black uppercase text-red-300 transition hover:bg-red-500/15"
         >
-          <span className="text-2xl">↪</span>
+          <span className="text-base">↪</span>
           Cerrar sesión
         </button>
       </div>
@@ -669,22 +669,22 @@ function AdminWodsMobile({
 
 function TodayWodCard({ wod, loading, onView, onHistory }) {
   return (
-    <article className="relative min-h-[250px] overflow-hidden rounded-[2rem] border border-orange-500/20 bg-black/55 shadow-2xl shadow-black/40">
+    <article className="relative min-h-[165px] overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/55 shadow-2xl shadow-black/40">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_45%,rgba(249,115,22,0.22),transparent_34%)]" />
       <div className="absolute inset-y-0 right-0 w-1/2 bg-[url('/images/imagenchallenge.png')] bg-cover bg-center opacity-25" />
       <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/25" />
 
-      <div className="relative z-10 flex min-h-[250px] flex-col justify-between p-5">
+      <div className="relative z-10 flex min-h-[165px] flex-col justify-between p-3.5">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-400">
+          <p className="text-[8px] font-black uppercase tracking-[0.14em] text-orange-400">
             🔥 WOD del día
           </p>
 
-          <h2 className="mt-4 text-3xl font-black uppercase leading-none text-white">
+          <h2 className="mt-2 text-xl font-black uppercase leading-none text-white">
             {loading ? "Cargando..." : wod?.nombre || "Sin WOD publicado"}
           </h2>
 
-          <p className="mt-4 max-w-[90%] whitespace-pre-line text-sm leading-6 text-white/65">
+          <p className="mt-2 max-w-[92%] whitespace-pre-line text-xs leading-4 text-white/60">
             {loading
               ? "Buscando entrenamiento del día..."
               : wod?.descripcion ||
@@ -692,11 +692,11 @@ function TodayWodCard({ wod, loading, onView, onHistory }) {
           </p>
         </div>
 
-        <div className="mt-5 flex gap-3">
+        <div className="mt-3 flex gap-2">
           <button
             type="button"
             onClick={onView}
-            className="rounded-2xl bg-orange-500 px-5 py-3 text-xs font-black uppercase text-black"
+            className="rounded-xl bg-orange-500 px-3 py-2 text-[10px] font-black uppercase text-black"
           >
             Ver WOD del día
           </button>
@@ -704,7 +704,7 @@ function TodayWodCard({ wod, loading, onView, onHistory }) {
           <button
             type="button"
             onClick={onHistory}
-            className="rounded-2xl border border-orange-500/35 px-5 py-3 text-xs font-black uppercase text-orange-300"
+            className="rounded-xl border border-orange-500/35 px-3 py-2 text-[10px] font-black uppercase text-orange-300"
           >
             Ver historial
           </button>
@@ -727,18 +727,18 @@ function MobileMetricCard({ icon, value, label, tone = "orange" }) {
   return (
     <article
       className={[
-        "relative min-h-[125px] overflow-hidden rounded-[1.4rem] border p-3 text-center shadow-2xl shadow-black/30",
+        "relative min-h-[82px] overflow-hidden rounded-[1rem] border p-2 text-center shadow-2xl shadow-black/30",
         toneClass,
       ].join(" ")}
     >
-      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-current opacity-10 blur-3xl" />
+      <div className="absolute -right-6 -top-6 h-16 w-16 rounded-full bg-current opacity-10 blur-3xl" />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-center">
-        <div className="text-2xl">{icon}</div>
+        <div className="text-base">{icon}</div>
 
-        <p className="mt-2 text-3xl font-black text-white">{value}</p>
+        <p className="mt-1 text-xl font-black text-white">{value}</p>
 
-        <p className="mt-1 text-[10px] font-black leading-tight text-white">
+        <p className="mt-0.5 text-[8px] font-black leading-tight text-white/85">
           {label}
         </p>
       </div>
@@ -751,28 +751,28 @@ function MobileWodCard({ wod, status, onEdit, onPublish }) {
   const statusConfig = getMobileStatusConfig(status)
 
   return (
-    <article className="relative overflow-hidden rounded-[1.8rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
-      <div className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-orange-500/10 blur-3xl" />
+    <article className="relative overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/45 p-2.5 shadow-2xl shadow-black/30">
+      <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-orange-500/10 blur-3xl" />
 
-      <div className="relative z-10 grid grid-cols-[112px_minmax(0,1fr)_auto] gap-3 sm:grid-cols-[120px_minmax(0,1fr)_auto]">
+      <div className="relative z-10 grid grid-cols-[76px_minmax(0,1fr)_auto] gap-2">
         <WodThumb wod={wod} />
 
-        <div className="min-w-0 py-1">
-          <h2 className="line-clamp-2 text-base font-black uppercase leading-tight text-white sm:text-lg">
+        <div className="min-w-0 py-0.5">
+          <h2 className="line-clamp-2 text-xs font-black uppercase leading-tight text-white">
             {wod.nombre || "WOD PHO3NIX"}
           </h2>
 
-          <div className="mt-2 flex flex-wrap gap-2">
-            <span className="rounded-full bg-orange-500/15 px-3 py-1 text-[10px] font-black uppercase text-orange-300">
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-[8px] font-black uppercase text-orange-300">
               {formatModoRankingShort(wod.modo_ranking)}
             </span>
 
-            <span className="rounded-full bg-white/[0.08] px-3 py-1 text-[10px] font-black uppercase text-white/70">
+            <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[8px] font-black uppercase text-white/70">
               {formatModalidad(wod.modalidad)}
             </span>
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/45">
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-white/45">
             <span>📅 {formatDateOnly(wod.fecha)}</span>
             <span className={statusConfig.dotClass}>●</span>
             <span>{statusConfig.label}</span>
@@ -783,14 +783,14 @@ function MobileWodCard({ wod, status, onEdit, onPublish }) {
           <button
             type="button"
             onClick={() => setMenuOpen((current) => !current)}
-            className="flex h-10 w-8 items-center justify-center rounded-xl text-2xl text-white/60"
+            className="flex h-8 w-7 items-center justify-center rounded-lg text-lg text-white/60"
             aria-label="Opciones"
           >
             ⋮
           </button>
 
           {menuOpen ? (
-            <div className="absolute right-0 top-10 z-30 w-40 overflow-hidden rounded-2xl border border-white/10 bg-[#080808] shadow-2xl">
+            <div className="absolute right-0 top-8 z-30 w-36 overflow-hidden rounded-xl border border-white/10 bg-[#080808] shadow-2xl">
               {status === "pendiente" ? (
                 <>
                   <button
@@ -799,7 +799,7 @@ function MobileWodCard({ wod, status, onEdit, onPublish }) {
                       setMenuOpen(false)
                       onEdit()
                     }}
-                    className="block w-full px-4 py-3 text-left text-sm font-bold text-white/80 hover:bg-white/[0.05]"
+                    className="block w-full px-3 py-2 text-left text-xs font-bold text-white/80 hover:bg-white/[0.05]"
                   >
                     Editar
                   </button>
@@ -810,13 +810,13 @@ function MobileWodCard({ wod, status, onEdit, onPublish }) {
                       setMenuOpen(false)
                       onPublish()
                     }}
-                    className="block w-full px-4 py-3 text-left text-sm font-bold text-orange-300 hover:bg-orange-500/10"
+                    className="block w-full px-3 py-2 text-left text-xs font-bold text-orange-300 hover:bg-orange-500/10"
                   >
                     Programar
                   </button>
                 </>
               ) : (
-                <div className="px-4 py-3 text-sm font-bold text-white/45">
+                <div className="px-3 py-2 text-xs font-bold text-white/45">
                   Solo lectura
                 </div>
               )}
@@ -832,17 +832,17 @@ function WodThumb({ wod }) {
   const label = getWodThumbLabel(wod)
 
   return (
-    <div className="relative flex h-[112px] items-center justify-center overflow-hidden rounded-[1.4rem] border border-orange-500/20 bg-black sm:h-[118px]">
+    <div className="relative flex h-[76px] items-center justify-center overflow-hidden rounded-[0.9rem] border border-orange-500/20 bg-black">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(249,115,22,0.30),transparent_50%)]" />
       <div className="absolute inset-0 bg-[url('/images/imagenchallenge.png')] bg-cover bg-center opacity-20" />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
 
       <div className="relative z-10 text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
+        <p className="text-[8px] font-black uppercase tracking-[0.14em] text-orange-400">
           {label.top}
         </p>
 
-        <p className="mt-1 max-w-[88px] text-lg font-black uppercase leading-none text-white sm:text-xl">
+        <p className="mt-0.5 max-w-[62px] text-[11px] font-black uppercase leading-none text-white">
           {label.main}
         </p>
       </div>
@@ -932,7 +932,7 @@ function formatDateOnly(value) {
 
 function MobileEmpty({ text }) {
   return (
-    <div className="rounded-[1.6rem] border border-dashed border-white/10 bg-black/35 p-5 text-sm text-white/45">
+    <div className="rounded-xl border border-dashed border-white/10 bg-black/35 p-3 text-xs text-white/45">
       {text}
     </div>
   )
@@ -954,7 +954,7 @@ function WodMetricCard({ icon, label, value }) {
       <div className="absolute bottom-0 right-0 h-16 w-24 rounded-full bg-orange-500/10 blur-2xl" />
 
       <div className="relative z-10 flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-orange-500/20 bg-orange-500/10 text-2xl text-orange-300">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-orange-500/20 bg-orange-500/10 text-lg text-orange-300">
           {icon}
         </div>
 
@@ -971,7 +971,7 @@ function WodScheduleRow({ wod, status, onEdit, onPublish }) {
   const dateParts = getDateParts(wod.fecha)
 
   return (
-    <article className="group grid gap-3 rounded-2xl border border-orange-500/10 bg-black/25 p-3 transition hover:border-orange-500/30 hover:bg-orange-500/[0.04] md:grid-cols-[110px_1fr_auto]">
+    <article className="group grid gap-2 rounded-2xl border border-orange-500/10 bg-black/25 p-3 transition hover:border-orange-500/30 hover:bg-orange-500/[0.04] md:grid-cols-[110px_1fr_auto]">
       <div className="rounded-xl border border-orange-500/15 bg-black/35 p-3 text-center">
         <div className="text-[11px] font-black uppercase tracking-[0.16em] text-white/45">
           {dateParts.weekday}
@@ -989,7 +989,7 @@ function WodScheduleRow({ wod, status, onEdit, onPublish }) {
           {wod.descripcion || "Sin descripción disponible."}
         </p>
 
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
           <WodTag>{formatModoRanking(wod.modo_ranking)}</WodTag>
           <WodTag>{formatModalidad(wod.modalidad)}</WodTag>
 

@@ -235,9 +235,11 @@ export default function App() {
           path="/admin/personalrecord"
           element={
             <ProtectedRoute>
-              <ProtectedAdminRoute>
-                <RegistrarRM />
-              </ProtectedAdminRoute>
+              <AppLayout>
+                <ProtectedAdminRoute>
+                  <RegistrarRM />
+                </ProtectedAdminRoute>
+              </AppLayout>
             </ProtectedRoute>
           }
         />

@@ -22,16 +22,16 @@ const ITEMS = [
     to: "/admin/wods",
   },
   {
+    key: "prs",
+    label: "PRs",
+    icon: "🏆",
+    to: "/admin/personalrecord",
+  },
+  {
     key: "challenge",
     label: "Retos",
     icon: "🏆",
     to: "/admin/challenge",
-  },
-  {
-    key: "anuncios",
-    label: "Anuncios",
-    icon: "📣",
-    to: "/admin/anuncios",
   },
 ]
 
@@ -49,6 +49,14 @@ function getActiveKey(pathname) {
   if (path.startsWith("/admin/wods")) return "wods"
 
   if (
+    path.startsWith("/admin/personalrecord") ||
+    path.startsWith("/admin/pr") ||
+    path.startsWith("/registrar-rm")
+  ) {
+    return "prs"
+  }
+
+  if (
     path.startsWith("/admin/challenge") ||
     path.startsWith("/admin/competencias") ||
     path.startsWith("/challenger")
@@ -56,7 +64,6 @@ function getActiveKey(pathname) {
     return "challenge"
   }
 
-  if (path.startsWith("/admin/anuncios")) return "anuncios"
 
   return "dashboard"
 }

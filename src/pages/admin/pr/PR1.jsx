@@ -203,34 +203,6 @@ export default function PR() {
     }
   }
 
-  function applyLocalExerciseName(exerciseId, nombre) {
-    setEjercicios((current) => {
-      return (current || []).map((item) => {
-        if (String(item.id) !== String(exerciseId)) return item
-        return { ...item, nombre }
-      })
-    })
-
-    setExerciseRows((current) => {
-      return (current || []).map((row) => {
-        const rowId = row.ejercicio_id || row.id
-
-        if (String(rowId) !== String(exerciseId)) return row
-
-        return {
-          ...row,
-          ejercicio: nombre,
-          nombre,
-        }
-      })
-    })
-
-    setSelectedManageExercise((current) => {
-      if (!current || String(current.id) !== String(exerciseId)) return current
-      return { ...current, nombre }
-    })
-  }
-
   function openCreateExerciseModal() {
     setExerciseModalMode("create")
     setSelectedManageExercise(null)
@@ -269,19 +241,14 @@ export default function PR() {
       setExerciseSaving(true)
 
       if (exerciseModalMode === "edit" && selectedManageExercise?.id) {
-        const exerciseId = selectedManageExercise.id
-
         const { error } = await supabase
           .from("ejercicios")
           .update({ nombre })
-          .eq("id", exerciseId)
+          .eq("id", selectedManageExercise.id)
 
         if (error) throw error
 
-        await reloadPRData({ nextSelectedExerciseId: exerciseId })
-
-        // Refuerzo local para que el cambio se refleje inmediatamente en la tabla móvil.
-        applyLocalExerciseName(exerciseId, nombre)
+        await reloadPRData({ nextSelectedExerciseId: selectedManageExercise.id })
       } else {
         const { data, error } = await supabase
           .from("ejercicios")
@@ -312,19 +279,16 @@ export default function PR() {
   async function handleDeleteExercise() {
     if (!deleteExerciseTarget?.id) return
 
+    if (Number(deleteExerciseTarget.registros || 0) > 0) {
+      setDeleteExerciseTarget(null)
+      alert(
+        "Este ejercicio ya tiene PR registrados. Para proteger el historial, no se elimina."
+      )
+      return
+    }
+
     try {
       setExerciseSaving(true)
-
-      const registrosCount = Number(deleteExerciseTarget.registros || 0)
-
-      if (registrosCount > 0) {
-        const { error: deleteRecordsError } = await supabase
-          .from("rm")
-          .delete()
-          .eq("ejercicio_id", deleteExerciseTarget.id)
-
-        if (deleteRecordsError) throw deleteRecordsError
-      }
 
       const { error } = await supabase
         .from("ejercicios")
@@ -384,12 +348,6 @@ export default function PR() {
         onDelete={openDeleteExerciseModal}
         navigate={navigate}
         rolActual={rolActual}
-        selectedExerciseId={selectedExerciseId}
-        ranking={ranking}
-        allPRRecords={allPRRecords}
-        onSelectExercise={(row) => {
-          setSelectedExerciseId(row.id)
-        }}
       />
 
       <div className="hidden overflow-hidden bg-[#05070d] text-white lg:fixed lg:inset-0 lg:z-[80] lg:block">
@@ -486,34 +444,8 @@ function AdminPrExercisesMobile({
   onDelete,
   navigate,
   rolActual,
-  selectedExerciseId,
-  ranking,
-  allPRRecords,
-  onSelectExercise,
 }) {
-  const [exercisePage, setExercisePage] = useState(1)
   const roleLabel = normalizeRole(rolActual) === "admin" ? "Administrador" : "Coach"
-  const rowsPerPage = 5
-  const totalPages = Math.max(Math.ceil(rows.length / rowsPerPage), 1)
-  const safePage = Math.min(exercisePage, totalPages)
-  const paginatedRows = rows.slice((safePage - 1) * rowsPerPage, safePage * rowsPerPage)
-  const selectedExerciseRow =
-    rows.find((item) => String(item.id) === String(selectedExerciseId)) || null
-  const mobileRanking = buildMobileExerciseRanking(
-    allPRRecords || [],
-    selectedExerciseId,
-    ranking || []
-  )
-
-  useEffect(() => {
-    setExercisePage(1)
-  }, [search])
-
-  useEffect(() => {
-    if (exercisePage > totalPages) {
-      setExercisePage(totalPages)
-    }
-  }, [exercisePage, totalPages])
 
   async function handleLogout() {
     try {
@@ -526,12 +458,12 @@ function AdminPrExercisesMobile({
   }
 
   return (
-    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-24 text-white lg:hidden">
-      <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-2.5 pt-2">
+    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white lg:hidden">
+      <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <AdminPrBackground />
 
-        <header className="relative z-10 mb-2 flex items-center justify-between gap-2 border-b border-white/10 pb-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-orange-500/55 bg-orange-500/10 text-xs font-black text-orange-300 shadow-[0_0_24px_rgba(249,115,22,0.22)]">
+        <header className="relative z-10 mb-3 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-orange-500/55 bg-orange-500/10 text-sm font-black text-orange-300 shadow-[0_0_24px_rgba(249,115,22,0.22)]">
             PR
           </div>
 
@@ -539,14 +471,14 @@ function AdminPrExercisesMobile({
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_20px_rgba(249,115,22,0.35)]"
+              className="h-10 w-10 shrink-0 object-contain drop-shadow-[0_0_20px_rgba(249,115,22,0.35)]"
             />
 
             <div className="min-w-0">
-              <p className="truncate text-xl font-black tracking-[0.14em] text-white">
+              <p className="truncate text-2xl font-black tracking-[0.14em] text-white">
                 PHO<span className="text-orange-500">3</span>NIX
               </p>
-              <p className="truncate text-[8px] font-black uppercase tracking-[0.22em] text-orange-500">
+              <p className="truncate text-[9px] font-black uppercase tracking-[0.22em] text-orange-500">
                 Functional Fitness
               </p>
             </div>
@@ -555,7 +487,7 @@ function AdminPrExercisesMobile({
           <button
             type="button"
             onClick={handleLogout}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-sm text-orange-300"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-xl text-orange-300"
             aria-label="Cerrar sesión"
             title="Cerrar sesión"
           >
@@ -563,17 +495,17 @@ function AdminPrExercisesMobile({
           </button>
         </header>
 
-        <section className="relative z-10 mb-3 flex items-start justify-between gap-2">
+        <section className="relative z-10 mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[9px] font-black uppercase tracking-[0.18em] text-orange-400">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
               {roleLabel}
             </p>
 
-            <h1 className="mt-1 text-2xl font-black uppercase leading-none text-white">
+            <h1 className="mt-1 text-3xl font-black uppercase leading-none text-white">
               PRs / Ejercicios
             </h1>
 
-            <p className="mt-1.5 max-w-[240px] text-xs leading-4 text-white/55">
+            <p className="mt-2 max-w-[270px] text-sm leading-5 text-white/55">
               Administra el catálogo de ejercicios disponibles para los records personales.
             </p>
           </div>
@@ -581,32 +513,41 @@ function AdminPrExercisesMobile({
           <button
             type="button"
             onClick={onCreate}
-            className="shrink-0 rounded-xl bg-orange-500 px-3 py-2.5 text-[10px] font-black uppercase text-black shadow-[0_0_24px_rgba(249,115,22,0.25)]"
+            className="shrink-0 rounded-2xl bg-orange-500 px-3.5 py-3 text-xs font-black uppercase text-black shadow-[0_0_24px_rgba(249,115,22,0.25)]"
           >
             + Agregar
           </button>
         </section>
 
-        <section className="relative z-10 mb-2.5 grid grid-cols-3 overflow-hidden rounded-[1.05rem] border border-orange-500/20 bg-black/50 shadow-2xl shadow-black/40">
+        <section className="relative z-10 mb-3 grid grid-cols-3 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/50 shadow-2xl shadow-black/40">
           <AdminPrMetric icon="🏋️" value={loading ? "..." : stats.total} label="Ejercicios" />
           <AdminPrMetric icon="🏆" value={loading ? "..." : stats.withRecords} label="Con PR" />
           <AdminPrMetric icon="○" value={loading ? "..." : stats.withoutRecords} label="Sin PR" />
         </section>
 
-        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/45 shadow-2xl shadow-black/30">
-          <div className="flex items-center justify-between border-b border-white/10 px-2.5 py-2.5">
+        <section className="relative z-10 mb-3 flex items-center gap-2 rounded-[1.15rem] border border-white/10 bg-black/45 px-3 py-3 shadow-2xl shadow-black/25">
+          <span className="text-lg text-white/35">⌕</span>
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Buscar ejercicio..."
+            className="min-w-0 flex-1 bg-transparent text-sm font-bold text-white outline-none placeholder:text-white/30"
+          />
+        </section>
+
+        <section className="relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 shadow-2xl shadow-black/30">
+          <div className="flex items-center justify-between border-b border-white/10 px-3 py-3">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.12em] text-white/70">
-                Tabla de Ejercicios
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-white/70">
+                Mis ejercicios
               </p>
-              <p className="mt-0.5 text-[9px] text-white/35">
-                {loading
-                  ? "Cargando..."
-                  : `Mostrando ${paginatedRows.length} de ${rows.length} ejercicio(s)`}
+              <p className="mt-0.5 text-[10px] text-white/35">
+                {loading ? "Cargando..." : `${rows.length} ejercicio(s) encontrados`}
               </p>
             </div>
 
-            <span className="rounded-lg border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-[9px] font-black uppercase text-orange-300">
+            <span className="rounded-xl border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-[10px] font-black uppercase text-orange-300">
               A-Z
             </span>
           </div>
@@ -616,44 +557,18 @@ function AdminPrExercisesMobile({
           ) : rows.length === 0 ? (
             <AdminPrEmpty text="No hay ejercicios para mostrar." />
           ) : (
-            <>
-              <div className="overflow-hidden">
-                <div className="grid grid-cols-[44px_minmax(0,1fr)_64px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-white/40">
-                  <span>Imagen</span>
-                  <span>Ejercicio</span>
-                  <span className="text-center">Acción</span>
-                </div>
-
-                <div className="divide-y divide-white/10">
-                  {paginatedRows.map((row) => (
-                    <AdminExerciseTableRow
-                      key={row.id}
-                      row={row}
-                      selected={String(row.id) === String(selectedExerciseId)}
-                      onSelect={() => onSelectExercise(row)}
-                      onEdit={() => onEdit(row)}
-                      onDelete={() => onDelete(row)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <AdminExercisesPagination
-                page={safePage}
-                totalPages={totalPages}
-                totalRows={rows.length}
-                rowsPerPage={rowsPerPage}
-                onPageChange={setExercisePage}
-              />
-            </>
+            <div className="divide-y divide-white/10">
+              {rows.map((row) => (
+                <AdminExerciseRow
+                  key={row.id}
+                  row={row}
+                  onEdit={() => onEdit(row)}
+                  onDelete={() => onDelete(row)}
+                />
+              ))}
+            </div>
           )}
         </section>
-
-        <AdminExerciseRankingTable
-          loading={loading}
-          exercise={selectedExerciseRow}
-          ranking={mobileRanking}
-        />
       </div>
 
       <AdminMobileNav />
@@ -663,299 +578,84 @@ function AdminPrExercisesMobile({
 
 function AdminPrMetric({ icon, value, label }) {
   return (
-    <article className="relative min-w-0 border-r border-white/10 px-1.5 py-3 text-center last:border-r-0">
-      <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-orange-500/35 bg-orange-500/10 text-sm text-orange-300 shadow-[0_0_16px_rgba(249,115,22,0.18)]">
+    <article className="relative min-w-0 border-r border-white/10 px-2 py-4 text-center last:border-r-0">
+      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-orange-500/35 bg-orange-500/10 text-xl text-orange-300 shadow-[0_0_16px_rgba(249,115,22,0.18)]">
         {icon}
       </div>
 
-      <p className="mt-1.5 truncate text-xl font-black leading-none text-white">
+      <p className="mt-2 truncate text-2xl font-black leading-none text-white">
         {value}
       </p>
 
-      <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.06em] text-white/45">
+      <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.06em] text-white/45">
         {label}
       </p>
     </article>
   )
 }
 
-function AdminExerciseTableRow({
-  row,
-  selected,
-  onSelect,
-  onEdit,
-  onDelete,
-}) {
+function AdminExerciseRow({ row, onEdit, onDelete }) {
   const hasRecords = Number(row.registros || 0) > 0
 
   return (
-    <article
-      onClick={onSelect}
-      className={[
-        "grid cursor-pointer grid-cols-[44px_minmax(0,1fr)_64px] items-center gap-2 px-2.5 py-2 transition active:bg-orange-500/10",
-        selected ? "bg-orange-500/[0.10]" : "",
-      ].join(" ")}
-    >
-      <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-orange-500/20 bg-orange-500/10">
-        <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_50%_35%,rgba(249,115,22,0.28),transparent_58%)] text-base text-orange-300">
-          🏋️
-        </div>
-
+    <article className="grid grid-cols-[58px_minmax(0,1fr)] gap-2.5 px-3 py-3">
+      <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-orange-500/20 bg-orange-500/10">
         <img
-          src="/pr-exercises/default.png"
+          src={getExerciseFigure(row.nombre)}
           alt={row.nombre}
-          className="relative z-10 h-full w-full object-cover object-[center_28%]"
+          className="h-full w-full object-cover object-[center_28%]"
           onError={(event) => {
-            event.currentTarget.onerror = null
-            event.currentTarget.style.display = "none"
+            event.currentTarget.src = "/pr-exercises/default.png"
           }}
         />
-
-        <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
       </div>
 
       <div className="min-w-0">
-        <p className="truncate text-[10px] font-black uppercase leading-tight text-white">
-          {row.nombre}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-black uppercase text-white">
+              {row.nombre}
+            </p>
 
-        <p className="mt-0.5 truncate text-[9px] font-bold text-white/40">
-          {hasRecords ? `${row.registros} PR registrado(s)` : "Sin registros"}
-        </p>
-      </div>
-
-      <div className="flex items-center justify-end gap-1">
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation()
-            onEdit()
-          }}
-          className="flex h-8 w-8 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-sm text-orange-300"
-          aria-label={`Editar ${row.nombre}`}
-          title="Editar"
-        >
-          ✎
-        </button>
-
-        <button
-          type="button"
-          onClick={(event) => {
-            event.stopPropagation()
-            onDelete()
-          }}
-          className="flex h-8 w-8 items-center justify-center rounded-xl border border-red-500/25 bg-red-500/10 text-sm text-red-300"
-          aria-label={`Eliminar ${row.nombre}`}
-          title="Eliminar"
-        >
-          🗑
-        </button>
-      </div>
-    </article>
-  )
-}
-
-function AdminExerciseRankingTable({
-  loading,
-  exercise,
-  ranking = [],
-}) {
-  return (
-    <section className="relative z-10 mb-4 overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/45 shadow-2xl shadow-black/30">
-      <div className="flex items-center justify-between border-b border-white/10 px-2.5 py-2.5">
-        <div className="min-w-0">
-          <p className="truncate text-[11px] font-black uppercase tracking-[0.12em] text-white/70">
-            Tabla de Ranking
-          </p>
-
-          <p className="mt-0.5 truncate text-[9px] text-white/35">
-            {exercise?.nombre || "Selecciona un ejercicio"}
-          </p>
-        </div>
-
-        <span className="rounded-xl border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-[9px] font-black uppercase text-orange-300">
-          Top
-        </span>
-      </div>
-
-      {!exercise ? (
-        <AdminPrEmpty text="Selecciona un ejercicio de la tabla para ver su ranking." />
-      ) : loading ? (
-        <AdminPrEmpty text="Cargando ranking..." />
-      ) : ranking.length === 0 ? (
-        <AdminPrEmpty text="Este ejercicio todavía no tiene registros PR." />
-      ) : (
-        <div className="overflow-hidden">
-          <div className="grid grid-cols-[46px_minmax(0,1fr)_74px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-white/40">
-            <span>Puesto</span>
-            <span>Nombre</span>
-            <span className="text-right">Peso</span>
+            <p className="mt-0.5 truncate text-[11px] font-bold text-white/40">
+              1RM · LB · {hasRecords ? `${row.registros} registro(s)` : "Sin registros"}
+            </p>
           </div>
 
-          <div className="divide-y divide-white/10">
-            {ranking.map((row, index) => (
-              <AdminRankingRow
-                key={`${row.id || row.usuario_id || index}-${index}`}
-                row={row}
-                index={index}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
-  )
-}
-
-function AdminRankingRow({ row, index }) {
-  const nombre = getRankingAthleteName(row)
-  const peso = getRankingWeight(row)
-
-  return (
-    <article className="grid grid-cols-[46px_minmax(0,1fr)_74px] items-center gap-2 px-2.5 py-2">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-[11px] font-black text-orange-300">
-        #{index + 1}
-      </div>
-
-      <p className="truncate text-[11px] font-black uppercase text-white">
-        {nombre}
-      </p>
-
-      <p className="text-right text-[12px] font-black text-orange-400">
-        {peso > 0 ? formatWeight(peso, "lb") : "—"}
-      </p>
-    </article>
-  )
-}
-
-function getRankingAthleteName(row) {
-  return (
-    row?.usuarios?.nombre ||
-    row?.usuario?.nombre ||
-    row?.alumno?.nombre ||
-    row?.usuario_nombre ||
-    row?.nombre_usuario ||
-    row?.nombre ||
-    "Atleta"
-  )
-}
-
-
-function buildMobileExerciseRanking(allRows = [], selectedExerciseId, fallbackRanking = []) {
-  const selectedRows = (allRows || [])
-    .filter((row) => String(row?.ejercicio_id) === String(selectedExerciseId))
-    .filter((row) => getRankingWeight(row) > 0)
-
-  if (selectedRows.length > 0) {
-    const bestByUser = new Map()
-
-    selectedRows.forEach((row) => {
-      const userKey =
-        row?.usuario ||
-        row?.usuario_id ||
-        row?.usuarios?.id ||
-        row?.alumno_id ||
-        row?.id
-
-      const currentBest = bestByUser.get(userKey)
-      const currentWeight = getRankingWeight(currentBest)
-      const nextWeight = getRankingWeight(row)
-
-      if (!currentBest || nextWeight > currentWeight) {
-        bestByUser.set(userKey, row)
-      }
-    })
-
-    return Array.from(bestByUser.values()).sort((a, b) => {
-      return getRankingWeight(b) - getRankingWeight(a)
-    })
-  }
-
-  return (fallbackRanking || [])
-    .filter((row) => getRankingWeight(row) > 0)
-    .sort((a, b) => getRankingWeight(b) - getRankingWeight(a))
-}
-
-function getRankingWeight(row) {
-  const value =
-    row?.peso_libras ??
-    row?.peso_lb ??
-    row?.peso_lbs ??
-    row?.peso ??
-    row?.marca ??
-    row?.mejor_marca ??
-    row?.max_peso ??
-    row?.peso_maximo ??
-    row?.total ??
-    row?.record ??
-    row?.rm ??
-    row?.valor ??
-    0
-
-  const number = Number(value)
-
-  return Number.isFinite(number) ? number : 0
-}
-
-
-function AdminExercisesPagination({
-  page,
-  totalPages,
-  totalRows,
-  rowsPerPage,
-  onPageChange,
-}) {
-  const start = totalRows === 0 ? 0 : (page - 1) * rowsPerPage + 1
-  const end = Math.min(page * rowsPerPage, totalRows)
-  const pages = Array.from({ length: totalPages }, (_, index) => index + 1)
-
-  return (
-    <div className="flex items-center justify-between gap-2 border-t border-white/10 px-2.5 py-2.5">
-      <p className="min-w-0 text-[10px] font-bold text-white/35">
-        {start}-{end} de {totalRows}
-      </p>
-
-      <div className="flex shrink-0 items-center gap-1">
-        <button
-          type="button"
-          onClick={() => onPageChange(Math.max(page - 1, 1))}
-          disabled={page <= 1}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-xs font-black text-white/65 disabled:opacity-30"
-          aria-label="Página anterior"
-        >
-          ‹
-        </button>
-
-        {pages.slice(0, 5).map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => onPageChange(item)}
+          <span
             className={[
-              "flex h-7 w-7 items-center justify-center rounded-lg border text-[10px] font-black",
-              item === page
-                ? "border-orange-500 bg-orange-500 text-black"
-                : "border-white/10 bg-white/[0.03] text-white/55",
+              "shrink-0 rounded-xl border px-2 py-1 text-[9px] font-black uppercase",
+              hasRecords
+                ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"
+                : "border-white/10 bg-white/[0.04] text-white/40",
             ].join(" ")}
           >
-            {item}
-          </button>
-        ))}
+            {hasRecords ? "Con PR" : "Nuevo"}
+          </span>
+        </div>
 
-        <button
-          type="button"
-          onClick={() => onPageChange(Math.min(page + 1, totalPages))}
-          disabled={page >= totalPages}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-xs font-black text-white/65 disabled:opacity-30"
-          aria-label="Página siguiente"
-        >
-          ›
-        </button>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="h-10 rounded-xl border border-orange-500/25 bg-orange-500/10 text-xs font-black uppercase text-orange-300"
+          >
+            ✎ Editar
+          </button>
+
+          <button
+            type="button"
+            onClick={onDelete}
+            className="h-10 rounded-xl border border-red-500/25 bg-red-500/10 text-xs font-black uppercase text-red-300"
+          >
+            🗑 Eliminar
+          </button>
+        </div>
       </div>
-    </div>
+    </article>
   )
 }
-
 
 function ExerciseNameModal({
   mode,
@@ -992,7 +692,7 @@ function ExerciseNameModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-black/55 text-xl text-white/70"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-black/55 text-xl text-white/70"
             aria-label="Cerrar"
           >
             ×
@@ -1066,12 +766,12 @@ function DeleteExerciseModal({ exercise, saving, onClose, onDelete }) {
 
         <div className="p-4">
           {hasRecords ? (
-            <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm leading-6 text-red-100/75">
-              Este ejercicio tiene {exercise.registros} PR registrado(s). Si confirmas, también se eliminarán esos registros asociados.
+            <p className="rounded-xl border border-orange-500/20 bg-orange-500/10 p-3 text-sm leading-6 text-orange-100/75">
+              Este ejercicio tiene {exercise.registros} PR registrado(s). Para proteger el historial, no se elimina.
             </p>
           ) : (
             <p className="text-sm leading-6 text-white/65">
-              Este ejercicio no tiene PR registrados. Puedes eliminarlo sin afectar otros registros.
+              Este ejercicio no tiene PR registrados. Puedes eliminarlo sin afectar historial.
             </p>
           )}
 
@@ -1082,16 +782,21 @@ function DeleteExerciseModal({ exercise, saving, onClose, onDelete }) {
               disabled={saving}
               className="h-11 rounded-xl border border-white/10 bg-white/[0.03] text-xs font-black uppercase text-white/65 disabled:opacity-50"
             >
-              Cancelar
+              {hasRecords ? "Entendido" : "Cancelar"}
             </button>
 
             <button
               type="button"
-              onClick={onDelete}
+              onClick={hasRecords ? onClose : onDelete}
               disabled={saving}
-              className="h-11 rounded-xl bg-red-500 text-xs font-black uppercase text-white shadow-[0_0_24px_rgba(239,68,68,0.20)] disabled:opacity-50"
+              className={[
+                "h-11 rounded-xl text-xs font-black uppercase disabled:opacity-50",
+                hasRecords
+                  ? "border border-orange-500/25 bg-orange-500/10 text-orange-300"
+                  : "bg-red-500 text-white shadow-[0_0_24px_rgba(239,68,68,0.20)]",
+              ].join(" ")}
             >
-              {saving ? "Eliminando..." : hasRecords ? "Eliminar todo" : "Eliminar"}
+              {hasRecords ? "No eliminar" : saving ? "Eliminando..." : "Eliminar"}
             </button>
           </div>
         </div>
@@ -1102,7 +807,7 @@ function DeleteExerciseModal({ exercise, saving, onClose, onDelete }) {
 
 function AdminPrEmpty({ text }) {
   return (
-    <div className="m-2.5 rounded-xl border border-dashed border-white/10 bg-black/25 p-3 text-center text-[11px] text-white/40">
+    <div className="m-3 rounded-xl border border-dashed border-white/10 bg-black/25 p-4 text-center text-xs text-white/40">
       {text}
     </div>
   )
@@ -1139,7 +844,7 @@ function ExerciseSummaryTable({
           </p>
         </div>
 
-        <div className="rounded-lg border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-xs font-black uppercase text-orange-300">
+        <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-2 text-xs font-black uppercase text-orange-300">
           Selecciona un ejercicio
         </div>
       </div>
