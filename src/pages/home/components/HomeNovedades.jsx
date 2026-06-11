@@ -2,22 +2,21 @@ import { useEffect, useState } from "react"
 import { supabase } from "../../../supabase"
 import { useSemiAutoTranslation } from "../../../i18n/useSemiAutoTranslation"
 
-
 const HOME_NOVEDADES_TRANSLATIONS = [
-  ["home.news.section.label", "{t("home.news.section.label", "Novedades PHO3NIX")}", "PHO3NIX News"],
-  ["home.news.section.title", "{t("home.news.section.title", "Anuncios del Box")}", "Box Announcements"],
+  ["home.news.section.label", "Novedades PHO3NIX", "PHO3NIX News"],
+  ["home.news.section.title", "Anuncios del Box", "Box Announcements"],
   [
     "home.news.section.description",
-    "{t("home.news.section.description", "Comunicados, eventos y actualizaciones oficiales de PHO3NIX.")}",
-    "Official PHO3NIX announcements, events, and updates."
+    "Comunicados, eventos y actualizaciones oficiales de PHO3NIX.",
+    "Official PHO3NIX announcements, events, and updates.",
   ],
-  ["home.news.loading", "{t("home.news.loading", "Cargando novedades...")}", "Loading news..."],
-  ["home.news.empty", "{t("home.news.empty", "Aún no hay anuncios publicados.")}", "There are no published announcements yet."],
+  ["home.news.loading", "Cargando novedades...", "Loading news..."],
+  ["home.news.empty", "Aún no hay anuncios publicados.", "There are no published announcements yet."],
   ["home.news.card.defaultTitle", "Anuncio PHO3NIX", "PHO3NIX Announcement"],
-  ["home.news.card.defaultContent", t("home.news.card.defaultContent", "Sin contenido disponible."), "No content available."],
-  ["home.news.card.viewDetail", "Ver detalle", "View details"],
+  ["home.news.card.defaultContent", "Sin contenido disponible.", "No content available."],
+  ["home.news.card.viewDetail", "Ver detalle", "View detail"],
   ["home.news.popup.openLink", "Abrir enlace", "Open link"],
-  ["home.news.popup.published", "{t("home.news.popup.published", "Anuncio publicado en PHO3NIX.")}", "Announcement published in PHO3NIX."],
+  ["home.news.popup.published", "Anuncio publicado en PHO3NIX.", "Announcement published in PHO3NIX."],
   ["home.close", "Cerrar", "Close"],
 ]
 
@@ -25,6 +24,7 @@ export default function HomeNovedades() {
   const [loading, setLoading] = useState(true)
   const [anuncios, setAnuncios] = useState([])
   const [selectedAnuncio, setSelectedAnuncio] = useState(null)
+
   const { t } = useSemiAutoTranslation({
     modulo: "home",
     entries: HOME_NOVEDADES_TRANSLATIONS,
@@ -90,7 +90,10 @@ export default function HomeNovedades() {
             </h2>
 
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-white/55">
-              {t("home.news.section.description", "Comunicados, eventos y actualizaciones oficiales de PHO3NIX.")}
+              {t(
+                "home.news.section.description",
+                "Comunicados, eventos y actualizaciones oficiales de PHO3NIX."
+              )}
             </p>
           </div>
 
@@ -174,7 +177,7 @@ function AnuncioMedia({ item }) {
     return (
       <img
         src={item.media_url}
-        alt={item.titulo || t("home.news.card.defaultTitle", "Anuncio PHO3NIX")}
+        alt={item.titulo || "Anuncio PHO3NIX"}
         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
       />
     )
@@ -267,7 +270,9 @@ function AnuncioPopup({ item, t, onClose }) {
             ) : null}
 
             <div className="mt-6 whitespace-pre-line text-sm leading-8 text-white/65 sm:text-base">
-              {item.contenido || item.resumen || t("home.news.card.defaultContent", "Sin contenido disponible.")}
+              {item.contenido ||
+                item.resumen ||
+                t("home.news.card.defaultContent", "Sin contenido disponible.")}
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
