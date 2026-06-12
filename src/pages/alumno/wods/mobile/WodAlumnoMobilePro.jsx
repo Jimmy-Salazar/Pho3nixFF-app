@@ -308,7 +308,7 @@ export default function WodAlumnoMobilePro({
           subtitle="Lunes a sábado"
           rows={currentWeekWods}
           loading={loading}
-          emptyText="Cuando haya WODs con fecha esta semana, aparecerán aquí."
+          emptyText="Cuando haya WODs visibles esta semana, aparecerán aquí."
           onSelect={handleSelectCurrentWeekWod}
           allowPendingRegister
         />
@@ -318,7 +318,7 @@ export default function WodAlumnoMobilePro({
           subtitle="Semanas anteriores acumuladas"
           rows={archivedWods}
           loading={loading}
-          emptyText="Los WODs pasados desde junio aparecerán aquí."
+          emptyText="Las semanas anteriores se archivarán aquí."
           onSelect={handleSelectCurrentWeekWod}
           allowPendingRegister
         />

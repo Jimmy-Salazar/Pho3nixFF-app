@@ -182,6 +182,8 @@ async function fetchCurrentWeekWods(userId, weekRange, now) {
   const { data, error } = await supabase
     .from(TABLES.wods)
     .select(WOD_SELECT_FIELDS)
+    .eq("activo", true)
+    .eq("publicado", true)
     .gte("fecha", weekRange.startIso)
     .lte("fecha", saturdayIso)
     .order("fecha", { ascending: true })
@@ -199,10 +201,12 @@ async function fetchArchivedWods(userId, weekRange) {
   const { data, error } = await supabase
     .from(TABLES.wods)
     .select(WOD_SELECT_FIELDS)
+    .eq("activo", true)
+    .eq("publicado", true)
     .gte("fecha", "2026-06-01")
     .lt("fecha", weekRange.startIso)
     .order("fecha", { ascending: false })
-    .limit(120)
+    .limit(80)
 
   if (error) throw error
 
