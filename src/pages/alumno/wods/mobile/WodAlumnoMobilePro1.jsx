@@ -319,7 +319,8 @@ export default function WodAlumnoMobilePro({
           rows={archivedWods}
           loading={loading}
           emptyText="Las semanas anteriores se archivarán aquí."
-          onSelect={setSelectedWodEntry}
+          onSelect={handleSelectCurrentWeekWod}
+          allowPendingRegister
         />
       </div>
 
@@ -363,7 +364,14 @@ export default function WodAlumnoMobilePro({
             saving={saving}
             loading={loading}
             onSave={async (payload) => {
-              await onSaveResult?.(payload)
+              const selectedWod = selectedWeekRegister.wod || selectedWeekRegister
+
+              await onSaveResult?.({
+                ...payload,
+                __selectedWod: selectedWod,
+                __selectedWodId: selectedWod?.id || selectedWeekRegister?.wod_id,
+              })
+
               setSelectedWeekRegister(null)
             }}
           />
@@ -412,15 +420,6 @@ function getRegisterAvailability(wod, now = new Date()) {
     }
   }
 
-  if (now > window.endAt) {
-    return {
-      canRegister: false,
-      status: "after_end",
-      startAt: window.startAt,
-      endAt: window.endAt,
-    }
-  }
-
   return {
     canRegister: true,
     status: "open",
@@ -444,7 +443,7 @@ function getRegisterButtonLabel({
   }
 
   if (registerAvailability.status === "after_end") {
-    return "Registro cerrado"
+    return "Registrar resultado"
   }
 
   if (!registerAvailability.canRegister) {
