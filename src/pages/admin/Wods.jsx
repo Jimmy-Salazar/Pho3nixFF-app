@@ -187,7 +187,7 @@ export default function Wods() {
         return
       }
 
-      const fechaPublicacion = buildPreviousDay2359(publishFecha)
+      const fechaPublicacion = buildPreviousDay1900(publishFecha)
 
       const { error } = await supabase
         .from("wod")
@@ -342,7 +342,7 @@ export default function Wods() {
               </h3>
 
               <p className="mt-1.5 text-xs leading-5 text-white/60">
-                Al publicarlo se activará a las 23:59 del día anterior.
+                Al publicarlo se activará a las 19:00 del día anterior.
               </p>
             </div>
 
@@ -365,7 +365,7 @@ export default function Wods() {
                 <div className="mt-4 rounded-2xl border border-orange-500/15 bg-orange-500/10 px-3 py-2 text-xs leading-6 text-white/70">
                   Publicación automática:{" "}
                   <span className="font-bold text-orange-300">
-                    {formatDateTime(buildPreviousDay2359(publishFecha))}
+                    {formatDateTime(buildPreviousDay1900(publishFecha))}
                   </span>
                 </div>
               ) : null}
@@ -1141,9 +1141,9 @@ function isPastDate(dateStr) {
   return target < current
 }
 
-function buildPreviousDay2359(dateStr) {
+function buildPreviousDay1900(dateStr) {
   const target = new Date(`${dateStr}T00:00:00`)
   target.setDate(target.getDate() - 1)
-  target.setHours(23, 59, 0, 0)
+  target.setHours(19, 0, 0, 0)
   return target.toISOString()
 }

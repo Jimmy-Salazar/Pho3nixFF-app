@@ -23,6 +23,12 @@ const MENU_ITEMS = [
     to: "/admin/wods",
   },
   {
+    key: "nutricion",
+    label: "Nutrición",
+    icon: "🥗",
+    to: "/admin/nutricion",
+  },
+  {
     key: "anuncios",
     label: "Anuncios",
     icon: "📣",
@@ -55,6 +61,10 @@ function getActiveKey(pathname) {
 
   if (path.startsWith("/admin/wods")) {
     return "wods"
+  }
+
+  if (path.startsWith("/admin/nutricion")) {
+    return "nutricion"
   }
 
   if (path.startsWith("/admin/anuncios")) {
@@ -92,15 +102,15 @@ export default function DashboardSidebar({ navigate }) {
     navigate(item.to)
   }
 
-const handleLogout = async () => {
-  try {
-    await supabase.auth.signOut()
-  } catch (error) {
-    console.error("Error cerrando sesión:", error)
-  } finally {
-    window.location.replace("/")
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+    } catch (error) {
+      console.error("Error cerrando sesión:", error)
+    } finally {
+      window.location.replace("/")
+    }
   }
-}
 
   return (
     <aside className="hidden h-full overflow-hidden border-r border-orange-500/15 bg-black/55 px-3 py-4 backdrop-blur-xl lg:flex lg:flex-col">
@@ -120,7 +130,7 @@ const handleLogout = async () => {
         </div>
       </div>
 
-      <nav className="min-h-0 flex-1 space-y-1 overflow-hidden">
+      <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
         <button
           type="button"
           onClick={() => handleNavigate(activeItem)}

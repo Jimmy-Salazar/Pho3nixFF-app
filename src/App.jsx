@@ -21,6 +21,7 @@ import WodsAlumno from "./pages/alumno/wods/WodsAlumno"
 import PersonalRecordsAlumno from "./pages/alumno/pr/PersonalRecordsAlumno"
 import ProfileAlumno from "./pages/alumno/profile/Profile"
 import RetosAlumno from "./pages/alumno/retos/RetosAlumno"
+import NutricionAlumno from "./pages/alumno/nutricion/NutricionAlumno"
 
 // =======================================================
 // PÁGINAS ADMIN / COACH
@@ -33,6 +34,7 @@ import PDAAdmin from "./pages/admin/PDAAdmin"
 import CompetenciasAdmin from "./pages/admin/CompetenciasAdmin"
 import ChallengeAdmin from "./pages/admin/Challenge"
 import Anuncios from "./pages/admin/Anuncios"
+import AdminNutricion from "./pages/admin/nutricion/AdminNutricion"
 
 // =======================================================
 // LAYOUT
@@ -179,6 +181,15 @@ export default function App() {
           }
         />
 
+        <Route
+          path="/alumno/nutricion"
+          element={
+            <ProtectedRoute>
+              <NutricionAlumno />
+            </ProtectedRoute>
+          }
+        />
+
         {/* =======================================================
             RUTAS GENERALES PROTEGIDAS
         ======================================================= */}
@@ -275,6 +286,17 @@ export default function App() {
                   <Anuncios />
                 </ProtectedAdminRoute>
               </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/nutricion"
+          element={
+            <ProtectedRoute>
+              <ProtectedAdminRoute>
+                <AdminNutricion />
+              </ProtectedAdminRoute>
             </ProtectedRoute>
           }
         />

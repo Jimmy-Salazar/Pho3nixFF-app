@@ -157,7 +157,9 @@ async function fetchTodayWod(todayIso, now) {
   if (error) throw error
 
   const visibleRows = (data || []).filter((item) => {
-    return isAlumnoWodVisibleByDate(item.fecha, now)
+    const itemDate = String(item.fecha || "").slice(0, 10)
+
+    return itemDate === todayIso && isAlumnoWodVisibleByDate(item.fecha, now)
   })
 
   return visibleRows[0] || null
@@ -182,8 +184,6 @@ async function fetchCurrentWeekWods(userId, weekRange, now) {
   const { data, error } = await supabase
     .from(TABLES.wods)
     .select(WOD_SELECT_FIELDS)
-    .eq("activo", true)
-    .eq("publicado", true)
     .gte("fecha", weekRange.startIso)
     .lte("fecha", saturdayIso)
     .order("fecha", { ascending: true })
@@ -201,12 +201,10 @@ async function fetchArchivedWods(userId, weekRange) {
   const { data, error } = await supabase
     .from(TABLES.wods)
     .select(WOD_SELECT_FIELDS)
-    .eq("activo", true)
-    .eq("publicado", true)
     .gte("fecha", "2026-06-01")
     .lt("fecha", weekRange.startIso)
     .order("fecha", { ascending: false })
-    .limit(80)
+    .limit(120)
 
   if (error) throw error
 
@@ -508,7 +506,7 @@ function buildWeekCaloriesFromResultsMaxCalories(results = [], weekRange) {
 
   return {
     total,
-    target: 6000,
+    target: 2500,
     days,
   }
 }
@@ -592,7 +590,7 @@ function getAlumnoVisibleWodDateISO(now = new Date()) {
   const current = now instanceof Date ? now : new Date(now)
   const cutoff = new Date(current)
 
-  cutoff.setHours(17, 0, 0, 0)
+  cutoff.setHours(19, 0, 0, 0)
 
   if (current >= cutoff) {
     const tomorrow = new Date(current)
@@ -615,7 +613,7 @@ function isAlumnoWodVisibleByDate(wodDate, now = new Date()) {
 
   const visibleAt = new Date(wodDay)
   visibleAt.setDate(visibleAt.getDate() - 1)
-  visibleAt.setHours(17, 0, 0, 0)
+  visibleAt.setHours(19, 0, 0, 0)
 
   return current >= visibleAt
 }

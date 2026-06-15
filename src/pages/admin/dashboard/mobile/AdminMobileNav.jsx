@@ -22,9 +22,15 @@ const ITEMS = [
     to: "/admin/wods",
   },
   {
+    key: "nutricion",
+    label: "Nutrición",
+    icon: "🥗",
+    to: "/admin/nutricion",
+  },
+  {
     key: "prs",
     label: "PRs",
-    icon: "🏆",
+    icon: "📈",
     to: "/admin/personalrecord",
   },
   {
@@ -48,6 +54,8 @@ function getActiveKey(pathname) {
 
   if (path.startsWith("/admin/wods")) return "wods"
 
+  if (path.startsWith("/admin/nutricion")) return "nutricion"
+
   if (
     path.startsWith("/admin/personalrecord") ||
     path.startsWith("/admin/pr") ||
@@ -64,7 +72,6 @@ function getActiveKey(pathname) {
     return "challenge"
   }
 
-
   return "dashboard"
 }
 
@@ -74,8 +81,8 @@ export default function AdminMobileNav() {
   const activeKey = getActiveKey(location.pathname)
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[170] border-t border-orange-500/20 bg-black/90 px-2 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur-2xl lg:hidden">
-      <div className="grid grid-cols-5 gap-1">
+    <nav className="fixed bottom-0 left-0 right-0 z-[170] border-t border-orange-500/20 bg-black/90 px-1.5 pb-[env(safe-area-inset-bottom)] pt-2 backdrop-blur-2xl lg:hidden">
+      <div className="grid grid-cols-6 gap-1">
         {ITEMS.map((item) => {
           const active = item.key === activeKey
 
@@ -85,7 +92,7 @@ export default function AdminMobileNav() {
               type="button"
               onClick={() => navigate(item.to)}
               className={[
-                "flex min-h-[58px] min-w-0 flex-col items-center justify-center rounded-2xl text-[10px] font-black uppercase transition",
+                "flex min-h-[58px] min-w-0 flex-col items-center justify-center rounded-2xl text-[9px] font-black uppercase transition",
                 active
                   ? "border border-orange-500/35 bg-orange-500/15 text-orange-300 shadow-[0_0_18px_rgba(249,115,22,0.22)]"
                   : "text-white/45 hover:bg-white/[0.04] hover:text-white/75",

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import pho3nixLogo from "../../../../assets/pho3nix-login-logo.png"
 import { supabase } from "../../../../supabase"
 import RegisterResultPanel from "../components/RegisterResultPanel"
@@ -26,8 +26,18 @@ export default function WodAlumnoMobilePro({
   const [selectedResult, setSelectedResult] = useState(null)
   const [selectedWodEntry, setSelectedWodEntry] = useState(null)
   const [selectedWeekRegister, setSelectedWeekRegister] = useState(null)
+  const [nowTick, setNowTick] = useState(() => Date.now())
 
-  const wod = data?.todayWod || null
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setNowTick(Date.now())
+    }, 30000)
+
+    return () => window.clearInterval(timer)
+  }, [])
+
+  const rawWod = data?.todayWod || null
+  const wod = isMainWodVisibleAt7pm(rawWod, new Date(nowTick)) ? rawWod : null
   const workoutLines = extractWorkoutLines(wod?.descripcion)
   const currentUserId = data?.profile?.id
   const hasRegisteredToday = hasCurrentUserResultToday(
@@ -308,7 +318,7 @@ export default function WodAlumnoMobilePro({
           subtitle="Lunes a sábado"
           rows={currentWeekWods}
           loading={loading}
-          emptyText="Cuando haya WODs visibles esta semana, aparecerán aquí."
+          emptyText="Cuando haya WODs con fecha esta semana, aparecerán aquí."
           onSelect={handleSelectCurrentWeekWod}
           allowPendingRegister
         />
@@ -318,7 +328,7 @@ export default function WodAlumnoMobilePro({
           subtitle="Semanas anteriores acumuladas"
           rows={archivedWods}
           loading={loading}
-          emptyText="Las semanas anteriores se archivarán aquí."
+          emptyText="Los WODs pasados desde junio aparecerán aquí."
           onSelect={handleSelectCurrentWeekWod}
           allowPendingRegister
         />
@@ -388,6 +398,40 @@ export default function WodAlumnoMobilePro({
       ) : null}
     </main>
   )
+}
+
+function isMainWodVisibleAt7pm(wod, now = new Date()) {
+  if (!wod?.fecha) return false
+
+  const visibleWodIso = getMainWodDateAfter7pm(now)
+  const wodIso = String(wod.fecha).slice(0, 10)
+
+  return wodIso === visibleWodIso
+}
+
+function getMainWodDateAfter7pm(now = new Date()) {
+  const current = now instanceof Date ? now : new Date(now)
+  const cutoff = new Date(current)
+
+  cutoff.setHours(19, 0, 0, 0)
+
+  if (current >= cutoff) {
+    const tomorrow = new Date(current)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+
+    return formatLocalDateISO(tomorrow)
+  }
+
+  return formatLocalDateISO(current)
+}
+
+function formatLocalDateISO(value) {
+  const date = value instanceof Date ? value : new Date(value)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+
+  return `${year}-${month}-${day}`
 }
 
 function getRegisterAvailability(wod, now = new Date()) {
@@ -967,7 +1011,7 @@ function getCreatedWodCalories(wod, estimatedCalories) {
 }
 
 function normalizeWeek(weeklyCalories, context = {}) {
-  const target = Number(weeklyCalories?.target || 6000)
+  const target = Number(weeklyCalories?.target || 2500)
   const sourceDays = weeklyCalories?.days || []
 
   const days = DAY_LABELS.map((label, index) => ({
