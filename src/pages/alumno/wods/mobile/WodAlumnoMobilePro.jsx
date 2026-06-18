@@ -3,7 +3,6 @@ import pho3nixLogo from "../../../../assets/pho3nix-login-logo.png"
 import { supabase } from "../../../../supabase"
 import RegisterResultPanel from "../components/RegisterResultPanel"
 import {
-  extractWorkoutLines,
   formatDateLong,
   formatDateShort,
   formatKcal,
@@ -38,7 +37,6 @@ export default function WodAlumnoMobilePro({
 
   const rawWod = data?.todayWod || null
   const wod = isMainWodVisibleAt7pm(rawWod, new Date(nowTick)) ? rawWod : null
-  const workoutLines = extractWorkoutLines(wod?.descripcion)
   const currentUserId = data?.profile?.id
   const hasRegisteredToday = hasCurrentUserResultToday(
     data?.dayHistory || [],
@@ -180,21 +178,13 @@ export default function WodAlumnoMobilePro({
               {wod ? wodType : "Pendiente"}
             </p>
 
-            <div className="mt-2.5 space-y-1 text-sm leading-5 text-white/75">
+            <div className="mt-2.5 max-h-none overflow-visible text-sm leading-5 text-white/75">
               {loading ? (
                 <p>Cargando entrenamiento...</p>
               ) : wod ? (
-                workoutLines.length ? (
-                  workoutLines.slice(0, 7).map((line, index) => (
-                    <p key={`${line}-${index}`} className="break-words">
-                      {line}
-                    </p>
-                  ))
-                ) : (
-                  <p className="whitespace-pre-line break-words">
-                    {wod.descripcion || "El coach aún no agregó descripción."}
-                  </p>
-                )
+                <p className="whitespace-pre-line break-words">
+                  {wod.descripcion || "El coach aún no agregó descripción."}
+                </p>
               ) : (
                 <p>Cuando el coach publique el WOD del día, aparecerá aquí.</p>
               )}
@@ -434,6 +424,7 @@ function formatLocalDateISO(value) {
   return `${year}-${month}-${day}`
 }
 
+
 function getRegisterAvailability(wod, now = new Date()) {
   if (!wod?.fecha) {
     return {
@@ -651,7 +642,6 @@ function WodListRow({ item, onClick, allowPendingRegister = false }) {
 
 function WodListDetail({ item }) {
   const wod = item?.wod || {}
-  const workoutLines = extractWorkoutLines(wod?.descripcion)
   const date = formatDateLong(item?.fecha || wod?.fecha)
   const resultValue = item?.registered ? formatResultValue(item) : "Sin registro"
   const kcal = Number(item?.calorias || item?.calorias_estimadas || wod?.calorias_max || 0)
@@ -688,19 +678,9 @@ function WodListDetail({ item }) {
           Workout
         </p>
 
-        {workoutLines.length ? (
-          <div className="space-y-1 text-sm leading-5 text-white/70">
-            {workoutLines.map((line, index) => (
-              <p key={`${line}-${index}`} className="break-words">
-                {line}
-              </p>
-            ))}
-          </div>
-        ) : (
-          <p className="whitespace-pre-line text-sm leading-5 text-white/55">
-            {wod?.descripcion || "No hay descripción del WOD registrada."}
-          </p>
-        )}
+        <p className="whitespace-pre-line break-words text-sm leading-5 text-white/70">
+          {wod?.descripcion || "No hay descripción del WOD registrada."}
+        </p>
       </article>
 
       {item?.notas || item?.observacion ? (
@@ -843,7 +823,6 @@ function getResultType(item) {
 
 function ResultDetail({ result }) {
   const wod = result?.wod || {}
-  const workoutLines = extractWorkoutLines(wod?.descripcion)
   const date = formatDateLong(result?.fecha || wod?.fecha || result?.created_at)
   const resultValue = formatResultValue(result)
   const kcal = Number(result?.calorias || result?.calorias_estimadas || result?.calorias_wod || 0)
@@ -880,19 +859,9 @@ function ResultDetail({ result }) {
           Workout
         </p>
 
-        {workoutLines.length ? (
-          <div className="space-y-1 text-sm leading-5 text-white/70">
-            {workoutLines.map((line, index) => (
-              <p key={`${line}-${index}`} className="break-words">
-                {line}
-              </p>
-            ))}
-          </div>
-        ) : (
-          <p className="whitespace-pre-line text-sm leading-5 text-white/55">
-            {wod?.descripcion || "No hay descripción del WOD registrada."}
-          </p>
-        )}
+        <p className="whitespace-pre-line break-words text-sm leading-5 text-white/70">
+          {wod?.descripcion || "No hay descripción del WOD registrada."}
+        </p>
       </article>
 
       {result?.notas || result?.observacion ? (
