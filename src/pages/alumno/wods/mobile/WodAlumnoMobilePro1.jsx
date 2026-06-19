@@ -359,30 +359,22 @@ export default function WodAlumnoMobilePro({
             if (!saving) setSelectedWeekRegister(null)
           }}
         >
-          {(() => {
-            const selectedWod = selectedWeekRegister.wod || selectedWeekRegister
+          <RegisterResultPanel
+            wod={selectedWeekRegister.wod || selectedWeekRegister}
+            saving={saving}
+            loading={loading}
+            onSave={async (payload) => {
+              const selectedWod = selectedWeekRegister.wod || selectedWeekRegister
 
-            return (
-              <>
-                <SelectedWodRegisterHeader wod={selectedWod} />
+              await onSaveResult?.({
+                ...payload,
+                __selectedWod: selectedWod,
+                __selectedWodId: selectedWod?.id || selectedWeekRegister?.wod_id,
+              })
 
-                <RegisterResultPanel
-                  wod={selectedWod}
-                  saving={saving}
-                  loading={loading}
-                  onSave={async (payload) => {
-                    await onSaveResult?.({
-                      ...payload,
-                      __selectedWod: selectedWod,
-                      __selectedWodId: selectedWod?.id || selectedWeekRegister?.wod_id,
-                    })
-
-                    setSelectedWeekRegister(null)
-                  }}
-                />
-              </>
-            )
-          })()}
+              setSelectedWeekRegister(null)
+            }}
+          />
         </MobileModal>
       ) : null}
 
@@ -639,13 +631,7 @@ function WodListRow({ item, onClick, allowPendingRegister = false }) {
               : "border-white/10 bg-white/[0.04] text-white/40",
           ].join(" ")}
         >
-          {registered
-            ? "Registrado"
-            : canRegisterFromList
-            ? "Registrar"
-            : registerAvailability.status === "before_start"
-            ? "Bloqueado"
-            : "Pendiente"}
+          {registered ? "Registrado" : canRegisterFromList ? "Registrar" : "Pendiente"}
         </span>
       </div>
 
@@ -653,38 +639,6 @@ function WodListRow({ item, onClick, allowPendingRegister = false }) {
     </button>
   )
 }
-
-
-function SelectedWodRegisterHeader({ wod }) {
-  if (!wod?.id) return null
-
-  return (
-    <div className="mb-3 overflow-hidden rounded-[1.15rem] border border-orange-500/25 bg-orange-500/10 p-3">
-      <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-300">
-        WOD seleccionado
-      </p>
-
-      <h3 className="mt-1.5 text-lg font-black uppercase leading-tight text-white">
-        {wod.nombre || "WOD PHO3NIX"}
-      </h3>
-
-      <div className="mt-2 flex flex-wrap gap-1.5">
-        <span className="rounded-full border border-white/10 bg-black/35 px-2 py-1 text-[10px] font-black uppercase text-white/60">
-          {formatDateLong(wod.fecha)}
-        </span>
-
-        <span className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2 py-1 text-[10px] font-black uppercase text-orange-300">
-          {formatModoRanking(wod.modo_ranking)}
-        </span>
-      </div>
-
-      <p className="mt-3 whitespace-pre-line break-words text-xs leading-5 text-white/65">
-        {wod.descripcion || "Sin descripción registrada."}
-      </p>
-    </div>
-  )
-}
-
 
 function WodListDetail({ item }) {
   const wod = item?.wod || {}

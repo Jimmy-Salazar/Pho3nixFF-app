@@ -85,16 +85,8 @@ export default function WodsAlumno() {
   }, [data.membership])
 
   const handleSaveResult = async (formPayload) => {
-    const selectedWod =
-      formPayload?.__selectedWod ||
-      formPayload?.wodSeleccionado ||
-      formPayload?.selectedWod ||
-      null
-
-    const effectiveWod = selectedWod?.id ? selectedWod : data.todayWod
-
-    if (!effectiveWod?.id) {
-      setError("No se pudo identificar el WOD seleccionado para registrar resultado.")
+    if (!data.todayWod?.id) {
+      setError("No hay WOD publicado para registrar resultado.")
       return
     }
 
@@ -103,9 +95,9 @@ export default function WodsAlumno() {
       setError("")
 
       await saveAlumnoWodResult({
-        wod: effectiveWod,
+        wod: data.todayWod,
         result: formPayload,
-        estimatedCalories: getWodMaxCalories(effectiveWod, data.estimatedCalories),
+        estimatedCalories: getWodMaxCalories(data.todayWod, data.estimatedCalories),
       })
 
       await loadData()
