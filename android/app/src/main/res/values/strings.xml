@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PHO3NIX</string>
+    <string name="title_activity_main">PHO3NIX</string>
+    <string name="package_name">ec.pho3nixff.app</string>
+    <string name="custom_url_scheme">ec.pho3nixff.app</string>
+</resources>

@@ -229,6 +229,10 @@ export default function PersonalRecordsAlumno() {
 
     const strongestExercise = bestByExercise[0] || null
 
+    const allRecords = enrichedRms.map((item) =>
+      attachGlobalRank(item, globalEnrichedRms)
+    )
+
     return {
       total: enrichedRms.length,
       thisMonth: thisMonth.length,
@@ -236,6 +240,7 @@ export default function PersonalRecordsAlumno() {
       bestGeneral,
       bestByExercise,
       strongestExercise,
+      allRecords,
       recent: enrichedRms.slice(0, 5),
     }
   }, [enrichedRms, globalEnrichedRms])
@@ -409,7 +414,7 @@ export default function PersonalRecordsAlumno() {
                     loading={loading}
                   />
 
-                  <HistoryTable items={stats.recent} loading={loading} />
+                  <HistoryTable items={stats.allRecords} loading={loading} />
                 </div>
 
                 <BestMarksGrid items={stats.bestByExercise} loading={loading} />
@@ -475,6 +480,7 @@ function PersonalRecordsMobile({
 
   const destacado = stats.bestGeneral || stats.latestPr || null
   const bestMarks = stats.bestByExercise || []
+  const allRecords = stats.allRecords || []
   const evolutionTarget = selectedEvolutionPr || destacado
 
   const evolutionRows = useMemo(() => {
@@ -611,47 +617,12 @@ function PersonalRecordsMobile({
           />
         </section>
 
-        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
-                Mis mejores marcas
-              </p>
-              <p className="mt-0.5 text-[10px] font-bold text-white/35">
-                Mejores PR por ejercicio
-              </p>
-            </div>
-
-            <span className="shrink-0 rounded-xl border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-[10px] font-black uppercase text-orange-300">
-              {bestMarks.length}
-            </span>
-          </div>
-
-          {loading ? (
-            <MobileEmpty text="Cargando mejores marcas..." />
-          ) : bestMarks.length === 0 ? (
-            <MobileEmpty text="Aún no tienes marcas registradas." />
-          ) : (
-            <div className="overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
-              <div className="grid grid-cols-[minmax(0,1fr)_68px_78px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
-                <span>Ejercicio</span>
-                <span className="text-center">Marca</span>
-                <span className="text-center">Global</span>
-              </div>
-
-              <div className="divide-y divide-white/10">
-                {bestMarks.slice(0, 5).map((item) => (
-                  <MobileBestMarkRow
-                    key={`${item.ejercicio_id}-${item.id}`}
-                    item={item}
-                    onSelect={() => setSelectedEvolutionPr(item)}
-                    onOpenGlobal={() => setSelectedGlobalPr(item)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
+        <MobileAllPrTable
+          items={allRecords}
+          loading={loading}
+          onSelect={(item) => setSelectedEvolutionPr(item)}
+          onOpenGlobal={(item) => setSelectedGlobalPr(item)}
+        />
 
         <MobileEvolutionCard
           rows={evolutionRows}
@@ -760,6 +731,81 @@ function MobileMetricCard({ title, value, footer, icon }) {
         </p>
       </div>
     </article>
+  )
+}
+
+function MobileAllPrTable({ items = [], loading = false, onSelect, onOpenGlobal }) {
+  const pageSize = 6
+  const [page, setPage] = useState(1)
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages))
+  }, [totalPages])
+
+  const startIndex = (page - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, items.length)
+  const pageItems = items.slice(startIndex, endIndex)
+
+  return (
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
+            Todos mis PR
+          </p>
+          <p className="mt-0.5 text-[10px] font-bold text-white/35">
+            {loading
+              ? "Cargando registros..."
+              : items.length > 0
+              ? `Mostrando ${startIndex + 1}-${endIndex} de ${items.length}`
+              : "Historial completo de marcas"}
+          </p>
+        </div>
+
+        <span className="shrink-0 rounded-xl border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 text-[10px] font-black uppercase text-orange-300">
+          {items.length} PR
+        </span>
+      </div>
+
+      {loading ? (
+        <MobileEmpty text="Cargando tus PR..." />
+      ) : items.length === 0 ? (
+        <MobileEmpty text="Aún no tienes marcas registradas." />
+      ) : (
+        <>
+          <div className="overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
+            <div className="grid grid-cols-[minmax(0,1fr)_68px_78px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
+              <span>Ejercicio</span>
+              <span className="text-center">Marca</span>
+              <span className="text-center">Global</span>
+            </div>
+
+            <div className="divide-y divide-white/10">
+              {pageItems.map((item) => (
+                <MobileBestMarkRow
+                  key={item.id}
+                  item={item}
+                  onSelect={() => onSelect?.(item)}
+                  onOpenGlobal={() => onOpenGlobal?.(item)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {totalPages > 1 ? (
+            <MobilePaginationControls
+              page={page}
+              totalPages={totalPages}
+              onPrev={() => setPage((current) => Math.max(1, current - 1))}
+              onNext={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+            />
+          ) : null}
+        </>
+      )}
+    </section>
   )
 }
 
@@ -1745,12 +1791,37 @@ function RegisterPrPanel({ ejercicios, form, setForm, saving, onSubmit }) {
 }
 
 function HistoryTable({ items = [], loading = false }) {
+  const pageSize = 7
+  const [page, setPage] = useState(1)
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
+
+  useEffect(() => {
+    setPage((current) => Math.min(current, totalPages))
+  }, [totalPages])
+
+  const startIndex = (page - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, items.length)
+  const pageItems = items.slice(startIndex, endIndex)
+
   return (
     <article className="min-h-0 overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 p-5 shadow-2xl shadow-black/30">
-      <div className="mb-4">
-        <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-400">
-          Historial de mis PR
-        </p>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-400">
+            Historial completo de mis PR
+          </p>
+          <p className="mt-1 text-xs text-white/40">
+            {loading
+              ? "Cargando registros..."
+              : items.length > 0
+              ? `Mostrando ${startIndex + 1}-${endIndex} de ${items.length} PR`
+              : "Sin registros para mostrar"}
+          </p>
+        </div>
+
+        <span className="shrink-0 rounded-2xl border border-orange-500/20 bg-orange-500/10 px-3 py-2 text-xs font-black uppercase text-orange-300">
+          {items.length} PR
+        </span>
       </div>
 
       {loading ? (
@@ -1758,37 +1829,54 @@ function HistoryTable({ items = [], loading = false }) {
       ) : items.length === 0 ? (
         <EmptyCard text="Aún no tienes historial." />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-white/10">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-white/[0.04] text-xs uppercase text-white/45">
-              <tr>
-                <th className="px-4 py-3">Fecha</th>
-                <th className="px-4 py-3">Ejercicio</th>
-                <th className="px-4 py-3">Peso</th>
-                <th className="px-4 py-3">Registrado</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id} className="border-t border-white/10">
-                  <td className="px-4 py-3 text-white/70">
-                    {formatDateShort(item.fecha)}
-                  </td>
-                  <td className="px-4 py-3 font-black text-white">
-                    {item.ejercicio_nombre}
-                  </td>
-                  <td className="px-4 py-3 font-black text-orange-400">
-                    {item.peso_libras} lb
-                  </td>
-                  <td className="px-4 py-3 text-white/45">
-                    {relativeDate(item.created_at)}
-                  </td>
+        <>
+          <div className="overflow-hidden rounded-2xl border border-white/10">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-white/[0.04] text-xs uppercase text-white/45">
+                <tr>
+                  <th className="px-4 py-3">Fecha</th>
+                  <th className="px-4 py-3">Ejercicio</th>
+                  <th className="px-4 py-3">Peso</th>
+                  <th className="px-4 py-3">Global</th>
+                  <th className="px-4 py-3">Registrado</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+
+              <tbody>
+                {pageItems.map((item) => (
+                  <tr key={item.id} className="border-t border-white/10">
+                    <td className="px-4 py-3 text-white/70">
+                      {formatDateShort(item.fecha)}
+                    </td>
+                    <td className="px-4 py-3 font-black text-white">
+                      {item.ejercicio_nombre}
+                    </td>
+                    <td className="px-4 py-3 font-black text-orange-400">
+                      {item.peso_libras} lb
+                    </td>
+                    <td className="px-4 py-3 text-white/60">
+                      {formatOrdinal(item.global_rank)}
+                    </td>
+                    <td className="px-4 py-3 text-white/45">
+                      {relativeDate(item.created_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 ? (
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              onPrev={() => setPage((current) => Math.max(1, current - 1))}
+              onNext={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
+            />
+          ) : null}
+        </>
       )}
     </article>
   )
@@ -1822,6 +1910,70 @@ function TipsCard() {
 /* =======================================================
    SMALL UI
 ======================================================= */
+
+function PaginationControls({ page, totalPages, onPrev, onNext }) {
+  return (
+    <div className="mt-4 flex items-center justify-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2">
+      <button
+        type="button"
+        onClick={onPrev}
+        disabled={page <= 1}
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/35 text-xl font-black text-white/65 transition hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-35"
+        aria-label="Página anterior"
+        title="Página anterior"
+      >
+        ‹
+      </button>
+
+      <p className="min-w-[96px] text-center text-xs font-black uppercase tracking-[0.12em] text-white/45">
+        <span className="text-orange-400">{page}</span> / {totalPages}
+      </p>
+
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={page >= totalPages}
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-orange-500/25 bg-orange-500/10 text-xl font-black text-orange-300 transition hover:bg-orange-500/15 disabled:cursor-not-allowed disabled:opacity-35"
+        aria-label="Página siguiente"
+        title="Página siguiente"
+      >
+        ›
+      </button>
+    </div>
+  )
+}
+
+function MobilePaginationControls({ page, totalPages, onPrev, onNext }) {
+  return (
+    <div className="mt-3 flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-2">
+      <button
+        type="button"
+        onClick={onPrev}
+        disabled={page <= 1}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/35 text-lg font-black text-white/60 disabled:cursor-not-allowed disabled:opacity-35"
+        aria-label="Página anterior"
+        title="Página anterior"
+      >
+        ‹
+      </button>
+
+      <p className="min-w-[58px] text-center text-[10px] font-black uppercase text-white/45">
+        <span className="text-orange-400">{page}</span>/{totalPages}
+      </p>
+
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={page >= totalPages}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-orange-500/25 bg-orange-500/10 text-lg font-black text-orange-300 disabled:cursor-not-allowed disabled:opacity-35"
+        aria-label="Página siguiente"
+        title="Página siguiente"
+      >
+        ›
+      </button>
+    </div>
+  )
+}
 
 function FieldSelect({ label, value, onChange, options }) {
   return (

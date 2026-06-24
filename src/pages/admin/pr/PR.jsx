@@ -38,6 +38,7 @@ export default function PR() {
   const [allPRRecords, setAllPRRecords] = useState([])
   const [exerciseRows, setExerciseRows] = useState([])
   const [ranking, setRanking] = useState([])
+  const [rankingGenderFilter, setRankingGenderFilter] = useState("todos")
 
   const [selectedExerciseId, setSelectedExerciseId] = useState("")
   const [search, setSearch] = useState("")
@@ -122,6 +123,22 @@ export default function PR() {
     }
   }, [allPRRecords.length, exerciseRows])
 
+  const baseRankingRows = useMemo(() => {
+    return buildMobileExerciseRanking(
+      allPRRecords || [],
+      selectedExerciseId,
+      ranking || []
+    )
+  }, [allPRRecords, selectedExerciseId, ranking])
+
+  const rankingRowsWithGender = useMemo(() => {
+    return enrichRankingRowsWithUserData(baseRankingRows, alumnos)
+  }, [baseRankingRows, alumnos])
+
+  const filteredRanking = useMemo(() => {
+    return filterRankingByGender(rankingRowsWithGender, rankingGenderFilter)
+  }, [rankingRowsWithGender, rankingGenderFilter])
+
   useEffect(() => {
     initPR()
   }, [])
@@ -142,18 +159,29 @@ export default function PR() {
       const userId = await getCurrentUserId()
       setSessionUserId(userId)
 
-      const [perfil, ejerciciosRows, alumnosRows, rmRows] = await Promise.all([
+      const [perfil, ejerciciosRows, alumnosRows, rmRows, usuariosSexoResult] = await Promise.all([
         userId ? fetchPerfil(userId) : null,
         fetchEjerciciosPR(),
         fetchAlumnosPR(),
         fetchAllPRRecords(),
+        supabase
+          .from("usuarios")
+          .select("id,nombre,foto_url,sexo,role")
+          .order("nombre", { ascending: true }),
       ])
+
+      if (usuariosSexoResult.error) throw usuariosSexoResult.error
+
+      const alumnosConSexo = mergeAlumnosWithSexo(
+        alumnosRows || [],
+        usuariosSexoResult.data || []
+      )
 
       const rows = buildExerciseRows(ejerciciosRows || [], rmRows || [])
 
       setRolActual(perfil?.rol || perfil?.role || null)
       setEjercicios(ejerciciosRows || [])
-      setAlumnos(alumnosRows || [])
+      setAlumnos(alumnosConSexo)
       setAllPRRecords(rmRows || [])
       setExerciseRows(rows)
 
@@ -387,6 +415,9 @@ export default function PR() {
         selectedExerciseId={selectedExerciseId}
         ranking={ranking}
         allPRRecords={allPRRecords}
+        alumnos={alumnos}
+        rankingGenderFilter={rankingGenderFilter}
+        onRankingGenderFilterChange={setRankingGenderFilter}
         onSelectExercise={(row) => {
           setSelectedExerciseId(row.id)
         }}
@@ -420,9 +451,16 @@ export default function PR() {
                 onSelectExercise={handleSelectExercise}
               />
 
-              <aside className="grid min-h-0 grid-rows-[1fr_auto] gap-4">
+              <aside className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-4">
+                <RankingGenderFilter
+                  value={rankingGenderFilter}
+                  onChange={setRankingGenderFilter}
+                  total={rankingRowsWithGender.length}
+                  filteredTotal={filteredRanking.length}
+                />
+
                 <PRRankingCard
-                  ranking={ranking}
+                  ranking={filteredRanking}
                   ejercicioActual={ejercicioActual}
                   sessionUserId={sessionUserId}
                 />
@@ -489,6 +527,9 @@ function AdminPrExercisesMobile({
   selectedExerciseId,
   ranking,
   allPRRecords,
+  alumnos,
+  rankingGenderFilter,
+  onRankingGenderFilterChange,
   onSelectExercise,
 }) {
   const [exercisePage, setExercisePage] = useState(1)
@@ -499,11 +540,17 @@ function AdminPrExercisesMobile({
   const paginatedRows = rows.slice((safePage - 1) * rowsPerPage, safePage * rowsPerPage)
   const selectedExerciseRow =
     rows.find((item) => String(item.id) === String(selectedExerciseId)) || null
-  const mobileRanking = buildMobileExerciseRanking(
+  const mobileRankingBase = buildMobileExerciseRanking(
     allPRRecords || [],
     selectedExerciseId,
     ranking || []
   )
+  const mobileRankingWithGender = useMemo(() => {
+    return enrichRankingRowsWithUserData(mobileRankingBase, alumnos)
+  }, [mobileRankingBase, alumnos])
+  const mobileRanking = useMemo(() => {
+    return filterRankingByGender(mobileRankingWithGender, rankingGenderFilter)
+  }, [mobileRankingWithGender, rankingGenderFilter])
 
   useEffect(() => {
     setExercisePage(1)
@@ -653,11 +700,84 @@ function AdminPrExercisesMobile({
           loading={loading}
           exercise={selectedExerciseRow}
           ranking={mobileRanking}
+          rankingGenderFilter={rankingGenderFilter}
+          onRankingGenderFilterChange={onRankingGenderFilterChange}
+          totalRanking={mobileRankingWithGender.length}
         />
       </div>
 
       <AdminMobileNav />
     </main>
+  )
+}
+
+function RankingGenderFilter({
+  value = "todos",
+  onChange,
+  total = 0,
+  filteredTotal = 0,
+  compact = false,
+}) {
+  const options = [
+    { value: "todos", label: "Todos" },
+    { value: "masculino", label: "Masculino" },
+    { value: "femenino", label: "Femenino" },
+  ]
+
+  return (
+    <section
+      className={[
+        compact
+          ? "rounded-xl border border-white/10 bg-black/35 p-2"
+          : "rounded-[1.35rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30",
+      ].join(" ")}
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p
+            className={[
+              "truncate font-black uppercase tracking-[0.12em] text-white/70",
+              compact ? "text-[9px]" : "text-xs",
+            ].join(" ")}
+          >
+            Ranking por género
+          </p>
+
+          <p className={compact ? "mt-0.5 text-[8px] text-white/35" : "mt-1 text-[10px] text-white/40"}>
+            {value === "todos"
+              ? `${total} atleta(s)`
+              : `${filteredTotal} de ${total} atleta(s)`}
+          </p>
+        </div>
+
+        <span className="shrink-0 rounded-lg border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-[9px] font-black uppercase text-orange-300">
+          {getGenderLabel(value)}
+        </span>
+      </div>
+
+      <div className={compact ? "grid grid-cols-3 gap-1" : "grid grid-cols-3 gap-2"}>
+        {options.map((option) => {
+          const active = option.value === value
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange?.(option.value)}
+              className={[
+                "rounded-xl border font-black uppercase transition",
+                compact ? "px-1.5 py-1.5 text-[8px]" : "px-3 py-2 text-[10px]",
+                active
+                  ? "border-orange-500 bg-orange-500 text-black"
+                  : "border-white/10 bg-white/[0.03] text-white/50 hover:bg-white/[0.06]",
+              ].join(" ")}
+            >
+              {option.label}
+            </button>
+          )
+        })}
+      </div>
+    </section>
   )
 }
 
@@ -759,6 +879,9 @@ function AdminExerciseRankingTable({
   loading,
   exercise,
   ranking = [],
+  rankingGenderFilter = "todos",
+  onRankingGenderFilterChange,
+  totalRanking = 0,
 }) {
   return (
     <section className="relative z-10 mb-4 overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/45 shadow-2xl shadow-black/30">
@@ -776,6 +899,16 @@ function AdminExerciseRankingTable({
         <span className="rounded-xl border border-orange-500/20 bg-orange-500/10 px-2 py-0.5 text-[9px] font-black uppercase text-orange-300">
           Top
         </span>
+      </div>
+
+      <div className="border-b border-white/10 px-2.5 py-2">
+        <RankingGenderFilter
+          value={rankingGenderFilter}
+          onChange={onRankingGenderFilterChange}
+          total={totalRanking}
+          filteredTotal={ranking.length}
+          compact
+        />
       </div>
 
       {!exercise ? (
@@ -840,6 +973,130 @@ function getRankingAthleteName(row) {
   )
 }
 
+
+function mergeAlumnosWithSexo(alumnosRows = [], usuariosRows = []) {
+  const sourceMap = new Map()
+
+  ;(usuariosRows || []).forEach((item) => {
+    if (!item?.id) return
+    sourceMap.set(String(item.id), item)
+  })
+
+  const merged = (alumnosRows || []).map((item) => {
+    const source = sourceMap.get(String(item.id)) || {}
+
+    return {
+      ...source,
+      ...item,
+      sexo: item?.sexo || source?.sexo || null,
+      role: item?.role || source?.role || null,
+      foto_url: item?.foto_url || source?.foto_url || "",
+      nombre: item?.nombre || source?.nombre || "Atleta",
+    }
+  })
+
+  ;(usuariosRows || []).forEach((item) => {
+    if (!item?.id) return
+    const alreadyExists = merged.some((row) => String(row.id) === String(item.id))
+
+    if (!alreadyExists) {
+      merged.push(item)
+    }
+  })
+
+  return merged
+}
+
+function buildUserMap(users = []) {
+  const map = new Map()
+
+  ;(users || []).forEach((item) => {
+    if (!item?.id) return
+    map.set(String(item.id), item)
+  })
+
+  return map
+}
+
+function enrichRankingRowsWithUserData(rows = [], users = []) {
+  const userMap = buildUserMap(users)
+
+  return (rows || []).map((row) => {
+    const userId = getRankingUserId(row)
+    const user = userId ? userMap.get(String(userId)) : null
+    const rowUser = row?.usuarios || row?.usuario || row?.alumno || null
+    const mergedUser = {
+      ...(user || {}),
+      ...(typeof rowUser === "object" && rowUser ? rowUser : {}),
+    }
+    const gender = getRankingGender(row, user)
+
+    return {
+      ...row,
+      usuarios: Object.keys(mergedUser).length > 0 ? mergedUser : row?.usuarios,
+      sexo_ranking: gender,
+    }
+  })
+}
+
+function filterRankingByGender(rows = [], filter = "todos") {
+  const normalizedFilter = normalizeGender(filter)
+
+  if (!normalizedFilter || normalizedFilter === "todos") return rows || []
+
+  return (rows || []).filter((row) => {
+    const gender = normalizeGender(row?.sexo_ranking || getRankingGender(row))
+
+    return gender === normalizedFilter
+  })
+}
+
+function getRankingGender(row, user = null) {
+  return normalizeGender(
+    row?.sexo_ranking ||
+      row?.sexo ||
+      row?.genero ||
+      row?.usuarios?.sexo ||
+      row?.usuarios?.genero ||
+      row?.usuario?.sexo ||
+      row?.usuario?.genero ||
+      row?.alumno?.sexo ||
+      row?.alumno?.genero ||
+      user?.sexo ||
+      user?.genero
+  )
+}
+
+function getRankingUserId(row) {
+  return (
+    row?.usuario ||
+    row?.usuario_id ||
+    row?.usuarios?.id ||
+    row?.alumno_id ||
+    row?.alumno?.id ||
+    null
+  )
+}
+
+function normalizeGender(value) {
+  const text = String(value || "").trim().toLowerCase()
+
+  if (!text) return ""
+  if (text === "todos") return "todos"
+  if (text.startsWith("masc") || text === "m" || text === "hombre") return "masculino"
+  if (text.startsWith("fem") || text === "f" || text === "mujer") return "femenino"
+
+  return text
+}
+
+function getGenderLabel(value) {
+  const gender = normalizeGender(value)
+
+  if (gender === "masculino") return "Masculino"
+  if (gender === "femenino") return "Femenino"
+
+  return "Todos"
+}
 
 function buildMobileExerciseRanking(allRows = [], selectedExerciseId, fallbackRanking = []) {
   const selectedRows = (allRows || [])

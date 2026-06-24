@@ -21,6 +21,11 @@ export default function Navbar() {
   const closeMenu = () => setMenuOpen(false)
   const toggleMenu = () => setMenuOpen((v) => !v)
 
+  const handleLogout = async () => {
+    closeMenu()
+    await logout()
+  }
+
   const isAdmin =
     String(rol || "").toLowerCase() === String(ROLES.ADMIN || "").toLowerCase() ||
     String(rol || "").toLowerCase() === "administrador" ||
@@ -251,7 +256,7 @@ export default function Navbar() {
 
         <button
           className="logout-btn"
-          onClick={logout}
+          onClick={handleLogout}
           type="button"
           title="Cerrar sesión"
           aria-label="Cerrar sesión"
@@ -264,7 +269,7 @@ export default function Navbar() {
       <div className="navbar-actions mobile-only">
         <button
           className="logout-btn"
-          onClick={logout}
+          onClick={handleLogout}
           type="button"
           title="Cerrar sesión"
           aria-label="Cerrar sesión"

@@ -2,6 +2,10 @@ import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../../supabase"
 import pho3nixLogo from "../../assets/pho3nix-login-logo.png"
+import BiometricLoginButton from "../../components/security/BiometricLoginButton"
+import { getBiometricEnabled } from "../../lib/native/appPreferences"
+import { enableBiometricLogin } from "../../lib/native/biometricAuth"
+import { isNativeApp } from "../../lib/native/platform"
 
 export default function Login() {
   const navigate = useNavigate()
@@ -14,6 +18,11 @@ export default function Login() {
   const [resetLoading, setResetLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [biometricPromptOpen, setBiometricPromptOpen] = useState(false)
+  const [biometricLoading, setBiometricLoading] = useState(false)
+  const [biometricMessage, setBiometricMessage] = useState("")
+  const [membershipPopupOpen, setMembershipPopupOpen] = useState(false)
+  const [membershipPopupMessage, setMembershipPopupMessage] = useState("")
 
   const coachPhone = "593979727407"
   const whatsappMessage =
@@ -28,22 +37,181 @@ export default function Login() {
 
   useEffect(() => {
     const savedEmail = localStorage.getItem("pho3nix_login_email")
+    const authError = sessionStorage.getItem("auth_error")
 
     if (savedEmail) {
       setEmail(savedEmail)
       setRemember(true)
     }
+
+    if (authError) {
+      showMembershipPopup(authError)
+      sessionStorage.removeItem("auth_error")
+    }
   }, [])
+
+  const goToDashboard = () => {
+    navigate("/dashboard", { replace: true })
+  }
+
+  const showMembershipPopup = (
+    message = "No tienes mensualidad activa. Comunícate con administración para renovar tu acceso."
+  ) => {
+    setError(message)
+    setMembershipPopupMessage(message)
+    setMembershipPopupOpen(true)
+  }
+
+  const validateActiveMembershipOrPopup = async (sessionArg = null) => {
+    try {
+      const session =
+        sessionArg ||
+        (await supabase.auth.getSession())?.data?.session
+
+      const sessionUser = session?.user
+
+      if (!sessionUser?.id) {
+        return false
+      }
+
+      let resolvedRol = sessionUser.user_metadata?.role || null
+
+      const { data: usr, error: userError } = await supabase
+        .from("usuarios")
+        .select("role")
+        .eq("id", sessionUser.id)
+        .maybeSingle()
+
+      if (userError) throw userError
+
+      if (usr?.role) {
+        resolvedRol = usr.role
+      }
+
+      const role = normalizeRole(resolvedRol)
+
+      if (!role) {
+        const message = "No se pudo determinar tu rol. Comunícate con administración."
+        sessionStorage.setItem("auth_error", message)
+        await supabase.auth.signOut()
+        showMembershipPopup(message)
+        return false
+      }
+
+      if (!needsMensualidad(role)) {
+        return true
+      }
+
+      const { data: mensualidades, error: mensualidadError } = await supabase
+        .from("mensualidades")
+        .select("id,estado,fecha_inicio,fecha_fin,created_at")
+        .eq("usuario_id", sessionUser.id)
+        .order("fecha_fin", { ascending: false })
+        .order("created_at", { ascending: false })
+        .limit(1)
+
+      if (mensualidadError) throw mensualidadError
+
+      const last = mensualidades?.[0] || null
+      const estado = String(last?.estado || "").trim().toLowerCase()
+      const dias = daysUntil(last?.fecha_fin)
+
+      const ok = !!last && estado === "activo" && Number(dias) >= 0
+
+      if (!ok) {
+        const message =
+          "No tienes mensualidad activa. Comunícate con administración para renovar tu acceso."
+
+        sessionStorage.setItem("auth_error", message)
+        await supabase.auth.signOut()
+        showMembershipPopup(message)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error("Error validando mensualidad:", error)
+
+      const message =
+        error?.message || "No se pudo validar tu mensualidad. Intenta nuevamente."
+
+      sessionStorage.setItem("auth_error", message)
+      await supabase.auth.signOut()
+      showMembershipPopup(message)
+      return false
+    }
+  }
+
+  const withTimeout = (promise, fallbackValue, delay = 700) => {
+    return Promise.race([
+      promise,
+      new Promise((resolve) => {
+        window.setTimeout(() => resolve(fallbackValue), delay)
+      }),
+    ])
+  }
+
+  const handleBiometricSuccess = async (session) => {
+    const canEnter = await validateActiveMembershipOrPopup(session)
+
+    if (!canEnter) return
+
+    goToDashboard()
+  }
+
+  const handleAcceptBiometric = async () => {
+    try {
+      setBiometricLoading(true)
+      setBiometricMessage("")
+
+      const result = await withTimeout(
+        enableBiometricLogin(),
+        {
+          ok: false,
+          reason: "timeout",
+          message: "La verificación tardó demasiado. Revisa permisos biométricos o vuelve a intentar.",
+        },
+        12000
+      )
+
+      if (!result?.ok) {
+        setBiometricMessage(result?.message || "No se pudo activar la huella. Puedes continuar sin activarla.")
+        return
+      }
+
+      setBiometricPromptOpen(false)
+
+      const canEnter = await validateActiveMembershipOrPopup()
+      if (!canEnter) return
+
+      goToDashboard()
+    } catch (error) {
+      console.error("Error activando huella:", error)
+      setBiometricMessage(error?.message || "No se pudo activar la huella. Puedes continuar sin activarla.")
+    } finally {
+      setBiometricLoading(false)
+    }
+  }
+
+  const handleSkipBiometric = async () => {
+    setBiometricPromptOpen(false)
+
+    const canEnter = await validateActiveMembershipOrPopup()
+    if (!canEnter) return
+
+    goToDashboard()
+  }
 
   const handleLogin = async (event) => {
     event.preventDefault()
 
-    if (loading) return
+    if (loading || biometricPromptOpen) return
 
     try {
       setLoading(true)
       setError("")
       setSuccess("")
+      setBiometricMessage("")
 
       const cleanEmail = email.trim().toLowerCase()
 
@@ -51,12 +219,20 @@ export default function Login() {
         throw new Error("Ingresa tu correo y contraseña.")
       }
 
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
-        password,
-      })
+      const { data: loginData, error: loginError } =
+        await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        })
 
       if (loginError) throw loginError
+
+      const canEnter = await validateActiveMembershipOrPopup(loginData?.session)
+
+      if (!canEnter) {
+        setLoading(false)
+        return
+      }
 
       if (remember) {
         localStorage.setItem("pho3nix_login_email", cleanEmail)
@@ -64,7 +240,25 @@ export default function Login() {
         localStorage.removeItem("pho3nix_login_email")
       }
 
-      navigate("/dashboard", { replace: true })
+      setLoading(false)
+
+      if (!isNativeApp()) {
+        goToDashboard()
+        return
+      }
+
+      const biometricEnabled = await withTimeout(
+        getBiometricEnabled(),
+        false,
+        700
+      )
+
+      if (biometricEnabled) {
+        goToDashboard()
+        return
+      }
+
+      setBiometricPromptOpen(true)
     } catch (err) {
       console.error("Error iniciando sesión:", err)
 
@@ -313,6 +507,8 @@ export default function Login() {
                   <span className="text-2xl">→</span>
                 </button>
 
+                <BiometricLoginButton onSuccess={handleBiometricSuccess} />
+
                 <div className="mt-5 text-center text-xs text-white/55 sm:mt-7 sm:text-sm">
                   ¿No tienes cuenta?{" "}
                   <button
@@ -328,6 +524,119 @@ export default function Login() {
           </div>
         </div>
       </section>
+
+      {biometricPromptOpen ? (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-[390px] overflow-hidden rounded-[1.8rem] border border-orange-500/25 bg-[#080808] p-5 shadow-2xl shadow-black/70">
+            <div className="text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-orange-500/25 bg-orange-500/10 text-3xl">
+                🔐
+              </div>
+
+              <h3 className="mt-4 text-xl font-black uppercase text-white">
+                Activar ingreso con huella
+              </h3>
+
+              <p className="mt-2 text-sm leading-5 text-white/60">
+                Tus datos son correctos. ¿Quieres activar el acceso rápido con huella en este celular?
+              </p>
+
+              <p className="mt-2 text-xs leading-5 text-white/35">
+                No guardamos tu contraseña. La huella solo desbloquea tu sesión en esta app.
+              </p>
+            </div>
+
+            {biometricMessage ? (
+              <div className="mt-4 rounded-2xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-center text-xs font-semibold text-red-200">
+                {biometricMessage}
+              </div>
+            ) : null}
+
+            <div className="mt-5 grid gap-2">
+              <button
+                type="button"
+                onClick={handleAcceptBiometric}
+                disabled={biometricLoading}
+                className="flex h-12 w-full items-center justify-center rounded-2xl bg-orange-500 px-4 text-sm font-black uppercase text-black transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {biometricLoading ? "Verificando..." : "Sí, activar huella"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSkipBiometric}
+                className="flex h-11 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-xs font-black uppercase text-white/65 transition hover:bg-white/[0.07]"
+              >
+                Continuar sin huella
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {membershipPopupOpen ? (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-[390px] overflow-hidden rounded-[1.8rem] border border-red-500/25 bg-[#080808] p-5 text-center shadow-2xl shadow-black/70">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-red-500/25 bg-red-500/10 text-3xl">
+              ⚠️
+            </div>
+
+            <h3 className="mt-4 text-xl font-black uppercase text-white">
+              Mensualidad inactiva
+            </h3>
+
+            <p className="mt-2 text-sm leading-5 text-white/60">
+              {membershipPopupMessage ||
+                "No tienes mensualidad activa. Comunícate con administración para renovar tu acceso."}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setMembershipPopupOpen(false)}
+              className="mt-5 flex h-11 w-full items-center justify-center rounded-2xl bg-orange-500 text-sm font-black uppercase text-black transition hover:bg-orange-400"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      ) : null}
+
     </main>
   )
+}
+function normalizeRole(value) {
+  return String(value || "").trim().toLowerCase()
+}
+
+function needsMensualidad(role) {
+  const normalized = normalizeRole(role)
+  return normalized === "alumno" || normalized === "coach"
+}
+
+function todayISO() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, "0")
+  const day = String(now.getDate()).padStart(2, "0")
+
+  return `${year}-${month}-${day}`
+}
+
+function parseDate(value) {
+  if (!value) return null
+
+  const [year, month, day] = String(value).split("-").map(Number)
+
+  if (!year || !month || !day) return null
+
+  return new Date(year, month - 1, day)
+}
+
+function daysUntil(dateStr) {
+  const target = parseDate(dateStr)
+  const today = parseDate(todayISO())
+
+  if (!target || !today) return null
+
+  return Math.floor((target.getTime() - today.getTime()) / 86400000)
 }

@@ -16,6 +16,8 @@ export default function Wods() {
   const [publishingId, setPublishingId] = useState(null)
   const [error, setError] = useState("")
   const [wods, setWods] = useState([])
+  const [selectedPreviewWod, setSelectedPreviewWod] = useState(null)
+  const [deletingId, setDeletingId] = useState(null)
 
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [editingWod, setEditingWod] = useState(null)
@@ -38,6 +40,25 @@ export default function Wods() {
     return { total, pendientes, activos, historicos }
   }, [wods])
 
+  const weekWods = useMemo(() => {
+    return (wods || [])
+      .filter((wod) => {
+        const status = getWodStatus(wod)
+
+        if (status === "inactivo") return false
+        if (status === "pendiente") return true
+
+        return isDateInCurrentWeek(wod.fecha)
+      })
+      .sort(sortWodsByDateAsc)
+  }, [wods])
+
+  const archivedWods = useMemo(() => {
+    return (wods || [])
+      .filter((wod) => getWodStatus(wod) === "inactivo")
+      .sort(sortWodsByDateDesc)
+  }, [wods])
+
   async function loadWods() {
     try {
       setLoading(true)
@@ -52,7 +73,13 @@ export default function Wods() {
 
       if (error) throw error
 
-      setWods(data || [])
+      const rows = data || []
+
+      setWods(rows)
+      setSelectedPreviewWod((current) => {
+        if (current && rows.some((row) => row.id === current.id)) return current
+        return null
+      })
     } catch (e) {
       setError(e?.message || "No se pudieron cargar los WODs")
     } finally {
@@ -143,6 +170,70 @@ export default function Wods() {
     setSelectedWod(null)
     setPublishFecha("")
     setPublishError("")
+  }
+
+  function handleSelectWod(wod) {
+    setSelectedPreviewWod(wod)
+  }
+
+  async function handleDeleteWod(wod) {
+    if (!wod?.id) return
+
+    const confirmMessage = [
+      `¿Eliminar completamente el WOD "${wod.nombre || "WOD sin nombre"}"?`,
+      "",
+      "Se eliminarán también sus resultados y participantes registrados.",
+      "Esta acción no se puede deshacer.",
+    ].join("\n")
+
+    if (!window.confirm(confirmMessage)) return
+
+    try {
+      setDeletingId(wod.id)
+
+      const { data: resultRows, error: resultSelectError } = await supabase
+        .from("wod_resultados")
+        .select("id")
+        .eq("wod_id", wod.id)
+
+      if (resultSelectError) throw resultSelectError
+
+      const resultIds = (resultRows || []).map((item) => item.id)
+
+      if (resultIds.length > 0) {
+        const { error: participantsError } = await supabase
+          .from("wod_resultado_participantes")
+          .delete()
+          .in("wod_resultado_id", resultIds)
+
+        if (participantsError) throw participantsError
+      }
+
+      const { error: resultsError } = await supabase
+        .from("wod_resultados")
+        .delete()
+        .eq("wod_id", wod.id)
+
+      if (resultsError) throw resultsError
+
+      const { error: wodError } = await supabase
+        .from("wod")
+        .delete()
+        .eq("id", wod.id)
+
+      if (wodError) throw wodError
+
+      setWods((current) => current.filter((item) => item.id !== wod.id))
+      setSelectedPreviewWod((current) => {
+        if (current?.id !== wod.id) return current
+        return null
+      })
+    } catch (e) {
+      console.error("Error eliminando WOD:", e)
+      alert(e?.message || "No se pudo eliminar el WOD.")
+    } finally {
+      setDeletingId(null)
+    }
   }
 
   async function handlePublish(e) {
@@ -249,53 +340,37 @@ export default function Wods() {
               <WodMetricCard icon="🗓️" label="Históricos" value={wodStats.historicos} />
             </section>
 
-            <section className="phoenix-card min-h-0 overflow-hidden p-4">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-black text-white">Programación semanal</h2>
-                  <p className="text-xs text-white/45">
-                    {wods.length} registro(s) creados
-                  </p>
-                </div>
+            <section className="grid min-h-0 gap-4 xl:grid-cols-2">
+              <WodTable
+                title="Tabla de la semana"
+                subtitle="Borradores y WODs activos/programados de esta semana"
+                loading={loading}
+                error={error}
+                rows={weekWods}
+                emptyText="No hay WODs para esta semana."
+                selectedWodId={selectedPreviewWod?.id}
+                deletingId={deletingId}
+                onCreate={openCreateModal}
+                onSelect={handleSelectWod}
+                onEdit={handleEditDraft}
+                onPublish={openPublishModal}
+                onDelete={handleDeleteWod}
+              />
 
-                <button
-                  type="button"
-                  onClick={openCreateModal}
-                  className="rounded-xl border border-orange-500/25 bg-orange-500/15 px-4 py-2 text-xs font-black text-orange-300 transition hover:bg-orange-500/20"
-                >
-                  Crear WOD
-                </button>
-              </div>
-
-              {loading ? (
-                <div className="rounded-2xl border border-white/10 bg-black/25 p-5 text-sm text-white/60">
-                  Cargando WODs...
-                </div>
-              ) : error ? (
-                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-200">
-                  {error}
-                </div>
-              ) : wods.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-white/10 bg-black/25 p-5 text-sm text-white/60">
-                  Aún no hay WODs creados.
-                </div>
-              ) : (
-                <div className="h-full max-h-full space-y-2 overflow-y-auto pr-1">
-                  {wods.map((wod) => {
-                    const status = getWodStatus(wod)
-
-                    return (
-                      <WodScheduleRow
-                        key={wod.id}
-                        wod={wod}
-                        status={status}
-                        onEdit={() => handleEditDraft(wod)}
-                        onPublish={() => openPublishModal(wod)}
-                      />
-                    )
-                  })}
-                </div>
-              )}
+              <WodTable
+                title="Archivados"
+                subtitle="WODs históricos ya finalizados"
+                loading={loading}
+                error={error}
+                rows={archivedWods}
+                emptyText="No hay WODs archivados."
+                selectedWodId={selectedPreviewWod?.id}
+                deletingId={deletingId}
+                onSelect={handleSelectWod}
+                onEdit={handleEditDraft}
+                onPublish={openPublishModal}
+                onDelete={handleDeleteWod}
+              />
             </section>
           </div>
         </main>
@@ -306,10 +381,16 @@ export default function Wods() {
         loading={loading}
         error={error}
         wods={wods}
+        weekWods={weekWods}
+        archivedWods={archivedWods}
+        selectedWod={selectedPreviewWod}
+        deletingId={deletingId}
         stats={wodStats}
         onCreate={openCreateModal}
+        onSelect={handleSelectWod}
         onEdit={handleEditDraft}
         onPublish={openPublishModal}
+        onDelete={handleDeleteWod}
         navigate={navigate}
       />
 
@@ -398,6 +479,17 @@ export default function Wods() {
           </div>
         </div>
       ) : null}
+      {selectedPreviewWod ? (
+        <WodDetailModal
+          wod={selectedPreviewWod}
+          deleting={deletingId === selectedPreviewWod.id}
+          onClose={() => setSelectedPreviewWod(null)}
+          onEdit={() => handleEditDraft(selectedPreviewWod)}
+          onPublish={() => openPublishModal(selectedPreviewWod)}
+          onDelete={() => handleDeleteWod(selectedPreviewWod)}
+        />
+      ) : null}
+
     </div>
   )
 }
@@ -406,10 +498,16 @@ function AdminWodsMobile({
   loading,
   error,
   wods,
+  weekWods,
+  archivedWods,
+  selectedWod,
+  deletingId,
   stats,
   onCreate,
+  onSelect,
   onEdit,
   onPublish,
+  onDelete,
   navigate,
 }) {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -426,31 +524,13 @@ function AdminWodsMobile({
     )
   }, [wods])
 
-  const filteredWods = useMemo(() => {
-    const term = search.trim().toLowerCase()
-    const todayIso = getTodayISO()
+  const filteredWeekWods = useMemo(() => {
+    return filterMobileWods(weekWods || [], search, statusFilter)
+  }, [weekWods, search, statusFilter])
 
-    return wods.filter((wod) => {
-      const status = getWodStatus(wod)
-      const isToday = String(wod.fecha || "") === todayIso
-
-      const matchesFilter =
-        statusFilter === "todos" ||
-        (statusFilter === "hoy" && isToday) ||
-        (statusFilter === "activos" && status === "activo") ||
-        (statusFilter === "borradores" && status === "pendiente") ||
-        (statusFilter === "historial" && status === "inactivo")
-
-      const matchesSearch =
-        !term ||
-        String(wod.nombre || "").toLowerCase().includes(term) ||
-        String(wod.descripcion || "").toLowerCase().includes(term) ||
-        String(wod.modo_ranking || "").toLowerCase().includes(term) ||
-        String(wod.modalidad || "").toLowerCase().includes(term)
-
-      return matchesFilter && matchesSearch
-    })
-  }, [wods, search, statusFilter])
+  const filteredArchivedWods = useMemo(() => {
+    return filterMobileWods(archivedWods || [], search, statusFilter)
+  }, [archivedWods, search, statusFilter])
 
   const handleLogout = async () => {
     try {
@@ -618,39 +698,33 @@ function AdminWodsMobile({
           </div>
         ) : null}
 
-        <section className="relative z-10 mb-4">
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-xs font-black uppercase tracking-[0.06em] text-white/75">
-              Lista de WODs
-            </h2>
+        <MobileWodSection
+          title="Tabla de la semana"
+          subtitle="Borradores y WODs vigentes"
+          rows={filteredWeekWods}
+          loading={loading}
+          selectedWodId={selectedWod?.id}
+          deletingId={deletingId}
+          emptyText="No hay WODs para esta semana."
+          onSelect={onSelect}
+          onEdit={onEdit}
+          onPublish={onPublish}
+          onDelete={onDelete}
+        />
 
-            <span className="text-[10px] text-white/35">
-              {filteredWods.length} resultado(s)
-            </span>
-          </div>
-
-          <div className="grid gap-2">
-            {loading ? (
-              <MobileEmpty text="Cargando WODs..." />
-            ) : filteredWods.length === 0 ? (
-              <MobileEmpty text="No hay WODs para mostrar." />
-            ) : (
-              filteredWods.map((wod) => {
-                const status = getWodStatus(wod)
-
-                return (
-                  <MobileWodCard
-                    key={wod.id}
-                    wod={wod}
-                    status={status}
-                    onEdit={() => onEdit(wod)}
-                    onPublish={() => onPublish(wod)}
-                  />
-                )
-              })
-            )}
-          </div>
-        </section>
+        <MobileWodSection
+          title="Archivados"
+          subtitle="Historial de WODs finalizados"
+          rows={filteredArchivedWods}
+          loading={loading}
+          selectedWodId={selectedWod?.id}
+          deletingId={deletingId}
+          emptyText="No hay WODs archivados."
+          onSelect={onSelect}
+          onEdit={onEdit}
+          onPublish={onPublish}
+          onDelete={onDelete}
+        />
 
         <button
           type="button"
@@ -746,12 +820,27 @@ function MobileMetricCard({ icon, value, label, tone = "orange" }) {
   )
 }
 
-function MobileWodCard({ wod, status, onEdit, onPublish }) {
+function MobileWodCard({
+  wod,
+  status,
+  selected = false,
+  deleting = false,
+  onSelect,
+  onEdit,
+  onPublish,
+  onDelete,
+}) {
   const [menuOpen, setMenuOpen] = useState(false)
   const statusConfig = getMobileStatusConfig(status)
 
   return (
-    <article className="relative overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/45 p-2.5 shadow-2xl shadow-black/30">
+    <article
+      onClick={onSelect}
+      className={[
+        "relative overflow-hidden rounded-[1.05rem] border bg-black/45 p-2.5 shadow-2xl shadow-black/30 transition",
+        selected ? "border-orange-500/45 bg-orange-500/[0.08]" : "border-white/10",
+      ].join(" ")}
+    >
       <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-orange-500/10 blur-3xl" />
 
       <div className="relative z-10 grid grid-cols-[76px_minmax(0,1fr)_auto] gap-2">
@@ -782,7 +871,10 @@ function MobileWodCard({ wod, status, onEdit, onPublish }) {
         <div className="relative">
           <button
             type="button"
-            onClick={() => setMenuOpen((current) => !current)}
+            onClick={(event) => {
+              event.stopPropagation()
+              setMenuOpen((current) => !current)
+            }}
             className="flex h-8 w-7 items-center justify-center rounded-lg text-lg text-white/60"
             aria-label="Opciones"
           >
@@ -790,14 +882,27 @@ function MobileWodCard({ wod, status, onEdit, onPublish }) {
           </button>
 
           {menuOpen ? (
-            <div className="absolute right-0 top-8 z-30 w-36 overflow-hidden rounded-xl border border-white/10 bg-[#080808] shadow-2xl">
+            <div className="absolute right-0 top-8 z-30 w-40 overflow-hidden rounded-xl border border-white/10 bg-[#080808] shadow-2xl">
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setMenuOpen(false)
+                  onSelect?.()
+                }}
+                className="block w-full px-3 py-2 text-left text-xs font-bold text-white/80 hover:bg-white/[0.05]"
+              >
+                Ver WOD
+              </button>
+
               {status === "pendiente" ? (
                 <>
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.stopPropagation()
                       setMenuOpen(false)
-                      onEdit()
+                      onEdit?.()
                     }}
                     className="block w-full px-3 py-2 text-left text-xs font-bold text-white/80 hover:bg-white/[0.05]"
                   >
@@ -806,20 +911,30 @@ function MobileWodCard({ wod, status, onEdit, onPublish }) {
 
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.stopPropagation()
                       setMenuOpen(false)
-                      onPublish()
+                      onPublish?.()
                     }}
                     className="block w-full px-3 py-2 text-left text-xs font-bold text-orange-300 hover:bg-orange-500/10"
                   >
                     Programar
                   </button>
                 </>
-              ) : (
-                <div className="px-3 py-2 text-xs font-bold text-white/45">
-                  Solo lectura
-                </div>
-              )}
+              ) : null}
+
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  setMenuOpen(false)
+                  onDelete?.()
+                }}
+                disabled={deleting}
+                className="block w-full px-3 py-2 text-left text-xs font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-50"
+              >
+                {deleting ? "Eliminando..." : "Eliminar completo"}
+              </button>
             </div>
           ) : null}
         </div>
@@ -827,6 +942,7 @@ function MobileWodCard({ wod, status, onEdit, onPublish }) {
     </article>
   )
 }
+
 
 function WodThumb({ wod }) {
   const label = getWodThumbLabel(wod)
@@ -948,6 +1064,257 @@ function BackgroundOrbs() {
   )
 }
 
+function WodTable({
+  title,
+  subtitle,
+  loading,
+  error,
+  rows = [],
+  emptyText,
+  selectedWodId,
+  deletingId,
+  onCreate,
+  onSelect,
+  onEdit,
+  onPublish,
+  onDelete,
+}) {
+  return (
+    <section className="phoenix-card grid min-h-0 grid-rows-[auto_1fr] overflow-hidden p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-black text-white">{title}</h2>
+          <p className="text-xs text-white/45">
+            {loading ? "Cargando..." : `${rows.length} registro(s)`}
+          </p>
+          {subtitle ? (
+            <p className="mt-0.5 text-[11px] text-white/35">{subtitle}</p>
+          ) : null}
+        </div>
+
+        {onCreate ? (
+          <button
+            type="button"
+            onClick={onCreate}
+            className="rounded-xl border border-orange-500/25 bg-orange-500/15 px-4 py-2 text-xs font-black text-orange-300 transition hover:bg-orange-500/20"
+          >
+            Crear WOD
+          </button>
+        ) : null}
+      </div>
+
+      {loading ? (
+        <div className="rounded-2xl border border-white/10 bg-black/25 p-5 text-sm text-white/60">
+          Cargando WODs...
+        </div>
+      ) : error ? (
+        <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-5 text-sm text-red-200">
+          {error}
+        </div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-white/10 bg-black/25 p-5 text-sm text-white/60">
+          {emptyText}
+        </div>
+      ) : (
+        <div className="min-h-0 space-y-2 overflow-y-auto pr-1">
+          {rows.map((wod) => {
+            const status = getWodStatus(wod)
+
+            return (
+              <WodScheduleRow
+                key={wod.id}
+                wod={wod}
+                status={status}
+                selected={String(wod.id) === String(selectedWodId)}
+                deleting={String(deletingId || "") === String(wod.id)}
+                onSelect={() => onSelect?.(wod)}
+                onEdit={() => onEdit?.(wod)}
+                onPublish={() => onPublish?.(wod)}
+                onDelete={() => onDelete?.(wod)}
+              />
+            )
+          })}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function WodDetailModal({ wod, deleting, onClose, onEdit, onPublish, onDelete }) {
+  if (!wod) return null
+
+  const status = getWodStatus(wod)
+  const canEdit = status === "pendiente"
+
+  return (
+    <div className="fixed inset-0 z-[135] flex items-center justify-center p-2 sm:p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+        aria-label="Cerrar detalle WOD"
+      />
+
+      <section className="phoenix-card relative z-[136] grid max-h-[92dvh] w-full max-w-2xl grid-rows-[auto_1fr_auto] overflow-hidden p-0 shadow-[0_0_55px_rgba(249,115,22,0.18)]">
+        <div className="border-b border-orange-500/15 bg-orange-500/10 p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-400">
+                WOD seleccionado
+              </p>
+
+              <h2 className="mt-2 text-2xl font-black uppercase leading-tight text-white sm:text-3xl">
+                {wod.nombre || "WOD sin nombre"}
+              </h2>
+
+              <p className="mt-1 text-xs text-white/50">
+                {formatDateOnly(wod.fecha)} · {formatModalidad(wod.modalidad)}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/45 text-xl text-white/70 transition hover:bg-white/[0.06]"
+              aria-label="Cerrar"
+              title="Cerrar"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            <StatusBadge status={status} />
+            <WodTag>{formatModoRanking(wod.modo_ranking)}</WodTag>
+            <WodTag>{formatModalidad(wod.modalidad)}</WodTag>
+
+            {wod.duracion_estimada ? (
+              <WodTag>⏱️ {wod.duracion_estimada}</WodTag>
+            ) : null}
+
+            {wod.calorias_min && wod.calorias_max ? (
+              <WodTag>🔥 {wod.calorias_min} - {wod.calorias_max} kcal</WodTag>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="min-h-0 overflow-y-auto p-4 sm:p-5 [scrollbar-width:thin] [scrollbar-color:#f97316_#09090b]">
+          <p className="whitespace-pre-line text-sm leading-6 text-white/75">
+            {wod.descripcion || "Sin descripción disponible."}
+          </p>
+
+          {wod.calorias_nota ? (
+            <div className="mt-4 rounded-2xl border border-orange-500/15 bg-orange-500/10 p-3 text-xs leading-5 text-orange-100/70">
+              {wod.calorias_nota}
+            </div>
+          ) : null}
+
+          {wod.fecha_publicacion ? (
+            <div className="mt-4 rounded-2xl border border-white/10 bg-black/25 p-3 text-xs leading-5 text-white/50">
+              Publicación automática:{" "}
+              <span className="font-bold text-orange-300">
+                {formatDateTime(wod.fecha_publicacion)}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid gap-2 border-t border-white/10 bg-black/35 p-4 sm:grid-cols-3 sm:p-5">
+          {canEdit ? (
+            <>
+              <button
+                type="button"
+                onClick={onEdit}
+                className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs font-black uppercase text-white/75 transition hover:border-orange-400/40 hover:text-orange-300"
+              >
+                ✎ Editar
+              </button>
+
+              <button
+                type="button"
+                onClick={onPublish}
+                className="rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-xs font-black uppercase text-orange-300 transition hover:bg-orange-500/15"
+              >
+                🗓️ Programar
+              </button>
+            </>
+          ) : (
+            <div className="hidden sm:block" />
+          )}
+
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={deleting}
+            className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-black uppercase text-red-300 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {deleting ? "Eliminando..." : "Eliminar completo"}
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+
+function MobileWodSection({
+  title,
+  subtitle,
+  rows = [],
+  loading,
+  selectedWodId,
+  deletingId,
+  emptyText,
+  onSelect,
+  onEdit,
+  onPublish,
+  onDelete,
+}) {
+  return (
+    <section className="relative z-10 mb-4">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div>
+          <h2 className="text-xs font-black uppercase tracking-[0.06em] text-white/75">
+            {title}
+          </h2>
+
+          <p className="mt-0.5 text-[10px] text-white/35">{subtitle}</p>
+        </div>
+
+        <span className="shrink-0 text-[10px] text-white/35">
+          {rows.length} resultado(s)
+        </span>
+      </div>
+
+      <div className="grid gap-2">
+        {loading ? (
+          <MobileEmpty text="Cargando WODs..." />
+        ) : rows.length === 0 ? (
+          <MobileEmpty text={emptyText} />
+        ) : (
+          rows.map((wod) => {
+            const status = getWodStatus(wod)
+
+            return (
+              <MobileWodCard
+                key={wod.id}
+                wod={wod}
+                status={status}
+                selected={String(wod.id) === String(selectedWodId)}
+                deleting={String(deletingId || "") === String(wod.id)}
+                onSelect={() => onSelect?.(wod)}
+                onEdit={() => onEdit?.(wod)}
+                onPublish={() => onPublish?.(wod)}
+                onDelete={() => onDelete?.(wod)}
+              />
+            )
+          })
+        )}
+      </div>
+    </section>
+  )
+}
+
 function WodMetricCard({ icon, label, value }) {
   return (
     <article className="phoenix-card relative overflow-hidden p-4">
@@ -967,11 +1334,26 @@ function WodMetricCard({ icon, label, value }) {
   )
 }
 
-function WodScheduleRow({ wod, status, onEdit, onPublish }) {
+function WodScheduleRow({
+  wod,
+  status,
+  selected = false,
+  deleting = false,
+  onSelect,
+  onEdit,
+  onPublish,
+  onDelete,
+}) {
   const dateParts = getDateParts(wod.fecha)
 
   return (
-    <article className="group grid gap-2 rounded-2xl border border-orange-500/10 bg-black/25 p-3 transition hover:border-orange-500/30 hover:bg-orange-500/[0.04] md:grid-cols-[110px_1fr_auto]">
+    <article
+      onClick={onSelect}
+      className={[
+        "group grid cursor-pointer gap-2 rounded-2xl border bg-black/25 p-3 transition hover:border-orange-500/30 hover:bg-orange-500/[0.04] md:grid-cols-[110px_1fr_auto]",
+        selected ? "border-orange-500/45 bg-orange-500/[0.08]" : "border-orange-500/10",
+      ].join(" ")}
+    >
       <div className="rounded-xl border border-orange-500/15 bg-black/35 p-3 text-center">
         <div className="text-[11px] font-black uppercase tracking-[0.16em] text-white/45">
           {dateParts.weekday}
@@ -1006,11 +1388,25 @@ function WodScheduleRow({ wod, status, onEdit, onPublish }) {
       <div className="flex flex-wrap items-center justify-start gap-2 md:justify-end">
         <StatusBadge status={status} />
 
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onSelect?.()
+          }}
+          className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs font-bold text-white/70 transition hover:text-orange-300"
+        >
+          👁️ {selected ? "Viendo" : "Ver"}
+        </button>
+
         {status === "pendiente" ? (
           <>
             <button
               type="button"
-              onClick={onEdit}
+              onClick={(event) => {
+                event.stopPropagation()
+                onEdit?.()
+              }}
               className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs font-bold text-white/75 transition hover:border-orange-400/40 hover:text-orange-300"
             >
               ✎ Editar
@@ -1018,24 +1414,33 @@ function WodScheduleRow({ wod, status, onEdit, onPublish }) {
 
             <button
               type="button"
-              onClick={onPublish}
+              onClick={(event) => {
+                event.stopPropagation()
+                onPublish?.()
+              }}
               className="rounded-xl border border-orange-500/25 bg-orange-500/10 px-3 py-2 text-xs font-bold text-orange-300 transition hover:bg-orange-500/15"
             >
               🗓️ {wod.publicado ? "Reprogramar" : "Programar"}
             </button>
           </>
-        ) : (
-          <button
-            type="button"
-            className="rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-xs font-bold text-white/60"
-          >
-            👁️ Ver detalles
-          </button>
-        )}
+        ) : null}
+
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onDelete?.()
+          }}
+          disabled={deleting}
+          className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-300 transition hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {deleting ? "Eliminando..." : "Eliminar"}
+        </button>
       </div>
     </article>
   )
 }
+
 
 function WodTag({ children }) {
   return (
@@ -1067,6 +1472,81 @@ function StatusBadge({ status }) {
       {label[status] || "PENDIENTE"}
     </div>
   )
+}
+
+function filterMobileWods(rows = [], search = "", statusFilter = "todos") {
+  const term = String(search || "").trim().toLowerCase()
+  const todayIso = getTodayISO()
+
+  return (rows || []).filter((wod) => {
+    const status = getWodStatus(wod)
+    const isToday = String(wod.fecha || "") === todayIso
+
+    const matchesFilter =
+      statusFilter === "todos" ||
+      (statusFilter === "hoy" && isToday) ||
+      (statusFilter === "activos" && status === "activo") ||
+      (statusFilter === "borradores" && status === "pendiente") ||
+      (statusFilter === "historial" && status === "inactivo")
+
+    const matchesSearch =
+      !term ||
+      String(wod.nombre || "").toLowerCase().includes(term) ||
+      String(wod.descripcion || "").toLowerCase().includes(term) ||
+      String(wod.modo_ranking || "").toLowerCase().includes(term) ||
+      String(wod.modalidad || "").toLowerCase().includes(term)
+
+    return matchesFilter && matchesSearch
+  })
+}
+
+function isDateInCurrentWeek(value) {
+  if (!value) return false
+
+  const date = new Date(`${value}T00:00:00`)
+  if (Number.isNaN(date.getTime())) return false
+
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const day = today.getDay()
+  const mondayOffset = day === 0 ? -6 : 1 - day
+  const monday = new Date(today)
+  monday.setDate(today.getDate() + mondayOffset)
+  monday.setHours(0, 0, 0, 0)
+
+  const sunday = new Date(monday)
+  sunday.setDate(monday.getDate() + 6)
+  sunday.setHours(23, 59, 59, 999)
+
+  return date >= monday && date <= sunday
+}
+
+function sortWodsByDateAsc(a, b) {
+  const dateA = getWodSortDate(a)
+  const dateB = getWodSortDate(b)
+
+  return dateA - dateB
+}
+
+function sortWodsByDateDesc(a, b) {
+  const dateA = getWodSortDate(a)
+  const dateB = getWodSortDate(b)
+
+  return dateB - dateA
+}
+
+function getWodSortDate(wod) {
+  if (wod?.fecha) {
+    const date = new Date(`${wod.fecha}T00:00:00`).getTime()
+    if (!Number.isNaN(date)) return date
+  }
+
+  if (wod?.created_at) {
+    const date = new Date(wod.created_at).getTime()
+    if (!Number.isNaN(date)) return date
+  }
+
+  return 0
 }
 
 function getWodStatus(wod) {

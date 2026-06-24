@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { supabase } from "../supabase"
+import { isNativeApp } from "../lib/native/platform"
 
 const AuthContext = createContext()
 
@@ -149,7 +150,7 @@ export function AuthProvider({ children }) {
 
           if (!ok) {
             await denyAccess(
-              "Tu membresía está inactiva o vencida"
+              "No tienes mensualidad activa. Comunícate con administración para renovar tu acceso."
             )
             return
           }
@@ -234,6 +235,24 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = async () => {
+    // APK solamente:
+    // En la app móvil, salir funciona como "bloquear app".
+    // No hacemos signOut para conservar la sesión Supabase y permitir "Ingresar con huella".
+    if (isNativeApp()) {
+      setUser(null)
+      setRol(null)
+      setNombre(null)
+      setProfileLoading(false)
+      setBirthdayPopup(null)
+      setMensualidadWarning(null)
+      setLoading(false)
+
+      window.location.href = "/login"
+      return
+    }
+
+    // WEB intacta:
+    // En navegador normal se mantiene el logout original.
     await supabase.auth.signOut()
     window.location.href = "/"
   }

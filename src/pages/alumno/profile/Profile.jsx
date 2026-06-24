@@ -2,10 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../../../supabase"
 import { mensualidadStatusInfo } from "../../../utils/mensualidades"
+import { useAuth } from "../../../context/AuthContext"
 
 import AlumnoSidebar from "../dashboard/components/AlumnoSidebar"
 import AlumnoMobileNav from "../shared/AlumnoMobileNav"
 import pho3nixLogo from "../../../assets/pho3nix-login-logo.png"
+
+import NativeSecurityCard from "../../../components/security/NativeSecurityCard"
 
 const DEFAULT_STATE = {
   profile: null,
@@ -16,6 +19,7 @@ const DEFAULT_STATE = {
 
 export default function ProfileAlumno() {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   const fileInputRef = useRef(null)
 
   const [loading, setLoading] = useState(true)
@@ -362,6 +366,7 @@ export default function ProfileAlumno() {
           uploading={uploading}
           onPickImage={handlePickImage}
           onEdit={() => setEditOpen(true)}
+          onLogout={logout}
         />
       </div>
 
@@ -402,16 +407,15 @@ function ProfileMobile({
   uploading,
   onPickImage,
   onEdit,
+  onLogout,
 }) {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false)
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut()
+      await onLogout?.()
     } catch (error) {
       console.error("Error cerrando sesión:", error)
-    } finally {
-      window.location.replace("/")
     }
   }
 
@@ -1066,6 +1070,9 @@ function ChangePasswordModal({ profile, onClose, onDone }) {
             >
               {saving ? "Guardando..." : "Guardar nueva contraseña"}
             </button>
+			
+			<NativeSecurityCard />
+			
           </div>
         </div>
       </form>
