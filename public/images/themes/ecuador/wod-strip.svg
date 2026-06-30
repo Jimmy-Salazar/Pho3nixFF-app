@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="260" viewBox="0 0 900 260">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1">
+      <stop offset="0" stop-color="#02050b"/>
+      <stop offset=".62" stop-color="#030712"/>
+      <stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="flag" x1="0" x2="1">
+      <stop offset="0" stop-color="#facc15"/>
+      <stop offset=".52" stop-color="#facc15"/>
+      <stop offset=".53" stop-color="#2563eb"/>
+      <stop offset=".78" stop-color="#2563eb"/>
+      <stop offset=".79" stop-color="#ef4444"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="12"/></filter>
+  </defs>
+  <rect width="900" height="260" fill="url(#bg)"/>
+  <circle cx="760" cy="75" r="120" fill="#facc15" opacity=".12" filter="url(#blur)"/>
+
+  <g opacity=".42">
+    <path d="M450 58c150 48 280 42 430 0v128c-150 46-285 48-430 2V58Z" fill="url(#flag)"/>
+    <path d="M470 86c123 26 258 20 385-7" stroke="#fff" stroke-opacity=".18" stroke-width="7" fill="none"/>
+  </g>
+
+  <g opacity=".22">
+    <circle cx="565" cy="176" r="20" fill="#facc15"/>
+    <circle cx="612" cy="164" r="26" fill="#facc15"/>
+    <circle cx="664" cy="171" r="24" fill="#facc15"/>
+    <circle cx="718" cy="156" r="29" fill="#facc15"/>
+    <circle cx="772" cy="166" r="25" fill="#facc15"/>
+    <rect x="530" y="176" width="285" height="55" fill="#facc15"/>
+  </g>
+
+  <text x="602" y="132" font-family="Arial Black, Arial, sans-serif" font-size="46" fill="#facc15" opacity=".88">ECUADOR</text>
+  <text x="604" y="166" font-family="Arial, sans-serif" font-size="19" font-weight="900" fill="#ffffff" opacity=".60">PHO3NIX ALIENTA A LA TRI</text>
+
+  <g opacity=".58">
+    <rect x="502" y="44" width="12" height="7" rx="2" fill="#facc15" transform="rotate(28 508 48)"/>
+    <rect x="720" y="38" width="12" height="7" rx="2" fill="#2563eb" transform="rotate(-22 726 42)"/>
+    <rect x="835" y="80" width="12" height="7" rx="2" fill="#ef4444" transform="rotate(18 841 84)"/>
+  </g>
+</svg>

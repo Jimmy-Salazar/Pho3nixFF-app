@@ -290,7 +290,7 @@ export default function ProfileAlumno() {
   }
 
   return (
-    <div className="phoenix-profile-page-root fixed inset-0 z-[70] overflow-hidden bg-[#050505] text-white">
+    <div className="fixed inset-0 z-[70] overflow-hidden bg-[#050505] text-white">
       {/* DESKTOP: se mantiene la estructura tipo PC */}
       <div className="hidden h-full overflow-hidden lg:grid lg:grid-cols-[270px_minmax(0,1fr)]">
         <AlumnoSidebar navigate={navigate} membership={membership} />
@@ -420,7 +420,7 @@ function ProfileMobile({
   }
 
   return (
-    <main className="phoenix-profile-page phoenix-student-dashboard h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
+    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
       <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <BackgroundOrbs />
 
@@ -436,7 +436,7 @@ function ProfileMobile({
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="phoenix-themed-logo h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
+              className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
             />
 
             <div className="min-w-0">
@@ -541,8 +541,8 @@ function ProfileIdentityCard({
   onPickImage,
 }) {
   return (
-    <section className="phoenix-themed-hero-card relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
-      <div className="phoenix-profile-hero-bg phoenix-themed-hero-bg absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-14" />
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
+      <div className="absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-14" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_84%_28%,rgba(249,115,22,0.20),transparent_34%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.94)_52%,rgba(5,5,5,0.70)_100%)]" />
       <div className="absolute -right-20 top-10 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
 
@@ -611,7 +611,7 @@ function MobilePersonalInfoCard({ profile, loading, onEdit }) {
   const age = getProfileAge(profile?.fecha_nacimiento)
 
   return (
-    <section className="phoenix-themed-section relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
@@ -695,7 +695,7 @@ function MobileMembershipCleanCard({ membership, mensualidad, loading }) {
   const offset = circumference - (progress / 100) * circumference
 
   return (
-    <section className="phoenix-themed-section relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_34%,rgba(249,115,22,0.18),transparent_32%)]" />
 
       <div className="relative z-10">

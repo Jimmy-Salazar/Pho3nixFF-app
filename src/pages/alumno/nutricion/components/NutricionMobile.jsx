@@ -56,7 +56,7 @@ export default function NutricionMobile({
   }
 
   return (
-    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white lg:hidden">
+    <main className="phoenix-nutrition-screen h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white lg:hidden">
       <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <BackgroundOrbs />
 
@@ -72,7 +72,7 @@ export default function NutricionMobile({
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
+              className="phoenix-nutrition-logo h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
             />
 
             <div className="min-w-0">

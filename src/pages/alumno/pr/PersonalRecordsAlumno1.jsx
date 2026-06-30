@@ -323,7 +323,7 @@ export default function PersonalRecordsAlumno() {
   }
 
   return (
-    <div className="phoenix-pr-root fixed inset-0 z-[70] overflow-hidden bg-[#050505] text-white">
+    <div className="fixed inset-0 z-[70] overflow-hidden bg-[#050505] text-white">
       <div className="hidden h-full overflow-hidden lg:grid lg:grid-cols-[270px_minmax(0,1fr)]">
         <AlumnoSidebar navigate={navigate} membership={membership} />
 
@@ -504,7 +504,7 @@ function PersonalRecordsMobile({
   }
 
   return (
-    <main className="phoenix-pr-screen h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
+    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
       <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <BackgroundOrbs />
 
@@ -520,7 +520,7 @@ function PersonalRecordsMobile({
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="phoenix-pr-logo h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
+              className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
             />
 
             <div className="min-w-0">
@@ -553,10 +553,10 @@ function PersonalRecordsMobile({
         {error ? <Alert type="error" text={error} /> : null}
         {success ? <Alert type="success" text={success} /> : null}
 
-        <section className="phoenix-pr-hero relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
-          <div className="phoenix-pr-hero-bg absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-100" />
-          <div className="phoenix-pr-hero-overlay absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_80%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
-          <div className="phoenix-pr-hero-glow absolute -right-20 top-14 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
+        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
+          <div className="absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-100" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_80%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
+          <div className="absolute -right-20 top-14 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
 
           <div className="relative z-10 p-3.5">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400">
@@ -630,7 +630,7 @@ function PersonalRecordsMobile({
           hasSelection={!!selectedEvolutionPr}
         />
 
-        <section className="phoenix-pr-callout relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
+        <section className="relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-2xl">
               🐦
@@ -711,7 +711,7 @@ function HeroInfo({ icon, label, value, accent = false }) {
 
 function MobileMetricCard({ title, value, footer, icon }) {
   return (
-    <article className="phoenix-pr-metric-card relative min-h-[122px] overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <article className="relative min-h-[122px] overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(249,115,22,0.15),transparent_36%)]" />
 
       <div className="relative z-10">
@@ -748,7 +748,7 @@ function MobileAllPrTable({ items = [], loading = false, onSelect, onOpenGlobal 
   const pageItems = items.slice(startIndex, endIndex)
 
   return (
-    <section className="phoenix-pr-panel relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
@@ -774,7 +774,7 @@ function MobileAllPrTable({ items = [], loading = false, onSelect, onOpenGlobal 
         <MobileEmpty text="Aún no tienes marcas registradas." />
       ) : (
         <>
-          <div className="phoenix-pr-table overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
+          <div className="overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
             <div className="grid grid-cols-[minmax(0,1fr)_68px_78px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
               <span>Ejercicio</span>
               <span className="text-center">Marca</span>
@@ -892,7 +892,7 @@ function MobileEvolutionCard({ rows = [], destacado, hasSelection = false }) {
   const chart = buildMobileEvolutionChart(rows)
 
   return (
-    <section className="phoenix-pr-panel relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase tracking-[0.1em] text-white/70">
@@ -915,7 +915,7 @@ function MobileEvolutionCard({ rows = [], destacado, hasSelection = false }) {
       ) : rows.length === 0 ? (
         <MobileEmpty text="Este ejercicio todavía no tiene registros para mostrar." />
       ) : (
-        <div className="phoenix-pr-chart-card overflow-hidden rounded-xl border border-white/10 bg-black/25 p-3">
+        <div className="overflow-hidden rounded-xl border border-white/10 bg-black/25 p-3">
           <svg
             viewBox={`0 0 ${chart.width} ${chart.height}`}
             className="h-[180px] w-full overflow-visible"
@@ -1193,7 +1193,7 @@ function MobileModal({ title, onClose, children }) {
         aria-label="Cerrar"
       />
 
-      <section className="phoenix-pr-modal relative z-10 flex max-h-[84dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.6rem] border border-orange-500/25 bg-[#060606] shadow-[0_0_60px_rgba(249,115,22,0.20)]">
+      <section className="relative z-10 flex max-h-[84dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.6rem] border border-orange-500/25 bg-[#060606] shadow-[0_0_60px_rgba(249,115,22,0.20)]">
         <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-2.5">
           <p className="text-xs font-black uppercase tracking-[0.12em] text-orange-400">
             {title}
@@ -1221,7 +1221,7 @@ function MobileRegisterPanel({ ejercicios, form, setForm, saving, onSubmit }) {
   return (
     <form
       onSubmit={onSubmit}
-      className="phoenix-pr-register-form rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-4"
+      className="rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-4"
     >
       <p className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-orange-400">
         Registrar nueva marca
@@ -2043,11 +2043,11 @@ function EmptyCard({ text }) {
 
 function BackgroundOrbs() {
   return (
-    <div className="phoenix-pr-orbs pointer-events-none absolute inset-0">
-      <div className="phoenix-pr-orb phoenix-pr-orb-a absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-600/20 blur-3xl" />
-      <div className="phoenix-pr-orb phoenix-pr-orb-b absolute right-0 top-0 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
-      <div className="phoenix-pr-orb phoenix-pr-orb-c absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
-    </div>
+    <>
+      <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-600/20 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
+    </>
   )
 }
 

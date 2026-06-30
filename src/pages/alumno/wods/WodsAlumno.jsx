@@ -118,7 +118,7 @@ export default function WodsAlumno() {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] w-screen max-w-full overflow-hidden bg-[#050505] text-white">
+    <div className="phoenix-wods-root fixed inset-0 z-[70] w-screen max-w-full overflow-hidden bg-[#050505] text-white">
       {/* MOBILE NUEVO: solo cambia el frontend móvil. La lógica y el menú inferior se mantienen. */}
       <div className="lg:hidden">
         <WodAlumnoMobilePro

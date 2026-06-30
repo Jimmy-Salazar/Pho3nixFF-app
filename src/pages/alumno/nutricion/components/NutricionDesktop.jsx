@@ -42,7 +42,7 @@ export default function NutricionDesktop({
   const metaLabel = metasLabels?.[metaActiva] || "Objetivo nutricional"
 
   return (
-    <main className="min-w-0 w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] lg:overflow-hidden">
+    <main className="phoenix-nutrition-desktop min-w-0 w-full max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] lg:overflow-hidden">
       <section className="relative min-h-dvh w-full max-w-full overflow-x-hidden p-3 pb-28 sm:p-4 sm:pb-28 lg:h-dvh lg:overflow-hidden lg:p-4">
         <BackgroundOrbs />
 

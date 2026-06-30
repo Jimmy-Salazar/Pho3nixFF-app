@@ -552,7 +552,7 @@ function AlumnoDashboardMobilePro({
   }
 
   return (
-    <main className="phoenix-student-dashboard h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
+    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
       <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <MobileDashboardOrbs />
 
@@ -568,7 +568,7 @@ function AlumnoDashboardMobilePro({
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="phoenix-theme-logo h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
+              className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
             />
 
             <div className="min-w-0">
@@ -608,13 +608,13 @@ function AlumnoDashboardMobilePro({
           </div>
         ) : null}
 
-        <section className="phoenix-dashboard-hero relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
-          <div className="phoenix-dashboard-hero-bg absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-100" />
-          <div className="phoenix-dashboard-hero-overlay absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_80%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
-          <div className="phoenix-dashboard-hero-glow absolute -right-20 top-14 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
+        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
+          <div className="absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-100" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_80%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
+          <div className="absolute -right-20 top-14 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
 
           <div className="relative z-10 p-3.5">
-            <p className="phoenix-kicker text-[10px] font-black uppercase tracking-[0.2em] text-orange-400">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400">
               Bienvenido 👋
             </p>
 
@@ -624,12 +624,12 @@ function AlumnoDashboardMobilePro({
 
             <p className="mt-3 max-w-[260px] text-sm leading-5 text-white/65">
               Cada día es una nueva oportunidad para ser tu{" "}
-              <span className="phoenix-accent-text font-black text-orange-400">
+              <span className="font-black text-orange-400">
                 mejor versión.
               </span>
             </p>
 
-            <div className="phoenix-membership-pill mt-2 rounded-2x1 border border-emerald-500/30 bg-emerald-500/10 p-2">
+            <div className="mt-2 rounded-2x1 border border-emerald-500/30 bg-emerald-500/10 p-2">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p
@@ -655,7 +655,7 @@ function AlumnoDashboardMobilePro({
             </div>
 
             <div className="mt-3 grid grid-cols-[0.8fr_1.2fr] gap-2.5">
-              <div className="phoenix-hero-mini-card rounded-2xl border border-white/10 bg-black/35 p-3">
+              <div className="rounded-2xl border border-white/10 bg-black/35 p-3">
                 <p className="text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
                   🔥 Esta semana
                 </p>
@@ -675,7 +675,7 @@ function AlumnoDashboardMobilePro({
           </div>
         </section>
 
-        <section className="phoenix-dashboard-panel relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
           <p className="mb-3 text-xs font-black uppercase tracking-[0.1em] text-white/70">
             Resumen rápido
           </p>
@@ -711,7 +711,7 @@ function AlumnoDashboardMobilePro({
           </div>
         </section>
 
-        <section className="phoenix-dashboard-panel relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
@@ -752,7 +752,7 @@ function AlumnoDashboardMobilePro({
           loading={loading}
         />
 
-        <section className="phoenix-dashboard-callout relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
+        <section className="relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-orange-500/25 bg-orange-500/10 text-2xl">
               🐦
@@ -796,7 +796,7 @@ function WeekDots({ completed = 0, registeredDays = [] }) {
   const registeredIndexes = buildRegisteredWeekdaySet(registeredDays)
 
   return (
-    <div className="phoenix-week-dots rounded-2xl border border-white/10 bg-black/35 p-2.5">
+    <div className="rounded-2xl border border-white/10 bg-black/35 p-2.5">
       <div className="grid grid-cols-7 gap-1">
         {labels.map((label, index) => {
           const done =
@@ -849,8 +849,8 @@ function buildRegisteredWeekdaySet(days = []) {
 
 function MobileDashboardMetric({ icon, title, value, footer }) {
   return (
-    <article className="phoenix-dashboard-metric relative flex min-h-[96px] min-w-0 items-center justify-center overflow-hidden rounded-[1rem] border border-white/10 bg-black/45 px-1.5 py-2 text-center shadow-2xl shadow-black/30">
-      <div className="phoenix-dashboard-metric-glow absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(249,115,22,0.15),transparent_36%)]" />
+    <article className="relative flex min-h-[96px] min-w-0 items-center justify-center overflow-hidden rounded-[1rem] border border-white/10 bg-black/45 px-1.5 py-2 text-center shadow-2xl shadow-black/30">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(249,115,22,0.15),transparent_36%)]" />
 
       <div className="relative z-10 min-w-0">
         <span className="block text-base leading-none text-orange-400">
@@ -881,10 +881,10 @@ function MobileDashboardWodCard({ wod, loading, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="phoenix-dashboard-wod-card relative w-full overflow-hidden rounded-[1.1rem] border border-white/10 bg-black/35 p-3 text-left transition active:scale-[0.99] active:border-orange-500/35"
+      className="relative w-full overflow-hidden rounded-[1.1rem] border border-white/10 bg-black/35 p-3 text-left transition active:scale-[0.99] active:border-orange-500/35"
     >
-      <div className="phoenix-dashboard-wod-bg absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-16" />
-      <div className="phoenix-dashboard-wod-overlay absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/45" />
+      <div className="absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-16" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black via-black/85 to-black/45" />
 
       <div className="relative z-10 grid grid-cols-[62px_minmax(0,1fr)_20px] items-center gap-3">
         <div className="rounded-xl border border-orange-500/25 bg-orange-500/10 p-2 text-center">
@@ -936,7 +936,7 @@ function MobileDashboardWeekProgress({
   const offset = circumference - (progress / 100) * circumference
 
   return (
-    <section className="phoenix-dashboard-panel relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.1em] text-white/70">
@@ -1139,7 +1139,7 @@ function MobileAnnouncementsPanel() {
 
   return (
     <>
-      <section className="phoenix-dashboard-panel relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+      <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
@@ -1298,7 +1298,7 @@ function MobileBirthdayCommunity({ birthdays = [], loading = false }) {
   const visibleBirthdays = birthdays.slice(0, 5)
 
   return (
-    <section className="phoenix-dashboard-panel relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
@@ -1381,11 +1381,11 @@ function firstTwoNames(value) {
 
 function MobileDashboardOrbs() {
   return (
-    <div className="phoenix-dashboard-orbs pointer-events-none absolute inset-0">
-      <div className="phoenix-dashboard-orb phoenix-dashboard-orb-a absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-600/20 blur-3xl" />
-      <div className="phoenix-dashboard-orb phoenix-dashboard-orb-b absolute right-0 top-0 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
-      <div className="phoenix-dashboard-orb phoenix-dashboard-orb-c absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
-    </div>
+    <>
+      <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-600/20 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
+    </>
   )
 }
 

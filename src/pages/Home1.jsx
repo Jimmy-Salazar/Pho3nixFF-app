@@ -293,16 +293,16 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="phoenix-home-page relative h-[100dvh] w-full overflow-hidden bg-black text-white">
+    <main className="relative h-[100dvh] w-full overflow-hidden bg-black text-white">
       <div
-        className="phoenix-home-bg absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url("${HERO_IMAGE_URL}")`,
         }}
       />
 
       <div className="pointer-events-none absolute inset-0 z-[1] hidden items-center justify-center lg:flex">
-        <div className="phoenix-home-watermark translate-x-[18%] translate-y-[14%] text-[12rem] font-black uppercase tracking-[0.16em] text-orange-500/10 xl:text-[16rem]">
+        <div className="translate-x-[18%] translate-y-[14%] text-[12rem] font-black uppercase tracking-[0.16em] text-orange-500/10 xl:text-[16rem]">
           PHO3NIX
         </div>
       </div>
@@ -312,23 +312,23 @@ export default function Home() {
           src={pho3nixLogo}
           alt=""
           aria-hidden="true"
-          className="phoenix-home-bg-logo absolute right-[-72px] top-[13%] h-[290px] w-[290px] object-contain opacity-[0.11] mix-blend-screen blur-[0.4px] sm:right-[-40px] sm:top-[9%] sm:h-[420px] sm:w-[420px] md:right-[10%] md:top-[8%] md:h-[520px] md:w-[520px] md:opacity-[0.16] lg:right-[16%] lg:top-[3%] lg:h-[720px] lg:w-[720px] lg:opacity-[0.18]"
+          className="absolute right-[-72px] top-[13%] h-[290px] w-[290px] object-contain opacity-[0.11] mix-blend-screen blur-[0.4px] sm:right-[-40px] sm:top-[9%] sm:h-[420px] sm:w-[420px] md:right-[10%] md:top-[8%] md:h-[520px] md:w-[520px] md:opacity-[0.16] lg:right-[16%] lg:top-[3%] lg:h-[720px] lg:w-[720px] lg:opacity-[0.18]"
         />
 
-        <div className="phoenix-home-main-glow absolute right-[-48px] top-[20%] h-[280px] w-[280px] rounded-full bg-orange-500/13 blur-[80px] sm:right-[0%] sm:h-[380px] sm:w-[380px] md:right-[17%] md:top-[18%] md:h-[520px] md:w-[520px] md:bg-orange-500/20 md:blur-[120px]" />
+        <div className="absolute right-[-48px] top-[20%] h-[280px] w-[280px] rounded-full bg-orange-500/13 blur-[80px] sm:right-[0%] sm:h-[380px] sm:w-[380px] md:right-[17%] md:top-[18%] md:h-[520px] md:w-[520px] md:bg-orange-500/20 md:blur-[120px]" />
       </div>
 
-      <div className="phoenix-home-overlay-primary absolute inset-0 z-[3] bg-[radial-gradient(circle_at_72%_45%,rgba(249,115,22,0.18),transparent_34%),linear-gradient(90deg,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.84)_35%,rgba(0,0,0,0.42)_65%,rgba(0,0,0,0.80)_100%)]" />
-      <div className="phoenix-home-overlay-secondary absolute inset-0 z-[4] bg-[linear-gradient(180deg,rgba(0,0,0,0.66)_0%,rgba(0,0,0,0.08)_44%,rgba(0,0,0,0.90)_100%)]" />
-      <div className="phoenix-home-orb-a absolute -left-24 bottom-12 z-[5] h-72 w-72 rounded-full bg-orange-600/20 blur-3xl" />
-      <div className="phoenix-home-orb-b absolute right-[22%] top-24 z-[5] h-96 w-96 rounded-full bg-red-500/10 blur-3xl" />
+      <div className="absolute inset-0 z-[3] bg-[radial-gradient(circle_at_72%_45%,rgba(249,115,22,0.18),transparent_34%),linear-gradient(90deg,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.84)_35%,rgba(0,0,0,0.42)_65%,rgba(0,0,0,0.80)_100%)]" />
+      <div className="absolute inset-0 z-[4] bg-[linear-gradient(180deg,rgba(0,0,0,0.66)_0%,rgba(0,0,0,0.08)_44%,rgba(0,0,0,0.90)_100%)]" />
+      <div className="absolute -left-24 bottom-12 z-[5] h-72 w-72 rounded-full bg-orange-600/20 blur-3xl" />
+      <div className="absolute right-[22%] top-24 z-[5] h-96 w-96 rounded-full bg-red-500/10 blur-3xl" />
 
-      <header className="phoenix-home-header relative z-20 flex h-[58px] items-center justify-between px-3 sm:h-[76px] sm:px-8 lg:px-14">
+      <header className="relative z-20 flex h-[58px] items-center justify-between px-3 sm:h-[76px] sm:px-8 lg:px-14">
         <Link to="/" className="flex items-center gap-2 sm:gap-3">
           <img
             src={pho3nixLogo}
             alt="PHO3NIX"
-            className="phoenix-home-logo h-8 w-8 object-contain sm:h-14 sm:w-14"
+            className="h-8 w-8 object-contain sm:h-14 sm:w-14"
           />
 
           <div className="leading-none">
@@ -385,24 +385,24 @@ export default function Home() {
 
           <Link
             to="/login"
-            className="phoenix-home-login rounded-md border border-orange-500/80 bg-black/40 px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.03em] text-orange-300 shadow-[0_0_24px_rgba(249,115,22,0.18)] transition hover:bg-orange-500 hover:text-black sm:rounded-xl sm:px-5 sm:py-3 sm:text-sm"
+            className="rounded-md border border-orange-500/80 bg-black/40 px-1.5 py-1 text-[9px] font-black uppercase tracking-[0.03em] text-orange-300 shadow-[0_0_24px_rgba(249,115,22,0.18)] transition hover:bg-orange-500 hover:text-black sm:rounded-xl sm:px-5 sm:py-3 sm:text-sm"
           >
             {t("home.login", "Iniciar sesión")}
           </Link>
         </div>
       </header>
 
-      <section className="phoenix-home-content relative z-10 flex h-[calc(100dvh-58px)] flex-col justify-between px-3 pb-[46px] sm:h-[calc(100dvh-76px)] sm:px-8 sm:pb-4 lg:px-14">
+      <section className="relative z-10 flex h-[calc(100dvh-58px)] flex-col justify-between px-3 pb-[46px] sm:h-[calc(100dvh-76px)] sm:px-8 sm:pb-4 lg:px-14">
         <div className="grid flex-1 grid-cols-1 items-center lg:grid-cols-[minmax(420px,0.68fr)_1fr]">
           <div className="max-w-[620px] -translate-y-3 pt-1 sm:-translate-y-3 lg:-translate-y-4 lg:pt-0">
-            <div className="phoenix-home-accent-line mb-2 h-1 w-16 rounded-full bg-orange-500 shadow-[0_0_18px_rgba(249,115,22,0.9)] sm:mb-3 sm:w-24" />
+            <div className="mb-2 h-1 w-16 rounded-full bg-orange-500 shadow-[0_0_18px_rgba(249,115,22,0.9)] sm:mb-3 sm:w-24" />
 
             <h1 className="text-[2rem] font-black uppercase leading-[0.9] tracking-tight min-[390px]:text-[2.3rem] sm:text-[4.5rem] lg:text-[5.4rem] xl:text-[6.3rem]">
               <span className="block text-white drop-shadow-[0_4px_16px_rgba(255,255,255,0.15)]">
                 {t("home.hero.renace", "Renace.")}
               </span>
               <span className="block text-white">{t("home.hero.entrena", "Entrena.")}</span>
-              <span className="phoenix-home-gradient-word block bg-gradient-to-r from-orange-500 via-red-500 to-orange-300 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-orange-500 via-red-500 to-orange-300 bg-clip-text text-transparent">
                 {t("home.hero.superate", "Supérate.")}
               </span>
             </h1>
@@ -418,7 +418,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setActivePopup("join")}
-                className="phoenix-home-join-btn inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-[11px] font-black uppercase text-black shadow-[0_0_26px_rgba(249,115,22,0.35)] transition hover:bg-orange-400 sm:gap-3 sm:rounded-xl sm:px-7 sm:py-3 sm:text-sm"
+                className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-[11px] font-black uppercase text-black shadow-[0_0_26px_rgba(249,115,22,0.35)] transition hover:bg-orange-400 sm:gap-3 sm:rounded-xl sm:px-7 sm:py-3 sm:text-sm"
               >
                 {t("home.join.cta", "Únete a PHO3NIX")}
                 <span>→</span>
@@ -432,7 +432,7 @@ export default function Home() {
                 return (
                   <div
                     key={item.label}
-                    className="phoenix-home-stat-card aspect-square rounded-xl border border-orange-500/25 bg-black/40 p-1.5 text-center shadow-[0_0_18px_rgba(249,115,22,0.10)] backdrop-blur-md sm:rounded-2xl sm:p-4"
+                    className="aspect-square rounded-xl border border-orange-500/25 bg-black/40 p-1.5 text-center shadow-[0_0_18px_rgba(249,115,22,0.10)] backdrop-blur-md sm:rounded-2xl sm:p-4"
                   >
                     <Icon className="mx-auto h-4 w-4 text-orange-500 sm:h-7 sm:w-7" strokeWidth={2.5} />
                     <div className="mt-1 text-[7px] font-black uppercase text-white sm:text-xs">
@@ -459,7 +459,7 @@ export default function Home() {
                 key={item.key}
                 type="button"
                 onClick={() => setActivePopup(item.key)}
-                className="phoenix-home-info-card group min-h-[52px] rounded-xl border border-orange-500/25 bg-black/45 p-1.5 text-center shadow-[0_0_34px_rgba(249,115,22,0.11)] backdrop-blur-md transition hover:-translate-y-1 hover:border-orange-400/60 hover:bg-black/60 sm:min-h-[128px] sm:rounded-2xl sm:p-5 sm:text-left"
+                className="group min-h-[52px] rounded-xl border border-orange-500/25 bg-black/45 p-1.5 text-center shadow-[0_0_34px_rgba(249,115,22,0.11)] backdrop-blur-md transition hover:-translate-y-1 hover:border-orange-400/60 hover:bg-black/60 sm:min-h-[128px] sm:rounded-2xl sm:p-5 sm:text-left"
               >
                 <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-start sm:gap-3">
                   <Icon
@@ -485,7 +485,7 @@ export default function Home() {
           })}
         </div>
 
-        <div className="phoenix-home-footer relative z-10 flex items-center justify-between pt-1 text-[9px] text-white/45 sm:pt-2 sm:text-[11px]">
+        <div className="relative z-10 flex items-center justify-between pt-1 text-[9px] text-white/45 sm:pt-2 sm:text-[11px]">
           <div className="hidden items-center gap-2 sm:flex">
             <img
               src={lycanLogo}
@@ -509,7 +509,7 @@ export default function Home() {
             target="_blank"
             rel="noreferrer"
             aria-label={item.label}
-            className="phoenix-home-social-link flex h-11 w-11 items-center justify-center rounded-full border border-orange-500/35 bg-black/45 text-lg font-black text-orange-300 shadow-[0_0_22px_rgba(249,115,22,0.12)] backdrop-blur-md transition hover:border-orange-400 hover:bg-orange-500 hover:text-black"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-orange-500/35 bg-black/45 text-lg font-black text-orange-300 shadow-[0_0_22px_rgba(249,115,22,0.12)] backdrop-blur-md transition hover:border-orange-400 hover:bg-orange-500 hover:text-black"
             title={item.label}
           >
             {item.icon}
@@ -524,7 +524,7 @@ export default function Home() {
             href={item.href}
             target="_blank"
             rel="noreferrer"
-            className="phoenix-home-social-link flex h-8 w-8 items-center justify-center rounded-full border border-orange-500/35 bg-black/60 text-sm font-black text-orange-300 shadow-[0_0_18px_rgba(249,115,22,0.12)]"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-orange-500/35 bg-black/60 text-sm font-black text-orange-300 shadow-[0_0_18px_rgba(249,115,22,0.12)]"
             aria-label={item.label}
           >
             {item.icon}
@@ -550,8 +550,8 @@ function HomePopup({ title, type, newsItems, t, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-3 backdrop-blur-sm sm:px-4">
-      <div className="phoenix-home-popup relative max-h-[92dvh] w-full max-w-3xl overflow-hidden rounded-[1.35rem] border border-orange-500/30 bg-[#080b12] shadow-[0_0_70px_rgba(249,115,22,0.28)] sm:rounded-[2rem]">
-        <div className="phoenix-home-popup-glow absolute -right-20 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+      <div className="relative max-h-[92dvh] w-full max-w-3xl overflow-hidden rounded-[1.35rem] border border-orange-500/30 bg-[#080b12] shadow-[0_0_70px_rgba(249,115,22,0.28)] sm:rounded-[2rem]">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
         <div className="relative z-10 border-b border-white/10 px-4 py-3 sm:px-7 sm:py-4">
           <div className="flex items-center justify-between gap-4">
             <div>

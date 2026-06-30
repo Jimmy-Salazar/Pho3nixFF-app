@@ -14,7 +14,7 @@ export function NutricionIntro({ score }) {
   const scoreValue = Number.isFinite(numericScore) ? Math.max(0, Math.min(100, numericScore)) : 0
 
   return (
-    <section className="relative z-10 mb-3 flex items-start justify-between gap-3">
+    <section className="phoenix-nutrition-hero relative z-10 mb-3 flex items-start justify-between gap-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-3.5 shadow-2xl shadow-black/40">
       <div className="min-w-0 flex-1">
         <h1 className="text-2xl font-black uppercase leading-none tracking-tight text-white">
           Nutrición
@@ -94,7 +94,7 @@ export function DatosAtletaCard({
 
   return (
     <>
-      <article className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+      <article className="phoenix-nutrition-card relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_12%,rgba(249,115,22,0.16),transparent_42%)]" />
 
         <div className="relative z-10">
@@ -194,7 +194,7 @@ function MetricDisplay({ label, value, unit }) {
 function EditAthleteModal({ draft, setDraft, saving, analyzing, onClose, onSave }) {
   return (
     <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/75 px-3 py-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-[#080808] p-4 shadow-2xl shadow-black/60">
+      <div className="phoenix-nutrition-modal w-full max-w-md overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-[#080808] p-4 shadow-2xl shadow-black/60">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.14em] text-orange-400">
@@ -299,7 +299,7 @@ export function RangoReferenciaCard({ referencia, hasReference }) {
   const diferenciaInfo = getDiferenciaInfo(referencia?.diferenciaRango)
 
   return (
-    <article className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <article className="phoenix-nutrition-card relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <CardTitle
         title="Rango saludable"
         subtitle="Referencia según estatura"
@@ -310,7 +310,7 @@ export function RangoReferenciaCard({ referencia, hasReference }) {
         <EmptyCard text="Ingresa peso y estatura para calcular tu rango de referencia, IMC y diferencia." />
       ) : (
         <>
-          <div className="rounded-[1.15rem] border border-orange-500/20 bg-orange-500/10 p-3 text-center">
+          <div className="phoenix-nutrition-highlight rounded-[1.15rem] border border-orange-500/20 bg-orange-500/10 p-3 text-center">
             <p className="text-[10px] font-black uppercase tracking-[0.14em] text-orange-300">
               Rango estimado
             </p>
@@ -323,7 +323,7 @@ export function RangoReferenciaCard({ referencia, hasReference }) {
           </div>
 
           <div className="mt-2 grid grid-cols-2 gap-2">
-            <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
+            <div className="phoenix-nutrition-mini-card rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
               <p className="text-[9px] font-black uppercase text-white/40">IMC actual</p>
               <p className="mt-1 text-lg font-black leading-none text-orange-400">
                 {numberText(referencia.imc)}
@@ -333,7 +333,7 @@ export function RangoReferenciaCard({ referencia, hasReference }) {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
+            <div className="phoenix-nutrition-mini-card rounded-2xl border border-white/10 bg-black/35 p-3 text-center">
               <p className="text-[9px] font-black uppercase text-white/40">Diferencia</p>
               <p className="mt-1 text-lg font-black leading-none text-orange-400">
                 {diferenciaInfo.value}
@@ -447,7 +447,7 @@ export function Resumen30DiasCard({ resumenWods, resumenPrs }) {
   const prs = Number(resumenPrs?.prs30Dias || 0)
 
   return (
-    <article className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <article className="phoenix-nutrition-card relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_88%_15%,rgba(249,115,22,0.12),transparent_42%)]" />
 
       <div className="relative z-10">
@@ -496,7 +496,7 @@ export function Resumen30DiasCard({ resumenWods, resumenPrs }) {
 
 function ResumenMetricItem({ icon, value, label, sublabel }) {
   return (
-    <div className="flex min-h-[72px] items-center gap-3 rounded-xl border border-white/10 bg-black/35 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+    <div className="phoenix-nutrition-mini-card flex min-h-[72px] items-center gap-3 rounded-xl border border-white/10 bg-black/35 px-3 py-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center text-2xl text-orange-400">
         {icon}
       </span>
@@ -536,7 +536,7 @@ export function AnalisisMensualCard({
   onAnalizar,
 }) {
   return (
-    <article className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <article className="phoenix-nutrition-card relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <CardTitle title="Análisis mensual" subtitle="Se genera cada 30 días" />
 
       <div className="grid grid-cols-2 gap-2">
@@ -570,7 +570,7 @@ export function AnalisisMensualCard({
 
 export function RecomendacionIACard({ analisis, metaLabel }) {
   return (
-    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="phoenix-nutrition-card phoenix-nutrition-ai-card relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-orange-500/20 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,rgba(249,115,22,0.16),transparent_38%)]" />
       <div className="relative z-10">
         <CardTitle
@@ -627,7 +627,7 @@ export function EvolucionNutricionCard({ historial }) {
   const latestKey = rows[rows.length - 1]?.id || rows[rows.length - 1]?.fecha_analisis
 
   return (
-    <article className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <article className="phoenix-nutrition-card relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_90%_12%,rgba(249,115,22,0.10),transparent_42%)]" />
 
       <div className="relative z-10">
@@ -1056,7 +1056,7 @@ function formatMonthFull(fecha) {
 
 export function HistorialAnalisisCard({ historial, metasLabels }) {
   return (
-    <article className="relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <article className="phoenix-nutrition-card relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <CardTitle
         title="Historial"
         subtitle="Últimos análisis"
@@ -1066,7 +1066,7 @@ export function HistorialAnalisisCard({ historial, metasLabels }) {
       {!historial?.length ? (
         <EmptyCard text="Aún no tienes análisis guardados." />
       ) : (
-        <div className="overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
+        <div className="phoenix-nutrition-table overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
           <div className="divide-y divide-white/10">
             {historial.slice(0, 5).map((item) => (
               <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_58px_16px] items-center gap-2 px-2.5 py-2.5">

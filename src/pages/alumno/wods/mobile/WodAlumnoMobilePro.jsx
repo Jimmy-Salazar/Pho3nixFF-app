@@ -104,7 +104,7 @@ export default function WodAlumnoMobilePro({
   }
 
   return (
-    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white lg:hidden">
+    <main className="phoenix-wods-screen h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white lg:hidden">
       <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <BackgroundOrbs />
 
@@ -120,7 +120,7 @@ export default function WodAlumnoMobilePro({
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
+              className="phoenix-wods-logo h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
             />
 
             <div className="min-w-0">
@@ -156,10 +156,10 @@ export default function WodAlumnoMobilePro({
           </div>
         ) : null}
 
-        <section className="relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
-          <div className="absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-22" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_34%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
-          <div className="absolute -right-20 top-14 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
+        <section className="phoenix-wods-hero relative z-10 mb-3 overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 shadow-2xl shadow-black/40">
+          <div className="phoenix-wods-hero-bg absolute inset-0 bg-[url('/images/backWODCardAlumno.png')] bg-cover bg-center opacity-22" />
+          <div className="phoenix-wods-hero-overlay absolute inset-0 bg-[radial-gradient(circle_at_82%_35%,rgba(249,115,22,0.24),transparent_34%),linear-gradient(90deg,#050505_0%,rgba(5,5,5,0.92)_52%,rgba(5,5,5,0.62)_100%)]" />
+          <div className="phoenix-wods-hero-glow absolute -right-20 top-14 h-64 w-64 rounded-full bg-orange-500/14 blur-3xl" />
 
           <div className="relative z-10 p-3.5">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400">
@@ -217,8 +217,8 @@ export default function WodAlumnoMobilePro({
           </div>
         </section>
 
-        <section className="relative z-10 mb-3 grid grid-cols-2 gap-2.5">
-          <article className="relative min-h-[122px] overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+        <section className="phoenix-wods-stats relative z-10 mb-3 grid grid-cols-2 gap-2.5">
+          <article className="phoenix-wods-stat-card relative min-h-[122px] overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(249,115,22,0.20),transparent_50%)]" />
 
             <div className="relative z-10">
@@ -240,7 +240,7 @@ export default function WodAlumnoMobilePro({
             </div>
           </article>
 
-          <article className="relative min-h-[122px] overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+          <article className="phoenix-wods-stat-card relative min-h-[122px] overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(249,115,22,0.15),transparent_36%)]" />
 
             <div className="relative z-10">
@@ -546,7 +546,7 @@ function WodListSection({
   allowPendingRegister = false,
 }) {
   return (
-    <section className="relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="phoenix-wods-list-section relative z-10 mb-4 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-xs font-black uppercase tracking-[0.1em] text-white/70">
@@ -567,7 +567,7 @@ function WodListSection({
       ) : rows.length === 0 ? (
         <Empty text={emptyText} />
       ) : (
-        <div className="overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
+        <div className="phoenix-wods-table overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
           <div className="grid grid-cols-[minmax(0,1fr)_68px_66px_16px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
             <span>WOD</span>
             <span className="text-center">Fecha</span>
@@ -603,7 +603,7 @@ function WodListRow({ item, onClick, allowPendingRegister = false }) {
     <button
       type="button"
       onClick={onClick}
-      className="grid w-full grid-cols-[minmax(0,1fr)_68px_66px_16px] items-center gap-2 px-2.5 py-2.5 text-left transition hover:bg-white/[0.03] active:bg-orange-500/10"
+      className="phoenix-wods-row grid w-full grid-cols-[minmax(0,1fr)_68px_66px_16px] items-center gap-2 px-2.5 py-2.5 text-left transition hover:bg-white/[0.03] active:bg-orange-500/10"
     >
       <div className="flex min-w-0 items-center gap-2.5">
         <WodResultIcon type={type} />
@@ -694,7 +694,7 @@ function WodListDetail({ item }) {
 
   return (
     <section className="grid gap-3">
-      <article className="relative overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-4">
+      <article className="phoenix-wods-detail-hero relative overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-4">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(249,115,22,0.22),transparent_36%)]" />
 
         <div className="relative z-10">
@@ -719,7 +719,7 @@ function WodListDetail({ item }) {
         </div>
       </article>
 
-      <article className="rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
+      <article className="phoenix-wods-detail-card rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
         <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
           Workout
         </p>
@@ -730,7 +730,7 @@ function WodListDetail({ item }) {
       </article>
 
       {item?.notas || item?.observacion ? (
-        <article className="rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
+        <article className="phoenix-wods-detail-card rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
             Observación
           </p>
@@ -875,7 +875,7 @@ function ResultDetail({ result }) {
 
   return (
     <section className="grid gap-3">
-      <article className="relative overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-4">
+      <article className="phoenix-wods-detail-hero relative overflow-hidden rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-4">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(249,115,22,0.22),transparent_36%)]" />
 
         <div className="relative z-10">
@@ -900,7 +900,7 @@ function ResultDetail({ result }) {
         </div>
       </article>
 
-      <article className="rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
+      <article className="phoenix-wods-detail-card rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
         <p className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
           Workout
         </p>
@@ -911,7 +911,7 @@ function ResultDetail({ result }) {
       </article>
 
       {result?.notas || result?.observacion ? (
-        <article className="rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
+        <article className="phoenix-wods-detail-card rounded-[1.25rem] border border-white/10 bg-black/45 p-4">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-400">
             Observación
           </p>
@@ -947,7 +947,7 @@ function MobileModal({ title, onClose, children }) {
         aria-label="Cerrar"
       />
 
-      <section className="relative z-10 flex max-h-[84dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.6rem] border border-orange-500/25 bg-[#060606] shadow-[0_0_60px_rgba(249,115,22,0.20)]">
+      <section className="phoenix-wods-modal relative z-10 flex max-h-[84dvh] w-full max-w-md flex-col overflow-hidden rounded-[1.6rem] border border-orange-500/25 bg-[#060606] shadow-[0_0_60px_rgba(249,115,22,0.20)]">
         <div className="flex shrink-0 items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-2.5">
           <p className="text-xs font-black uppercase tracking-[0.12em] text-orange-400">
             {title}
@@ -995,11 +995,11 @@ function hasRegisteredResultValue(item) {
 
 function BackgroundOrbs() {
   return (
-    <>
-      <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-600/20 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
-    </>
+    <div className="phoenix-wods-orbs pointer-events-none absolute inset-0">
+      <div className="phoenix-wods-orb phoenix-wods-orb-a absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-600/20 blur-3xl" />
+      <div className="phoenix-wods-orb phoenix-wods-orb-b absolute right-0 top-0 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
+      <div className="phoenix-wods-orb phoenix-wods-orb-c absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
+    </div>
   )
 }
 

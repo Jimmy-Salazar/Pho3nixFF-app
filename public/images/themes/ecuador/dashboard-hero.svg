@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#02050b"/>
+      <stop offset=".55" stop-color="#030712"/>
+      <stop offset="1" stop-color="#050505"/>
+    </linearGradient>
+    <linearGradient id="flag" x1="0" x2="1">
+      <stop offset="0" stop-color="#facc15"/>
+      <stop offset=".52" stop-color="#facc15"/>
+      <stop offset=".53" stop-color="#2563eb"/>
+      <stop offset=".78" stop-color="#2563eb"/>
+      <stop offset=".79" stop-color="#ef4444"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+    <radialGradient id="gold" cx=".72" cy=".28" r=".58">
+      <stop offset="0" stop-color="#facc15" stop-opacity=".32"/>
+      <stop offset=".36" stop-color="#facc15" stop-opacity=".09"/>
+      <stop offset="1" stop-color="#facc15" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="18"/></filter>
+    <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".65"/></filter>
+  </defs>
+
+  <rect width="1200" height="620" fill="url(#bg)"/>
+  <rect width="1200" height="620" fill="url(#gold)"/>
+
+  <g opacity=".16">
+    <circle cx="928" cy="105" r="122" fill="#facc15" filter="url(#blur)"/>
+    <circle cx="1090" cy="455" r="125" fill="#2563eb" filter="url(#blur)"/>
+    <circle cx="1160" cy="500" r="90" fill="#ef4444" filter="url(#blur)"/>
+  </g>
+
+  <g opacity=".42">
+    <path d="M684 160c164 42 313 43 496 2v162c-190 52-344 52-496-1V160Z" fill="url(#flag)"/>
+    <path d="M706 192c146 24 284 21 444-6" stroke="#fff" stroke-opacity=".18" stroke-width="7" fill="none"/>
+    <path d="M698 294c155 34 305 34 455 3" stroke="#fff" stroke-opacity=".12" stroke-width="6" fill="none"/>
+  </g>
+
+  <g transform="translate(770 92)" filter="url(#shadow)">
+    <path d="M156 0l128 42v118c0 86-50 160-128 196C78 320 28 246 28 160V42L156 0Z" fill="rgba(1,5,14,.70)" stroke="#facc15" stroke-width="7"/>
+    <path d="M156 34l89 29v94c0 60-35 112-89 142-54-30-89-82-89-142V63l89-29Z" fill="rgba(250,204,21,.08)" stroke="rgba(250,204,21,.34)" stroke-width="3"/>
+    <text x="156" y="168" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-size="78" font-weight="900" fill="#facc15" letter-spacing="-5">ECU</text>
+  </g>
+
+  <g transform="translate(760 415) rotate(-7)">
+    <text x="0" y="0" font-family="Brush Script MT, Segoe Script, cursive" font-size="70" fill="#facc15" opacity=".92">¡Vamos</text>
+    <text x="72" y="60" font-family="Brush Script MT, Segoe Script, cursive" font-size="70" fill="#facc15" opacity=".92">Ecuador!</text>
+  </g>
+
+  <g opacity=".72">
+    <rect x="630" y="64" width="14" height="8" rx="2" fill="#facc15" transform="rotate(-21 637 68)"/>
+    <rect x="700" y="90" width="13" height="8" rx="2" fill="#2563eb" transform="rotate(25 706 94)"/>
+    <rect x="804" y="58" width="10" height="7" rx="2" fill="#ef4444" transform="rotate(-18 809 61)"/>
+    <rect x="1010" y="44" width="16" height="8" rx="2" fill="#facc15" transform="rotate(34 1018 48)"/>
+    <rect x="1108" y="82" width="12" height="7" rx="2" fill="#2563eb" transform="rotate(-28 1114 85)"/>
+    <rect x="1162" y="126" width="11" height="7" rx="2" fill="#ef4444" transform="rotate(16 1168 130)"/>
+    <rect x="650" y="300" width="12" height="7" rx="2" fill="#facc15" transform="rotate(35 656 304)"/>
+    <rect x="718" y="338" width="10" height="7" rx="2" fill="#2563eb" transform="rotate(-18 723 342)"/>
+    <rect x="1120" y="300" width="13" height="7" rx="2" fill="#ef4444" transform="rotate(28 1126 304)"/>
+  </g>
+</svg>

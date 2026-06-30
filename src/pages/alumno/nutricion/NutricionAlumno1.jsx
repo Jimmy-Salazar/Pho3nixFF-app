@@ -174,7 +174,7 @@ export default function NutricionAlumno() {
   }
 
   return (
-    <div className="phoenix-nutrition-root fixed inset-0 z-[70] w-screen max-w-full overflow-hidden bg-[#050505] text-white">
+    <div className="fixed inset-0 z-[70] w-screen max-w-full overflow-hidden bg-[#050505] text-white">
       <div className="lg:hidden">
         <NutricionMobile {...commonProps} />
       </div>

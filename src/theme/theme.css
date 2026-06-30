@@ -1,0 +1,980 @@
+/* src/theme/theme.css */
+
+/* =========================================================
+   DASHBOARD ALUMNO - TEMA ECUADOR SOLO ESTA SECCIÓN
+   Objetivo: parecerse al mockup enviado, sin afectar WODs/PR/Perfil.
+   ========================================================= */
+
+:root {
+  --phoenix-theme-primary: #f97316;
+  --phoenix-theme-primary-soft: rgba(249, 115, 22, 0.16);
+  --phoenix-theme-primary-glow: rgba(249, 115, 22, 0.32);
+  --phoenix-theme-secondary: #fb923c;
+  --phoenix-theme-tertiary: #ef4444;
+  --phoenix-theme-bg: #050505;
+  --phoenix-theme-card: rgba(0, 0, 0, 0.48);
+  --phoenix-theme-border: rgba(249, 115, 22, 0.22);
+  --phoenix-theme-text-accent: #fb923c;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard {
+  background:
+    radial-gradient(circle at 88% 7%, rgba(250, 204, 21, .045), transparent 15%),
+    radial-gradient(circle at 12% 16%, rgba(37, 99, 235, .035), transparent 17%),
+    linear-gradient(180deg, #02050b 0%, #03060c 45%, #02050b 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(250,204,21,.035), transparent 12%),
+    radial-gradient(circle at 92% 72%, rgba(239,68,68,.025), transparent 15%);
+  mix-blend-mode: screen;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-theme-logo {
+  filter: drop-shadow(0 0 12px rgba(250,204,21,.38)) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard [class*="text-orange-"] {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard [class*="border-orange-"] {
+  border-color: rgba(250,204,21,.26) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard [class*="bg-orange-500/"],
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard [class*="bg-orange-600/"] {
+  background-color: rgba(250,204,21,.10) !important;
+}
+
+/* HERO */
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero {
+  border-color: rgba(255,255,255,.16) !important;
+  background: rgba(3, 6, 12, .92) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.025),
+    0 24px 54px rgba(0,0,0,.52),
+    inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-bg {
+  background-image: url("/images/themes/ecuador/dashboard-hero.svg") !important;
+  background-size: cover !important;
+  background-position: center right !important;
+  opacity: 1 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-overlay {
+  background:
+    radial-gradient(circle at 77% 24%, rgba(250,204,21,.065), transparent 28%),
+    linear-gradient(90deg, #040608 0%, rgba(4,6,8,.94) 43%, rgba(4,6,8,.23) 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-glow {
+  background: rgba(250,204,21,.09) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    radial-gradient(circle at 72% 16%, rgba(250,204,21,.08), transparent 14%),
+    radial-gradient(circle at 82% 26%, rgba(37,99,235,.06), transparent 12%);
+  mix-blend-mode: screen;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-kicker,
+html[data-phoenix-theme="ecuador"] .phoenix-accent-text {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-membership-pill {
+  border-color: rgba(250,204,21,.28) !important;
+  background:
+    linear-gradient(90deg, rgba(250,204,21,.09), rgba(250,204,21,.025)),
+    rgba(0,0,0,.22) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-hero-mini-card,
+html[data-phoenix-theme="ecuador"] .phoenix-week-dots {
+  border-color: rgba(255,255,255,.12) !important;
+  background: rgba(3, 6, 12, .66) !important;
+}
+
+/* PANELES */
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-panel,
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-metric,
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-wod-card,
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-callout {
+  border-color: rgba(255,255,255,.105) !important;
+  background: rgba(4, 8, 16, .84) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.026),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-panel::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(250,204,21,.035), transparent 18%),
+    radial-gradient(circle at 72% 18%, rgba(37,99,235,.024), transparent 15%);
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-metric-glow {
+  background: none !important;
+}
+
+/* Métricas: amarillo predominante, azul en la segunda como mockup */
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-metric:nth-child(2) [class*="text-orange-"] {
+  color: #3b82f6 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-metric:nth-child(2) {
+  box-shadow:
+    inset 0 0 0 1px rgba(59,130,246,.09),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-metric:nth-child(1),
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-metric:nth-child(3),
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-metric:nth-child(4) {
+  box-shadow:
+    inset 0 0 0 1px rgba(250,204,21,.07),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+/* WOD del día */
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-wod-bg {
+  background-image: url("/images/themes/ecuador/wod-strip.svg") !important;
+  background-position: right center !important;
+  background-size: cover !important;
+  opacity: .50 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-wod-overlay {
+  background:
+    linear-gradient(90deg, #040608 0%, rgba(4,6,8,.91) 47%, rgba(4,6,8,.58) 73%, rgba(4,6,8,.28) 100%) !important;
+}
+
+/* Gráficos SVG internos del progreso */
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard svg [stroke="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard svg [fill="#f97316"] {
+  stroke: #facc15 !important;
+  fill: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard svg [stroke="#fb923c"],
+html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard svg [fill="#fb923c"] {
+  stroke: #facc15 !important;
+  fill: #facc15 !important;
+}
+
+/* Callout final */
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-callout {
+  background:
+    linear-gradient(90deg, rgba(4,8,16,.94), rgba(4,8,16,.82)),
+    url("/images/themes/ecuador/footer-ribbon.svg") center right / cover no-repeat !important;
+}
+
+/* Orbes discretos */
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-orb-a {
+  background: rgba(250,204,21,.09) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-orb-b {
+  background: rgba(37,99,235,.07) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-orb-c {
+  background: rgba(239,68,68,.045) !important;
+}
+
+/* Bottom nav, igual al mockup: oscuro con activo amarillo */
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-bottom-nav {
+  border-top-color: rgba(255,255,255,.08) !important;
+  background: linear-gradient(180deg, rgba(3,6,12,.90), rgba(0,0,0,.96)) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-bottom-nav-item {
+  color: rgba(255,255,255,.62) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-dashboard-bottom-nav-active {
+  border-color: rgba(250,204,21,.32) !important;
+  background: rgba(250,204,21,.10) !important;
+  color: #facc15 !important;
+  box-shadow:
+    0 0 16px rgba(250,204,21,.18),
+    0 0 28px rgba(250,204,21,.08) !important;
+}
+
+@media (max-width: 430px) {
+  html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-bg {
+    background-position: 61% center !important;
+  }
+
+  html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-overlay {
+    background:
+      radial-gradient(circle at 76% 22%, rgba(250,204,21,.06), transparent 25%),
+      linear-gradient(90deg, #040608 0%, rgba(4,6,8,.96) 42%, rgba(4,6,8,.32) 100%) !important;
+  }
+}
+
+
+/* =========================================================
+   WODS ALUMNO - TEMA ECUADOR SOLO ESTA SECCIÓN
+   No afecta Dashboard, PR, Perfil ni otras secciones.
+   ========================================================= */
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen {
+  background:
+    radial-gradient(circle at 88% 7%, rgba(250, 204, 21, .045), transparent 15%),
+    radial-gradient(circle at 12% 16%, rgba(37, 99, 235, .035), transparent 17%),
+    linear-gradient(180deg, #02050b 0%, #03060c 45%, #02050b 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(250,204,21,.035), transparent 12%),
+    radial-gradient(circle at 92% 72%, rgba(239,68,68,.025), transparent 15%);
+  mix-blend-mode: screen;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen [class*="text-orange-"] {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen [class*="border-orange-"] {
+  border-color: rgba(250,204,21,.26) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen [class*="bg-orange-500/"],
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen [class*="bg-orange-600/"] {
+  background-color: rgba(250,204,21,.10) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-logo {
+  filter: drop-shadow(0 0 12px rgba(250,204,21,.38)) !important;
+}
+
+/* HERO WOD */
+html[data-phoenix-theme="ecuador"] .phoenix-wods-hero {
+  border-color: rgba(255,255,255,.16) !important;
+  background: rgba(3, 6, 12, .92) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.025),
+    0 24px 54px rgba(0,0,0,.52),
+    inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-hero-bg {
+  background-image: url("/images/themes/ecuador/wods-hero.svg") !important;
+  background-size: cover !important;
+  background-position: center right !important;
+  opacity: .90 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-hero-overlay {
+  background:
+    radial-gradient(circle at 78% 24%, rgba(250,204,21,.06), transparent 26%),
+    linear-gradient(90deg, #040608 0%, rgba(4,6,8,.96) 49%, rgba(4,6,8,.34) 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-hero-glow {
+  background: rgba(250,204,21,.09) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-hero::after {
+  content: "🇪🇨 ENTRENAMIENTO DE LA TRI";
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  z-index: 12;
+  max-width: 42%;
+  color: rgba(250,204,21,.88);
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+  text-align: right;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(250,204,21,.28);
+}
+
+/* CARDS DE CALORÍAS */
+html[data-phoenix-theme="ecuador"] .phoenix-wods-stat-card,
+html[data-phoenix-theme="ecuador"] .phoenix-wods-list-section,
+html[data-phoenix-theme="ecuador"] .phoenix-wods-table,
+html[data-phoenix-theme="ecuador"] .phoenix-wods-detail-card,
+html[data-phoenix-theme="ecuador"] .phoenix-wods-detail-hero,
+html[data-phoenix-theme="ecuador"] .phoenix-wods-modal {
+  border-color: rgba(255,255,255,.105) !important;
+  background: rgba(4, 8, 16, .84) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.026),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-stat-card::before,
+html[data-phoenix-theme="ecuador"] .phoenix-wods-list-section::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(250,204,21,.035), transparent 24%),
+    radial-gradient(circle at 10% 92%, rgba(37,99,235,.024), transparent 20%);
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-stat-card > .absolute.inset-0 {
+  opacity: .14 !important;
+}
+
+/* Segunda card con acento azul, como detalle secundario */
+html[data-phoenix-theme="ecuador"] .phoenix-wods-stat-card:nth-child(2) [class*="text-orange-"] {
+  color: #3b82f6 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-stat-card:nth-child(2) .bg-orange-500 {
+  background-color: #3b82f6 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-stat-card:nth-child(1) {
+  box-shadow:
+    inset 0 0 0 1px rgba(250,204,21,.07),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-stat-card:nth-child(2) {
+  box-shadow:
+    inset 0 0 0 1px rgba(59,130,246,.09),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+/* LISTAS */
+html[data-phoenix-theme="ecuador"] .phoenix-wods-table {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.008)),
+    rgba(3, 6, 12, .66) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-row:hover,
+html[data-phoenix-theme="ecuador"] .phoenix-wods-row:active {
+  background: rgba(250,204,21,.06) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen .bg-orange-500:not([class*="/"]) {
+  background-color: #facc15 !important;
+  color: #050505 !important;
+}
+
+/* SVG/calendario/puntos */
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen svg [stroke="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen svg [fill="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen svg [stroke="#fb923c"],
+html[data-phoenix-theme="ecuador"] .phoenix-wods-screen svg [fill="#fb923c"] {
+  stroke: #facc15 !important;
+  fill: #facc15 !important;
+}
+
+/* MODALES */
+html[data-phoenix-theme="ecuador"] .phoenix-wods-modal {
+  border-color: rgba(250,204,21,.24) !important;
+  background:
+    radial-gradient(circle at 86% 8%, rgba(250,204,21,.045), transparent 18%),
+    #05070d !important;
+}
+
+/* ORBES */
+html[data-phoenix-theme="ecuador"] .phoenix-wods-orb-a {
+  background: rgba(250,204,21,.09) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-orb-b {
+  background: rgba(37,99,235,.07) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-wods-orb-c {
+  background: rgba(239,68,68,.045) !important;
+}
+
+@media (max-width: 430px) {
+  html[data-phoenix-theme="ecuador"] .phoenix-wods-hero-bg {
+    background-position: 64% center !important;
+  }
+
+  html[data-phoenix-theme="ecuador"] .phoenix-wods-hero::after {
+    right: 12px;
+    bottom: 10px;
+    max-width: 44%;
+    font-size: 8px;
+  }
+}
+
+
+/* =========================================================
+   MIS PR ALUMNO - TEMA ECUADOR SOLO ESTA SECCIÓN
+   No afecta Dashboard ni WODs.
+   ========================================================= */
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen {
+  background:
+    radial-gradient(circle at 88% 7%, rgba(250, 204, 21, .045), transparent 15%),
+    radial-gradient(circle at 12% 16%, rgba(37, 99, 235, .035), transparent 17%),
+    linear-gradient(180deg, #02050b 0%, #03060c 45%, #02050b 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(250,204,21,.035), transparent 12%),
+    radial-gradient(circle at 92% 72%, rgba(239,68,68,.025), transparent 15%);
+  mix-blend-mode: screen;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen [class*="text-orange-"] {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen [class*="border-orange-"] {
+  border-color: rgba(250,204,21,.26) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen [class*="bg-orange-500/"],
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen [class*="bg-orange-600/"] {
+  background-color: rgba(250,204,21,.10) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-logo {
+  filter: drop-shadow(0 0 12px rgba(250,204,21,.38)) !important;
+}
+
+/* HERO PR */
+html[data-phoenix-theme="ecuador"] .phoenix-pr-hero {
+  border-color: rgba(255,255,255,.16) !important;
+  background: rgba(3, 6, 12, .92) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.025),
+    0 24px 54px rgba(0,0,0,.52),
+    inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-hero-bg {
+  background-image: url("/images/themes/ecuador/pr-hero.svg") !important;
+  background-size: cover !important;
+  background-position: center right !important;
+  opacity: .90 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-hero-overlay {
+  background:
+    radial-gradient(circle at 78% 24%, rgba(250,204,21,.06), transparent 26%),
+    linear-gradient(90deg, #040608 0%, rgba(4,6,8,.96) 49%, rgba(4,6,8,.34) 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-hero-glow {
+  background: rgba(250,204,21,.09) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-hero::after {
+  content: "🇪🇨 FUERZA ECUADOR";
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  z-index: 12;
+  max-width: 42%;
+  color: rgba(250,204,21,.88);
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: .08em;
+  text-align: right;
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(250,204,21,.28);
+}
+
+/* CARDS Y TABLAS */
+html[data-phoenix-theme="ecuador"] .phoenix-pr-metric-card,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-panel,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-table,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-chart-card,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-callout,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-register-form,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-modal {
+  border-color: rgba(255,255,255,.105) !important;
+  background: rgba(4, 8, 16, .84) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.026),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-metric-card::before,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-panel::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(250,204,21,.035), transparent 24%),
+    radial-gradient(circle at 10% 92%, rgba(37,99,235,.024), transparent 20%);
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-metric-card > .absolute.inset-0,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-panel > .absolute.inset-0 {
+  opacity: .14 !important;
+}
+
+/* Segunda métrica con azul como acento secundario */
+html[data-phoenix-theme="ecuador"] .phoenix-pr-metric-card:nth-child(2) [class*="text-orange-"] {
+  color: #3b82f6 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-metric-card:nth-child(1) {
+  box-shadow:
+    inset 0 0 0 1px rgba(250,204,21,.07),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-metric-card:nth-child(2) {
+  box-shadow:
+    inset 0 0 0 1px rgba(59,130,246,.09),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-table {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.008)),
+    rgba(3, 6, 12, .66) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-row:hover,
+html[data-phoenix-theme="ecuador"] .phoenix-pr-row:active {
+  background: rgba(250,204,21,.06) !important;
+}
+
+/* Gráfico de evolución */
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen svg [stroke="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen svg [fill="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen svg [stroke="#fb923c"],
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen svg [fill="#fb923c"] {
+  stroke: #facc15 !important;
+  fill: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen stop[stop-color="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen stop[stopColor="#f97316"] {
+  stop-color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen stop[stop-color="#fb923c"],
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen stop[stopColor="#fb923c"] {
+  stop-color: #fbbf24 !important;
+}
+
+/* Botones sólidos */
+html[data-phoenix-theme="ecuador"] .phoenix-pr-screen .bg-orange-500:not([class*="/"]) {
+  background-color: #facc15 !important;
+  color: #050505 !important;
+}
+
+/* Modales */
+html[data-phoenix-theme="ecuador"] .phoenix-pr-modal {
+  border-color: rgba(250,204,21,.24) !important;
+  background:
+    radial-gradient(circle at 86% 8%, rgba(250,204,21,.045), transparent 18%),
+    #05070d !important;
+}
+
+/* Orbes discretos */
+html[data-phoenix-theme="ecuador"] .phoenix-pr-orb-a {
+  background: rgba(250,204,21,.09) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-orb-b {
+  background: rgba(37,99,235,.07) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-pr-orb-c {
+  background: rgba(239,68,68,.045) !important;
+}
+
+@media (max-width: 430px) {
+  html[data-phoenix-theme="ecuador"] .phoenix-pr-hero-bg {
+    background-position: 64% center !important;
+  }
+
+  html[data-phoenix-theme="ecuador"] .phoenix-pr-hero::after {
+    right: 12px;
+    bottom: 10px;
+    max-width: 44%;
+    font-size: 8px;
+  }
+}
+
+
+/* =========================================================
+   NUTRICIÓN ALUMNO - TEMA ECUADOR SOLO ESTA SECCIÓN
+   No afecta Dashboard, WODs ni Mis PR.
+   ========================================================= */
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop {
+  background:
+    radial-gradient(circle at 88% 7%, rgba(250, 204, 21, .045), transparent 15%),
+    radial-gradient(circle at 12% 16%, rgba(37, 99, 235, .035), transparent 17%),
+    linear-gradient(180deg, #02050b 0%, #03060c 45%, #02050b 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen::before,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop::before {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 92% 12%, rgba(250,204,21,.035), transparent 12%),
+    radial-gradient(circle at 92% 72%, rgba(239,68,68,.025), transparent 15%);
+  mix-blend-mode: screen;
+}
+
+/* Acentos generales solo dentro de Nutrición */
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen [class*="text-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop [class*="text-orange-"] {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen [class*="border-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop [class*="border-orange-"] {
+  border-color: rgba(250,204,21,.26) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen [class*="bg-orange-500/"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen [class*="bg-orange-600/"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop [class*="bg-orange-500/"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop [class*="bg-orange-600/"] {
+  background-color: rgba(250,204,21,.10) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-logo {
+  filter: drop-shadow(0 0 12px rgba(250,204,21,.38)) !important;
+}
+
+/* HERO NUTRICIÓN */
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-hero {
+  border-color: rgba(255,255,255,.16) !important;
+  background:
+    linear-gradient(90deg, rgba(4,6,8,.97), rgba(4,6,8,.84)),
+    url("/images/themes/ecuador/nutrition-hero.svg") center right / cover no-repeat !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.025),
+    0 24px 54px rgba(0,0,0,.52),
+    inset 0 1px 0 rgba(255,255,255,.035) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-hero::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 78% 24%, rgba(250,204,21,.06), transparent 26%),
+    linear-gradient(90deg, #040608 0%, rgba(4,6,8,.92) 54%, rgba(4,6,8,.38) 100%);
+  z-index: 0;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* CARDS */
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-card,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-metric-card,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-table,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-mini-card,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-highlight,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-modal {
+  border-color: rgba(255,255,255,.105) !important;
+  background: rgba(4, 8, 16, .84) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.026),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-card::before,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-metric-card::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 82% 18%, rgba(250,204,21,.035), transparent 24%),
+    radial-gradient(circle at 10% 92%, rgba(37,99,235,.024), transparent 20%);
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-card > .absolute.inset-0,
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-metric-card > .absolute.inset-0 {
+  opacity: .14 !important;
+}
+
+/* IA: un poquito más brillante, sin invadir */
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-ai-card {
+  border-color: rgba(250,204,21,.20) !important;
+  background:
+    radial-gradient(circle at 86% 10%, rgba(250,204,21,.05), transparent 20%),
+    rgba(4,8,16,.86) !important;
+}
+
+/* Meta seleccionada / botones */
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-goals button[class*="border-orange-"] {
+  border-color: rgba(250,204,21,.34) !important;
+  background:
+    linear-gradient(135deg, rgba(250,204,21,.12), rgba(37,99,235,.05)) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen .bg-orange-500:not([class*="/"]),
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop .bg-orange-500:not([class*="/"]) {
+  background-color: #facc15 !important;
+  color: #050505 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen button[class*="bg-orange-500"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop button[class*="bg-orange-500"] {
+  background: linear-gradient(135deg, #facc15, #f59e0b) !important;
+  color: #050505 !important;
+}
+
+/* Gráficos / score */
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen svg [stroke="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen svg [fill="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop svg [stroke="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop svg [fill="#f97316"] {
+  stroke: #facc15 !important;
+  fill: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-screen [style*="#f97316"],
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-desktop [style*="#f97316"] {
+  --phoenix-theme-primary: #facc15;
+}
+
+/* Orbes */
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-orb-a {
+  background: rgba(250,204,21,.09) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-orb-b {
+  background: rgba(37,99,235,.07) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-nutrition-orb-c {
+  background: rgba(239,68,68,.045) !important;
+}
+
+@media (max-width: 430px) {
+  html[data-phoenix-theme="ecuador"] .phoenix-nutrition-hero {
+    background-position: 64% center !important;
+  }
+
+  html[data-phoenix-theme="ecuador"] .phoenix-nutrition-hero::before {
+    background:
+      radial-gradient(circle at 78% 24%, rgba(250,204,21,.05), transparent 24%),
+      linear-gradient(90deg, #040608 0%, rgba(4,6,8,.94) 58%, rgba(4,6,8,.44) 100%);
+  }
+}
+
+
+/* =========================================================
+   HOME PÚBLICO - TEMA ECUADOR SOLO ESTA SECCIÓN
+   No afecta Dashboard, WODs, Mis PR ni Nutrición.
+   ========================================================= */
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-page {
+  background:
+    radial-gradient(circle at 88% 7%, rgba(250, 204, 21, .05), transparent 16%),
+    radial-gradient(circle at 12% 16%, rgba(37, 99, 235, .04), transparent 18%),
+    linear-gradient(180deg, #02050b 0%, #03060c 48%, #02050b 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-bg {
+  background-image: url("/images/themes/ecuador/home-hero.svg") !important;
+  background-position: center right !important;
+  background-size: cover !important;
+  opacity: 1 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-page [class*="text-orange-"] {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-page [class*="border-orange-"] {
+  border-color: rgba(250,204,21,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-page [class*="bg-orange-500/"],
+html[data-phoenix-theme="ecuador"] .phoenix-home-page [class*="bg-orange-600/"] {
+  background-color: rgba(250,204,21,.10) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-page [class*="from-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-home-page [class*="via-red-"],
+html[data-phoenix-theme="ecuador"] .phoenix-home-page [class*="to-orange-"] {
+  --tw-gradient-from: #facc15 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: #f59e0b var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: #facc15, #2563eb, #ef4444 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-watermark {
+  color: rgba(250,204,21,.075) !important;
+  text-shadow: 0 0 34px rgba(250,204,21,.10);
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-bg-logo,
+html[data-phoenix-theme="ecuador"] .phoenix-home-logo {
+  filter:
+    drop-shadow(0 0 14px rgba(250,204,21,.34))
+    drop-shadow(0 0 26px rgba(37,99,235,.14)) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-main-glow {
+  background:
+    radial-gradient(circle, rgba(250,204,21,.20), rgba(37,99,235,.07), transparent 68%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-overlay-primary {
+  background:
+    radial-gradient(circle at 72% 42%, rgba(250,204,21,.12), transparent 32%),
+    radial-gradient(circle at 86% 72%, rgba(37,99,235,.08), transparent 26%),
+    linear-gradient(90deg, rgba(0,0,0,.96) 0%, rgba(0,0,0,.86) 36%, rgba(0,0,0,.38) 66%, rgba(0,0,0,.82) 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-overlay-secondary {
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.68) 0%, rgba(0,0,0,.08) 44%, rgba(0,0,0,.91) 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-orb-a {
+  background: rgba(250,204,21,.12) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-orb-b {
+  background: rgba(37,99,235,.09) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-accent-line {
+  background: linear-gradient(90deg, #facc15, #2563eb, #ef4444) !important;
+  box-shadow: 0 0 20px rgba(250,204,21,.50) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-join-btn,
+html[data-phoenix-theme="ecuador"] .phoenix-home-login:hover {
+  background: linear-gradient(135deg, #facc15, #f59e0b) !important;
+  color: #050505 !important;
+  box-shadow:
+    0 0 22px rgba(250,204,21,.30),
+    0 0 34px rgba(37,99,235,.10) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-stat-card,
+html[data-phoenix-theme="ecuador"] .phoenix-home-info-card,
+html[data-phoenix-theme="ecuador"] .phoenix-home-social-link,
+html[data-phoenix-theme="ecuador"] .phoenix-home-popup,
+html[data-phoenix-theme="ecuador"] .phoenix-home-news-card,
+html[data-phoenix-theme="ecuador"] .phoenix-home-news-popup {
+  border-color: rgba(255,255,255,.12) !important;
+  background:
+    radial-gradient(circle at 84% 12%, rgba(250,204,21,.035), transparent 26%),
+    rgba(4, 8, 16, .74) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.028),
+    0 20px 45px rgba(0,0,0,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-info-card:hover,
+html[data-phoenix-theme="ecuador"] .phoenix-home-social-link:hover {
+  border-color: rgba(250,204,21,.34) !important;
+  background:
+    radial-gradient(circle at 84% 12%, rgba(250,204,21,.08), transparent 26%),
+    rgba(4, 8, 16, .88) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-info-card svg,
+html[data-phoenix-theme="ecuador"] .phoenix-home-stat-card svg {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-footer span {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-popup {
+  background:
+    radial-gradient(circle at 86% 10%, rgba(250,204,21,.06), transparent 22%),
+    rgba(5, 8, 16, .96) !important;
+  border-color: rgba(250,204,21,.24) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-popup-glow {
+  background: rgba(250,204,21,.14) !important;
+}
+
+/* Novedades standalone, si ese componente se usa luego */
+html[data-phoenix-theme="ecuador"] .phoenix-home-news-section {
+  background:
+    radial-gradient(circle at 84% 10%, rgba(250,204,21,.045), transparent 18%),
+    linear-gradient(180deg, #02050b 0%, #03060c 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-news-section [class*="text-orange-"] {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-news-section [class*="border-orange-"] {
+  border-color: rgba(250,204,21,.28) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-news-orb-a {
+  background: rgba(250,204,21,.10) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-home-news-orb-b {
+  background: rgba(37,99,235,.08) !important;
+}
+
+@media (max-width: 640px) {
+  html[data-phoenix-theme="ecuador"] .phoenix-home-bg {
+    background-position: 60% center !important;
+  }
+
+  html[data-phoenix-theme="ecuador"] .phoenix-home-overlay-primary {
+    background:
+      radial-gradient(circle at 76% 36%, rgba(250,204,21,.09), transparent 28%),
+      linear-gradient(90deg, rgba(0,0,0,.96) 0%, rgba(0,0,0,.88) 48%, rgba(0,0,0,.50) 100%) !important;
+  }
+
+  html[data-phoenix-theme="ecuador"] .phoenix-home-watermark {
+    display: none !important;
+  }
+}

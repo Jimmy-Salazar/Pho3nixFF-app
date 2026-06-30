@@ -27,11 +27,11 @@ export const METAS = [
 
 export function BackgroundOrbs() {
   return (
-    <>
-      <div className="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-600/20 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
-    </>
+    <div className="phoenix-nutrition-orbs pointer-events-none absolute inset-0">
+      <div className="phoenix-nutrition-orb phoenix-nutrition-orb-a absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-600/20 blur-3xl" />
+      <div className="phoenix-nutrition-orb phoenix-nutrition-orb-b absolute right-0 top-0 h-96 w-96 rounded-full bg-red-600/10 blur-3xl" />
+      <div className="phoenix-nutrition-orb phoenix-nutrition-orb-c absolute bottom-0 left-1/3 h-96 w-96 rounded-full bg-orange-500/10 blur-3xl" />
+    </div>
   )
 }
 
@@ -137,7 +137,7 @@ export function HeroInfo({ icon, label, value, accent = false }) {
 
 export function MetricCard({ title, value, footer, icon }) {
   return (
-    <article className="relative min-h-[112px] overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <article className="phoenix-nutrition-metric-card relative min-h-[112px] overflow-hidden rounded-[1.2rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(249,115,22,0.15),transparent_36%)]" />
 
       <div className="relative z-10">
@@ -169,7 +169,7 @@ export function GoalSelector({
   const visibleMetas = locked ? [selectedMeta] : METAS
 
   return (
-    <section className="relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
+    <section className="phoenix-nutrition-card phoenix-nutrition-goals relative z-10 mb-3 overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/45 p-3 shadow-2xl shadow-black/30">
       <CardTitle
         title="Meta principal"
         subtitle={

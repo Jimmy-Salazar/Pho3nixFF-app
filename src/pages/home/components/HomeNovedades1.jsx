@@ -74,10 +74,10 @@ export default function HomeNovedades() {
     <>
       <section
         id="novedades"
-        className="phoenix-home-news-section relative overflow-hidden bg-[#050505] px-4 py-20 text-white sm:px-6 lg:px-8"
+        className="relative overflow-hidden bg-[#050505] px-4 py-20 text-white sm:px-6 lg:px-8"
       >
-        <div className="phoenix-home-news-orb-a pointer-events-none absolute -left-24 top-10 h-80 w-80 rounded-full bg-orange-600/15 blur-3xl" />
-        <div className="phoenix-home-news-orb-b pointer-events-none absolute right-0 bottom-0 h-80 w-80 rounded-full bg-red-600/10 blur-3xl" />
+        <div className="pointer-events-none absolute -left-24 top-10 h-80 w-80 rounded-full bg-orange-600/15 blur-3xl" />
+        <div className="pointer-events-none absolute right-0 bottom-0 h-80 w-80 rounded-full bg-red-600/10 blur-3xl" />
 
         <div className="relative mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
@@ -112,7 +112,7 @@ export default function HomeNovedades() {
                   key={item.id}
                   type="button"
                   onClick={() => setSelectedAnuncio(item)}
-                  className="phoenix-home-news-card group overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 text-left shadow-2xl shadow-black/30 transition hover:border-orange-500/35"
+                  className="group overflow-hidden rounded-[2rem] border border-white/10 bg-black/45 text-left shadow-2xl shadow-black/30 transition hover:border-orange-500/35"
                 >
                   <div className="relative h-52 overflow-hidden bg-orange-500/10">
                     <AnuncioMedia item={item} />
@@ -214,7 +214,7 @@ function AnuncioPopup({ item, t, onClose }) {
         aria-label={t("home.close", "Cerrar anuncio")}
       />
 
-      <article className="phoenix-home-news-popup relative z-10 max-h-[92dvh] w-full max-w-4xl overflow-hidden rounded-[2.5rem] border border-orange-500/25 bg-[#070707] shadow-2xl shadow-orange-950/40">
+      <article className="relative z-10 max-h-[92dvh] w-full max-w-4xl overflow-hidden rounded-[2.5rem] border border-orange-500/25 bg-[#070707] shadow-2xl shadow-orange-950/40">
         <button
           type="button"
           onClick={onClose}

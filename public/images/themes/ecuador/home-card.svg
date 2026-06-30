@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="260" viewBox="0 0 900 260">
+  <defs>
+    <linearGradient id="flag" x1="0" x2="1">
+      <stop offset="0" stop-color="#facc15"/>
+      <stop offset=".52" stop-color="#facc15"/>
+      <stop offset=".53" stop-color="#2563eb"/>
+      <stop offset=".78" stop-color="#2563eb"/>
+      <stop offset=".79" stop-color="#ef4444"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="260" fill="#02050b"/>
+  <path d="M452 55c142 45 278 42 424 0v132c-148 44-282 47-424 2V55Z" fill="url(#flag)" opacity=".42"/>
+  <text x="590" y="128" font-family="Arial Black, Arial, sans-serif" font-size="43" fill="#facc15" opacity=".9">ECUADOR</text>
+  <text x="593" y="160" font-family="Arial, sans-serif" font-size="19" font-weight="900" fill="#fff" opacity=".58">PHO3NIX COMMUNITY</text>
+</svg>

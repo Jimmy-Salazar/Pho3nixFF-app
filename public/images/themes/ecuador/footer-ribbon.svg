@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="190" viewBox="0 0 900 190">
+  <defs>
+    <linearGradient id="flag" x1="0" x2="1">
+      <stop offset="0" stop-color="#facc15"/>
+      <stop offset=".52" stop-color="#facc15"/>
+      <stop offset=".53" stop-color="#2563eb"/>
+      <stop offset=".78" stop-color="#2563eb"/>
+      <stop offset=".79" stop-color="#ef4444"/>
+      <stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="190" fill="#02050b"/>
+  <path d="M490 70c112-26 230-22 380 7v113H490V70Z" fill="url(#flag)" opacity=".86"/>
+  <path d="M512 88c104-18 232-16 340 4" stroke="#fff" stroke-opacity=".18" stroke-width="7" fill="none"/>
+  <text x="38" y="76" font-family="Arial Black, Arial, sans-serif" font-size="34" fill="#facc15">¡VAMOS ECUADOR!</text>
+  <text x="40" y="112" font-family="Arial, sans-serif" font-size="20" fill="#fff" opacity=".72">Disciplina hoy, orgullo mañana.</text>
+</svg>

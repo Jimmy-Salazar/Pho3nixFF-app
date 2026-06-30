@@ -59,7 +59,7 @@ export default function RetosAlumno() {
   }
 
   return (
-    <main className="h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
+    <main className="phoenix-retos-page phoenix-student-dashboard h-[100dvh] w-screen max-w-full overflow-x-hidden overflow-y-auto bg-[#050505] pb-28 text-white">
       <div className="relative min-h-full w-full max-w-full overflow-x-hidden px-3 pt-3">
         <BackgroundOrbs />
 
@@ -75,7 +75,7 @@ export default function RetosAlumno() {
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
+              className="phoenix-themed-logo h-8 w-8 shrink-0 object-contain drop-shadow-[0_0_16px_rgba(249,115,22,0.35)]"
             />
 
             <div className="min-w-0">
@@ -119,7 +119,7 @@ export default function RetosAlumno() {
 
 function RetosEmptyState() {
   return (
-    <section className="relative z-10 mt-6 overflow-hidden rounded-[1.45rem] border border-orange-500/25 bg-black/55 px-4 py-8 text-center shadow-2xl shadow-black/40">
+    <section className="phoenix-themed-hero-card phoenix-retos-empty relative z-10 mt-6 overflow-hidden rounded-[1.45rem] border border-orange-500/25 bg-black/55 px-4 py-8 text-center shadow-2xl shadow-black/40">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(249,115,22,0.20),transparent_42%)]" />
       <div className="absolute -left-24 top-10 h-60 w-60 rounded-full bg-orange-600/15 blur-3xl" />
       <div className="absolute -right-24 bottom-0 h-60 w-60 rounded-full bg-red-600/10 blur-3xl" />
