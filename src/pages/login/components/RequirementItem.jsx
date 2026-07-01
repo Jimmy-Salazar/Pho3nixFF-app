@@ -2,7 +2,7 @@
 
 export default function RequirementItem({ ok, text }) {
   return (
-    <div className="flex items-center gap-2 text-white/75">
+    <div className="phoenix-login-requirement-item flex items-center gap-2 text-white/75">
       <span
         className={[
           "flex h-5 w-5 items-center justify-center rounded-full border text-[11px] font-black",

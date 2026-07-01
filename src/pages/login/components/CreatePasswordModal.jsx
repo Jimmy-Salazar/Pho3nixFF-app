@@ -79,7 +79,7 @@ export default function CreatePasswordModal({ initialEmail = "", onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[160] flex items-center justify-center px-3 py-4">
+    <div className="phoenix-login-create-password-modal fixed inset-0 z-[160] flex items-center justify-center px-3 py-4">
       <button
         type="button"
         className="absolute inset-0 bg-black/70 backdrop-blur-md"
@@ -89,10 +89,10 @@ export default function CreatePasswordModal({ initialEmail = "", onClose }) {
 
       <form
         onSubmit={handleCreatePassword}
-        className="relative z-[161] w-full max-w-[560px] overflow-hidden rounded-[2rem] border border-orange-500/35 bg-black/70 shadow-[0_0_70px_rgba(249,115,22,0.22)] backdrop-blur-2xl"
+        className="phoenix-login-create-password-card relative z-[161] w-full max-w-[560px] overflow-hidden rounded-[2rem] border border-orange-500/35 bg-black/70 shadow-[0_0_70px_rgba(249,115,22,0.22)] backdrop-blur-2xl"
       >
-        <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-orange-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-20 -left-12 h-64 w-64 rounded-full bg-orange-700/15 blur-3xl" />
+        <div className="phoenix-login-card-glow-a pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="phoenix-login-card-glow-b pointer-events-none absolute -bottom-20 -left-12 h-64 w-64 rounded-full bg-orange-700/15 blur-3xl" />
 
         <button
           type="button"
@@ -108,7 +108,7 @@ export default function CreatePasswordModal({ initialEmail = "", onClose }) {
             <img
               src={phoenixLoginLogo}
               alt="PHO3NIX"
-              className="w-[210px] object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.65)]"
+              className="phoenix-login-logo w-[210px] object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.65)]"
               draggable="false"
             />
           </div>

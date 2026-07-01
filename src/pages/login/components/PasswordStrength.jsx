@@ -2,7 +2,7 @@
 
 export default function PasswordStrength({ strength }) {
   return (
-    <div>
+    <div className="phoenix-login-password-strength">
       <div className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-white/70">
         Seguridad de la contraseña
       </div>

@@ -1,36 +1,51 @@
 // src/theme/ThemeProvider.jsx
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { getThemeByCode, resolveThemeCode, setStoredThemeCode } from "./themeConfig"
+import {
+  clearStoredThemeCode,
+  getThemeByCode,
+  getThemeOptions,
+  resolveThemeCode,
+  setStoredThemeCode,
+} from "./themeConfig"
 
 const ThemeContext = createContext(null)
 
 export function ThemeProvider({ children }) {
   const [themeCode, setThemeCode] = useState(() => resolveThemeCode())
+
   const theme = useMemo(() => getThemeByCode(themeCode), [themeCode])
 
+  const refreshTheme = () => {
+    setThemeCode(resolveThemeCode())
+  }
+
+  const setTheme = (code) => {
+    setStoredThemeCode(code)
+    refreshTheme()
+  }
+
+  const setAutoTheme = () => {
+    setStoredThemeCode("auto")
+    refreshTheme()
+  }
+
+  const resetTheme = () => {
+    clearStoredThemeCode()
+    refreshTheme()
+  }
+
   useEffect(() => {
-    const root = document.documentElement
-    root.setAttribute("data-phoenix-theme", theme.code)
-    root.style.setProperty("--phoenix-theme-primary", theme.primary)
-    root.style.setProperty("--phoenix-theme-primary-soft", theme.primarySoft)
-    root.style.setProperty("--phoenix-theme-primary-glow", theme.primaryGlow)
-    root.style.setProperty("--phoenix-theme-secondary", theme.secondary)
-    root.style.setProperty("--phoenix-theme-tertiary", theme.tertiary)
-    root.style.setProperty("--phoenix-theme-accent", theme.accent)
-    root.style.setProperty("--phoenix-theme-bg", theme.bg)
-    root.style.setProperty("--phoenix-theme-card", theme.card)
-    root.style.setProperty("--phoenix-theme-border", theme.border)
-    root.style.setProperty("--phoenix-theme-text-accent", theme.textAccent)
+    document.documentElement.setAttribute("data-phoenix-theme", theme.code)
   }, [theme])
 
   useEffect(() => {
     window.phoenixThemes = {
       current: () => themeCode,
-      set: (code) => {
-        setStoredThemeCode(code)
-        setThemeCode(resolveThemeCode())
-      },
+      list: () => getThemeOptions(),
+      set: (code) => setTheme(code),
+      auto: () => setAutoTheme(),
+      reset: () => resetTheme(),
     }
 
     return () => {
@@ -42,10 +57,10 @@ export function ThemeProvider({ children }) {
     () => ({
       theme,
       themeCode,
-      setTheme: (code) => {
-        setStoredThemeCode(code)
-        setThemeCode(resolveThemeCode())
-      },
+      options: getThemeOptions(),
+      setTheme,
+      setAutoTheme,
+      resetTheme,
     }),
     [theme, themeCode]
   )

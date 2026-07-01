@@ -91,20 +91,20 @@ export default function LoginCard({
   }
 
   return (
-    <div className="mx-auto w-full max-w-xl">
+    <div className="phoenix-login-card-wrapper mx-auto w-full max-w-xl">
       <div className="relative">
-        <div className="absolute -inset-px rounded-[2rem] bg-gradient-to-br from-orange-500/55 via-white/10 to-orange-900/25 blur-[1px]" />
+        <div className="phoenix-login-card-aura absolute -inset-px rounded-[2rem] bg-gradient-to-br from-orange-500/55 via-white/10 to-orange-900/25 blur-[1px]" />
 
-        <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-black/55 shadow-[0_30px_100px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 left-10 h-60 w-60 rounded-full bg-orange-700/20 blur-3xl" />
+        <div className="phoenix-login-card-component relative overflow-hidden rounded-[2rem] border border-white/15 bg-black/55 shadow-[0_30px_100px_rgba(0,0,0,0.65)] backdrop-blur-2xl">
+          <div className="phoenix-login-card-glow-a pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+          <div className="phoenix-login-card-glow-b pointer-events-none absolute -bottom-24 left-10 h-60 w-60 rounded-full bg-orange-700/20 blur-3xl" />
 
           <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
             <div className="mb-7 flex items-center justify-center lg:hidden">
               <img
                 src={phoenixLoginLogo}
                 alt="PHO3NIX"
-                className="w-[260px] object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.55)]"
+                className="phoenix-login-logo w-[260px] object-contain drop-shadow-[0_0_25px_rgba(249,115,22,0.55)]"
                 draggable="false"
               />
             </div>

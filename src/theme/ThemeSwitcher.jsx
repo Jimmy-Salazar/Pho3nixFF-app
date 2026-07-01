@@ -1,6 +1,5 @@
 // src/theme/ThemeSwitcher.jsx
-// Componente opcional para usar luego en Configuración/Admin.
-// No está conectado todavía para no tocar secciones existentes.
+// Opcional: úsalo luego en Admin/Configuración.
 
 import { usePhoenixTheme } from "./ThemeProvider"
 
@@ -9,42 +8,55 @@ export default function ThemeSwitcher() {
 
   if (!themeContext) return null
 
-  const { themeCode, options, setTheme, setAutoTheme } = themeContext
+  const { themeCode, options, setTheme, setAutoTheme, resetTheme } = themeContext
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/45 p-3">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-white/65">
+    <div className="rounded-2xl border border-white/10 bg-black/45 p-4 text-white">
+      <p className="text-xs font-black uppercase tracking-[0.18em] text-white/50">
         Tema visual
       </p>
 
       <div className="mt-3 grid gap-2">
+        {options.map((theme) => {
+          const active = theme.code === themeCode
+
+          return (
+            <button
+              key={theme.code}
+              type="button"
+              onClick={() => setTheme(theme.code)}
+              className={[
+                "rounded-xl border px-4 py-3 text-left text-sm font-black uppercase transition",
+                active
+                  ? "border-sky-400/45 bg-sky-400/15 text-sky-300"
+                  : "border-white/10 bg-white/[0.04] text-white/60 hover:border-sky-400/30 hover:text-sky-300",
+              ].join(" ")}
+            >
+              <span className="block">{theme.label}</span>
+              {theme.description ? (
+                <span className="mt-1 block text-[10px] font-semibold normal-case text-white/35">
+                  {theme.description}
+                </span>
+              ) : null}
+            </button>
+          )
+        })}
+
         <button
           type="button"
           onClick={setAutoTheme}
-          className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-black uppercase text-white/65"
+          className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left text-sm font-black uppercase text-white/60 hover:border-sky-400/30 hover:text-sky-300"
         >
           Automático por fecha
         </button>
 
-        {options.map((item) => {
-          const active = item.code === themeCode
-
-          return (
-            <button
-              key={item.code}
-              type="button"
-              onClick={() => setTheme(item.code)}
-              className={[
-                "rounded-xl border px-3 py-2 text-left text-xs font-black uppercase transition",
-                active
-                  ? "border-orange-500/35 bg-orange-500/15 text-orange-300"
-                  : "border-white/10 bg-white/[0.04] text-white/55",
-              ].join(" ")}
-            >
-              {item.label}
-            </button>
-          )
-        })}
+        <button
+          type="button"
+          onClick={resetTheme}
+          className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left text-sm font-black uppercase text-white/40 hover:text-white/70"
+        >
+          Resetear tema
+        </button>
       </div>
     </div>
   )

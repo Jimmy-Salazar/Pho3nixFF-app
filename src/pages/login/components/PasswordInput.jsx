@@ -9,7 +9,7 @@ export default function PasswordInput({
   autoComplete = "new-password",
 }) {
   return (
-    <div>
+    <div className="phoenix-login-password-input">
       <label className="mb-2 block text-xs font-black uppercase tracking-[0.16em] text-white/70">
         {label}
       </label>

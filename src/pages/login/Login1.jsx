@@ -309,26 +309,26 @@ export default function Login() {
   }
 
   return (
-    <main className="phoenix-login-page relative h-[100svh] overflow-hidden bg-[#050505] text-white">
-      <div className="phoenix-login-background pointer-events-none absolute inset-0">
-        <div className="phoenix-login-bg-radial absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(249,115,22,0.22),transparent_34%),radial-gradient(circle_at_20%_90%,rgba(185,28,28,0.24),transparent_30%),linear-gradient(180deg,#050505_0%,#0b0b0b_48%,#050505_100%)]" />
-        <div className="phoenix-login-bg-image absolute inset-0 bg-[url('/images/imagenchallenge.png')] bg-cover bg-center opacity-20 lg:opacity-35" />
-        <div className="phoenix-login-bg-overlay absolute inset-0 bg-gradient-to-b from-black/65 via-black/70 to-black/85 lg:bg-gradient-to-r lg:from-black/65 lg:via-black/75 lg:to-black/80" />
-        <div className="phoenix-login-orb-a absolute -left-28 top-24 h-72 w-72 rounded-full bg-orange-600/20 blur-3xl" />
-        <div className="phoenix-login-orb-b absolute -right-28 bottom-10 h-80 w-80 rounded-full bg-red-600/15 blur-3xl" />
+    <main className="relative h-[100svh] overflow-hidden bg-[#050505] text-white">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(249,115,22,0.22),transparent_34%),radial-gradient(circle_at_20%_90%,rgba(185,28,28,0.24),transparent_30%),linear-gradient(180deg,#050505_0%,#0b0b0b_48%,#050505_100%)]" />
+        <div className="absolute inset-0 bg-[url('/images/imagenchallenge.png')] bg-cover bg-center opacity-20 lg:opacity-35" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/65 via-black/70 to-black/85 lg:bg-gradient-to-r lg:from-black/65 lg:via-black/75 lg:to-black/80" />
+        <div className="absolute -left-28 top-24 h-72 w-72 rounded-full bg-orange-600/20 blur-3xl" />
+        <div className="absolute -right-28 bottom-10 h-80 w-80 rounded-full bg-red-600/15 blur-3xl" />
       </div>
 
-      <section className="phoenix-login-layout relative z-10 grid h-[100svh] grid-cols-1 overflow-hidden lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="phoenix-login-brand-panel relative hidden overflow-hidden lg:block">
-          <div className="phoenix-login-brand-image absolute inset-0 bg-[url('/images/imagenchallenge.png')] bg-cover bg-center opacity-35" />
-          <div className="phoenix-login-brand-overlay absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/45" />
-          <div className="phoenix-login-brand-glow absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(249,115,22,0.22),transparent_32%)]" />
+      <section className="relative z-10 grid h-[100svh] grid-cols-1 overflow-hidden lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative hidden overflow-hidden lg:block">
+          <div className="absolute inset-0 bg-[url('/images/imagenchallenge.png')] bg-cover bg-center opacity-35" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-black/45" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(249,115,22,0.22),transparent_32%)]" />
 
           <div className="relative z-10 flex h-full flex-col justify-center px-16">
             <img
               src={pho3nixLogo}
               alt="PHO3NIX"
-              className="phoenix-login-logo h-32 w-32 object-contain drop-shadow-[0_0_35px_rgba(249,115,22,0.45)]"
+              className="h-32 w-32 object-contain drop-shadow-[0_0_35px_rgba(249,115,22,0.45)]"
             />
 
             <h1 className="mt-8 text-7xl font-black tracking-[0.16em] text-white">
@@ -356,7 +356,7 @@ export default function Login() {
               <img
                 src={pho3nixLogo}
                 alt="PHO3NIX"
-                className="phoenix-login-logo h-20 w-20 object-contain drop-shadow-[0_0_28px_rgba(249,115,22,0.45)] sm:h-24 sm:w-24"
+                className="h-20 w-20 object-contain drop-shadow-[0_0_28px_rgba(249,115,22,0.45)] sm:h-24 sm:w-24"
               />
 
               <h1 className="mt-1 text-3xl font-black tracking-[0.18em] text-white sm:text-4xl">
@@ -379,10 +379,10 @@ export default function Login() {
 
             <form
               onSubmit={handleLogin}
-              className="phoenix-login-card relative overflow-hidden rounded-[1.7rem] border border-white/10 bg-black/60 p-4 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:rounded-[2rem] sm:p-6 lg:p-9"
+              className="relative overflow-hidden rounded-[1.7rem] border border-white/10 bg-black/60 p-4 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:rounded-[2rem] sm:p-6 lg:p-9"
             >
-              <div className="phoenix-login-card-glow-a pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-orange-500/15 blur-3xl" />
-              <div className="phoenix-login-card-glow-b pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-red-500/10 blur-3xl" />
+              <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-orange-500/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-24 left-8 h-56 w-56 rounded-full bg-red-500/10 blur-3xl" />
 
               <div className="relative z-10">
                 <div className="mb-4 flex items-center justify-between gap-3">
@@ -527,7 +527,7 @@ export default function Login() {
 
       {biometricPromptOpen ? (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
-          <div className="phoenix-login-modal w-full max-w-[390px] overflow-hidden rounded-[1.8rem] border border-orange-500/25 bg-[#080808] p-5 shadow-2xl shadow-black/70">
+          <div className="w-full max-w-[390px] overflow-hidden rounded-[1.8rem] border border-orange-500/25 bg-[#080808] p-5 shadow-2xl shadow-black/70">
             <div className="text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-orange-500/25 bg-orange-500/10 text-3xl">
                 🔐
@@ -576,7 +576,7 @@ export default function Login() {
 
       {membershipPopupOpen ? (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/85 px-4 backdrop-blur-sm">
-          <div className="phoenix-login-modal phoenix-login-membership-modal w-full max-w-[390px] overflow-hidden rounded-[1.8rem] border border-red-500/25 bg-[#080808] p-5 text-center shadow-2xl shadow-black/70">
+          <div className="w-full max-w-[390px] overflow-hidden rounded-[1.8rem] border border-red-500/25 bg-[#080808] p-5 text-center shadow-2xl shadow-black/70">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl border border-red-500/25 bg-red-500/10 text-3xl">
               ⚠️
             </div>
