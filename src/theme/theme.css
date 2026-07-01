@@ -1,8 +1,8 @@
 /* src/theme/theme.css */
 
 /* =========================================================
-   DASHBOARD ALUMNO - TEMA ECUADOR SOLO ESTA SECCIÓN
-   Objetivo: parecerse al mockup enviado, sin afectar WODs/PR/Perfil.
+   THEME: PHOENIX / BASE
+   Tema normal. Estos valores son usados cuando no hay tema especial activo.
    ========================================================= */
 
 :root {
@@ -16,6 +16,64 @@
   --phoenix-theme-border: rgba(249, 115, 22, 0.22);
   --phoenix-theme-text-accent: #fb923c;
 }
+
+/* =========================================================
+   THEME: ECUADOR
+   Ajustes rápidos de imágenes/fondos
+   ========================================================= */
+
+html[data-phoenix-theme="ecuador"] {
+  /*
+    AJUSTES HERO / FONDOS ECUADOR
+    En estas 3 líneas puedes mover y modificar la opacidad de cada imagen:
+    - --...-image: cambia la imagen.
+    - --...-position: mueve la figura de fondo. Ejemplos: center right, 60% center, calc(100% + 80px) center.
+    - --...-opacity: modifica transparencia. Ejemplos: 1 completo, .70 medio, .40 suave.
+  */
+
+  /* Dashboard hero */
+  --ecuador-dashboard-hero-image: url("/images/themes/ecuador/dashboard-hero.svg");
+  --ecuador-dashboard-hero-position: center right;
+  --ecuador-dashboard-hero-mobile-position: 61% center;
+  --ecuador-dashboard-hero-opacity: 1;
+
+  /* Dashboard card WOD */
+  --ecuador-dashboard-wod-image: url("/images/themes/ecuador/wod-strip.svg");
+  --ecuador-dashboard-wod-position: right center;
+  --ecuador-dashboard-wod-opacity: .50;
+
+  /* WODs alumno hero */
+  --ecuador-wods-hero-image: url("/images/themes/ecuador/wods-hero.svg");
+  --ecuador-wods-hero-position: center right;
+  --ecuador-wods-hero-mobile-position: 64% center;
+  --ecuador-wods-hero-opacity: .90;
+
+  /* Mis PR hero */
+  --ecuador-pr-hero-image: url("/images/themes/ecuador/pr-hero.svg");
+  --ecuador-pr-hero-position: center right;
+  --ecuador-pr-hero-mobile-position: 64% center;
+  --ecuador-pr-hero-opacity: .90;
+
+  /* Nutrición hero */
+  --ecuador-nutrition-hero-image: url("/images/themes/ecuador/nutrition-hero.svg");
+  --ecuador-nutrition-hero-position: center right;
+  --ecuador-nutrition-hero-mobile-position: 64% center;
+
+  /* Home público */
+  --ecuador-home-hero-image: url("/images/themes/ecuador/home-hero.svg");
+  --ecuador-home-hero-position: center right;
+  --ecuador-home-hero-mobile-position: 60% center;
+  --ecuador-home-hero-opacity: 1;
+
+  /* Login */
+  --ecuador-login-hero-image: url("/images/themes/ecuador/home-hero.svg");
+  --ecuador-login-hero-position: calc(80% + 90px) center;
+  --ecuador-login-hero-opacity: .42;
+}
+
+/* =========================================================
+   THEME: ECUADOR - SECCIONES
+   ========================================================= */
 
 html[data-phoenix-theme="ecuador"] .phoenix-student-dashboard {
   background:
@@ -64,10 +122,16 @@ html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero {
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-bg {
-  background-image: url("/images/themes/ecuador/dashboard-hero.svg") !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--ecuador-dashboard-hero-image) !important;
+  background-position: var(--ecuador-dashboard-hero-position) !important;
+  opacity: var(--ecuador-dashboard-hero-opacity) !important;
   background-size: cover !important;
-  background-position: center right !important;
-  opacity: 1 !important;
+
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-overlay {
@@ -159,10 +223,15 @@ html[data-phoenix-theme="ecuador"] .phoenix-dashboard-metric:nth-child(4) {
 
 /* WOD del día */
 html[data-phoenix-theme="ecuador"] .phoenix-dashboard-wod-bg {
-  background-image: url("/images/themes/ecuador/wod-strip.svg") !important;
-  background-position: right center !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--ecuador-dashboard-wod-image) !important;
+  background-position: var(--ecuador-dashboard-wod-position) !important;
   background-size: cover !important;
-  opacity: .50 !important;
+  opacity: var(--ecuador-dashboard-wod-opacity) !important;
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-dashboard-wod-overlay {
@@ -224,7 +293,7 @@ html[data-phoenix-theme="ecuador"] .phoenix-dashboard-bottom-nav-active {
 
 @media (max-width: 430px) {
   html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-bg {
-    background-position: 61% center !important;
+  background-position: var(--ecuador-dashboard-hero-mobile-position) !important;
   }
 
   html[data-phoenix-theme="ecuador"] .phoenix-dashboard-hero-overlay {
@@ -287,10 +356,16 @@ html[data-phoenix-theme="ecuador"] .phoenix-wods-hero {
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-wods-hero-bg {
-  background-image: url("/images/themes/ecuador/wods-hero.svg") !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--ecuador-wods-hero-image) !important;
+  background-position: var(--ecuador-wods-hero-position) !important;
+  opacity: var(--ecuador-wods-hero-opacity) !important;
   background-size: cover !important;
-  background-position: center right !important;
-  opacity: .90 !important;
+
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-wods-hero-overlay {
@@ -418,7 +493,7 @@ html[data-phoenix-theme="ecuador"] .phoenix-wods-orb-c {
 
 @media (max-width: 430px) {
   html[data-phoenix-theme="ecuador"] .phoenix-wods-hero-bg {
-    background-position: 64% center !important;
+  background-position: var(--ecuador-wods-hero-mobile-position) !important;
   }
 
   html[data-phoenix-theme="ecuador"] .phoenix-wods-hero::after {
@@ -482,10 +557,16 @@ html[data-phoenix-theme="ecuador"] .phoenix-pr-hero {
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-pr-hero-bg {
-  background-image: url("/images/themes/ecuador/pr-hero.svg") !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--ecuador-pr-hero-image) !important;
+  background-position: var(--ecuador-pr-hero-position) !important;
+  opacity: var(--ecuador-pr-hero-opacity) !important;
   background-size: cover !important;
-  background-position: center right !important;
-  opacity: .90 !important;
+
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-pr-hero-overlay {
@@ -621,7 +702,7 @@ html[data-phoenix-theme="ecuador"] .phoenix-pr-orb-c {
 
 @media (max-width: 430px) {
   html[data-phoenix-theme="ecuador"] .phoenix-pr-hero-bg {
-    background-position: 64% center !important;
+  background-position: var(--ecuador-pr-hero-mobile-position) !important;
   }
 
   html[data-phoenix-theme="ecuador"] .phoenix-pr-hero::after {
@@ -683,10 +764,15 @@ html[data-phoenix-theme="ecuador"] .phoenix-nutrition-logo {
 
 /* HERO NUTRICIÓN */
 html[data-phoenix-theme="ecuador"] .phoenix-nutrition-hero {
+  /*
+    AJUSTE HERO:
+    Para Nutrición mueve la imagen cambiando --ecuador-nutrition-hero-position.
+    La opacidad visual se controla principalmente desde el overlay ::before.
+  */
   border-color: rgba(255,255,255,.16) !important;
   background:
     linear-gradient(90deg, rgba(4,6,8,.97), rgba(4,6,8,.84)),
-    url("/images/themes/ecuador/nutrition-hero.svg") center right / cover no-repeat !important;
+    var(--ecuador-nutrition-hero-image) var(--ecuador-nutrition-hero-position) / cover no-repeat !important;
   box-shadow:
     0 0 0 1px rgba(255,255,255,.025),
     0 24px 54px rgba(0,0,0,.52),
@@ -795,7 +881,7 @@ html[data-phoenix-theme="ecuador"] .phoenix-nutrition-orb-c {
 
 @media (max-width: 430px) {
   html[data-phoenix-theme="ecuador"] .phoenix-nutrition-hero {
-    background-position: 64% center !important;
+  background-position: var(--ecuador-nutrition-hero-mobile-position) !important;
   }
 
   html[data-phoenix-theme="ecuador"] .phoenix-nutrition-hero::before {
@@ -819,10 +905,15 @@ html[data-phoenix-theme="ecuador"] .phoenix-home-page {
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-home-bg {
-  background-image: url("/images/themes/ecuador/home-hero.svg") !important;
-  background-position: center right !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--ecuador-home-hero-image) !important;
+  background-position: var(--ecuador-home-hero-position) !important;
   background-size: cover !important;
-  opacity: 1 !important;
+  opacity: var(--ecuador-home-hero-opacity) !important;
 }
 
 html[data-phoenix-theme="ecuador"] .phoenix-home-page [class*="text-orange-"] {
@@ -965,7 +1056,7 @@ html[data-phoenix-theme="ecuador"] .phoenix-home-news-orb-b {
 
 @media (max-width: 640px) {
   html[data-phoenix-theme="ecuador"] .phoenix-home-bg {
-    background-position: 60% center !important;
+  background-position: var(--ecuador-home-hero-mobile-position) !important;
   }
 
   html[data-phoenix-theme="ecuador"] .phoenix-home-overlay-primary {
@@ -979,21 +1070,142 @@ html[data-phoenix-theme="ecuador"] .phoenix-home-news-orb-b {
   }
 }
 
-
-/* RUTAS DE IMÁGENES JULIANAS
-   /images/themes/julianas/dashboard-hero.png
-   /images/themes/julianas/home-hero.png
-   /images/themes/julianas/wods-hero.png
-   /images/themes/julianas/wods-strip.png
-   /images/themes/julianas/pr-hero.png
-   /images/themes/julianas/nutrition-hero.png
-   /images/themes/julianas/footer-ribbon.png
-   /images/themes/julianas/home-card.png
-*/
 /* =========================================================
-   TEMA JULIANAS - MISMA ESTRUCTURA, SIN ARCHIVOS ADICIONALES
-   No toca Ecuador. Solo aplica cuando:
-   html[data-phoenix-theme="julianas"]
+   THEME: ECUADOR - LOGIN
+   ========================================================= */
+
+/* -------------------------
+   LOGIN ECUADOR
+   ------------------------- */
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-page {
+  background:
+    radial-gradient(circle at 84% 8%, rgba(250,204,21,.055), transparent 17%),
+    radial-gradient(circle at 14% 88%, rgba(37,99,235,.04), transparent 18%),
+    linear-gradient(180deg, #02050b 0%, #03060c 48%, #02050b 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-bg-radial {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(250,204,21,.14), transparent 34%),
+    radial-gradient(circle at 20% 90%, rgba(37,99,235,.09), transparent 30%),
+    radial-gradient(circle at 78% 72%, rgba(239,68,68,.055), transparent 26%),
+    linear-gradient(180deg,#02050b 0%,#03060c 48%,#02050b 100%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-bg-image,
+html[data-phoenix-theme="ecuador"] .phoenix-login-brand-image {
+  /*
+    AJUSTE HERO LOGIN:
+    En estas 3 líneas puedes mover la figura de fondo y modificar la opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--ecuador-login-hero-image) !important;
+  background-position: var(--ecuador-login-hero-position) !important;
+  background-size: cover !important;
+  opacity: var(--ecuador-login-hero-opacity) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-bg-overlay {
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.68), rgba(0,0,0,.78), rgba(0,0,0,.90)) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-brand-overlay {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.88), rgba(0,0,0,.74), rgba(0,0,0,.36)) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-brand-glow {
+  background:
+    radial-gradient(circle at 50% 70%, rgba(250,204,21,.16), transparent 34%) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-orb-a,
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-glow-a,
+html[data-phoenix-theme="ecuador"] .phoenix-login-brand-logo-glow {
+  background: rgba(250,204,21,.14) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-orb-b,
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-glow-b {
+  background: rgba(37,99,235,.08) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-card,
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-component,
+html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-card,
+html[data-phoenix-theme="ecuador"] .phoenix-login-modal {
+  border-color: rgba(255,255,255,.12) !important;
+  background:
+    radial-gradient(circle at 84% 10%, rgba(250,204,21,.035), transparent 22%),
+    rgba(4,8,16,.82) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 30px 90px rgba(0,0,0,.48) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-page [class*="text-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper [class*="text-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal [class*="text-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-brand-panel [class*="text-orange-"] {
+  color: #facc15 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-page [class*="border-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper [class*="border-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal [class*="border-orange-"] {
+  border-color: rgba(250,204,21,.30) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-page [class*="bg-orange-500/"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper [class*="bg-orange-500/"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal [class*="bg-orange-500/"] {
+  background-color: rgba(250,204,21,.11) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-page .bg-orange-500:not([class*="/"]),
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper .bg-orange-500:not([class*="/"]),
+html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal .bg-orange-500:not([class*="/"]) {
+  background: linear-gradient(135deg, #facc15, #f59e0b) !important;
+  color: #050505 !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-page [class*="from-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper [class*="from-orange-"],
+html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal [class*="from-orange-"] {
+  --tw-gradient-from: #facc15 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: #f59e0b var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: #facc15, #f59e0b !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-logo {
+  filter:
+    drop-shadow(0 0 16px rgba(250,204,21,.42))
+    drop-shadow(0 0 30px rgba(37,99,235,.12)) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-ring-a,
+html[data-phoenix-theme="ecuador"] .phoenix-login-ring-b {
+  border-color: rgba(250,204,21,.30) !important;
+  box-shadow: 0 0 55px rgba(250,204,21,.24) !important;
+}
+
+html[data-phoenix-theme="ecuador"] .phoenix-login-watermark {
+  -webkit-text-stroke-color: rgba(250,204,21,.18) !important;
+}
+
+/* Inputs compartidos - Login Ecuador */
+html[data-phoenix-theme="ecuador"] .phoenix-login-page input:focus,
+html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper input:focus,
+html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal input:focus {
+  border-color: rgba(250,204,21,.55) !important;
+  box-shadow: 0 0 0 4px rgba(250,204,21,.12) !important;
+}
+
+/* =========================================================
+   THEME: JULIANAS
+   Ajustes rápidos de imágenes/fondos
    ========================================================= */
 
 html[data-phoenix-theme="julianas"] {
@@ -1006,8 +1218,72 @@ html[data-phoenix-theme="julianas"] {
   --phoenix-theme-card: rgba(3, 10, 26, 0.86);
   --phoenix-theme-border: rgba(56, 189, 248, 0.24);
   --phoenix-theme-text-accent: #38bdf8;
+
+  /*
+    AJUSTES HERO / FONDOS JULIANAS
+    En estas 3 líneas puedes mover y modificar la opacidad de cada imagen:
+    - --...-image: cambia la imagen.
+    - --...-position: mueve la figura de fondo. Ejemplos: center right, 60% center, calc(100% + 80px) center.
+    - --...-opacity: modifica transparencia. Ejemplos: 1 completo, .70 medio, .40 suave.
+  */
+
+  /* Dashboard hero */
+  --julianas-dashboard-hero-image: url("/images/themes/julianas/dashboard-hero.png");
+  --julianas-dashboard-hero-position: center right;
+  --julianas-dashboard-hero-mobile-position: 64% center;
+  --julianas-dashboard-hero-opacity: 1;
+
+  /* Dashboard card WOD */
+  --julianas-dashboard-wod-image: url("/images/themes/julianas/wods-strip.png");
+  --julianas-dashboard-wod-position: right center;
+  --julianas-dashboard-wod-opacity: .55;
+
+  /* Dashboard callout */
+  --julianas-dashboard-callout-image: url("/images/themes/julianas/footer-ribbon.png");
+  --julianas-dashboard-callout-position: center right;
+
+  /* WODs alumno hero */
+  --julianas-wods-hero-image: url("/images/themes/julianas/wods-hero.png");
+  --julianas-wods-hero-position: center right;
+  --julianas-wods-hero-mobile-position: 64% center;
+  --julianas-wods-hero-opacity: .92;
+
+  /* Mis PR hero */
+  --julianas-pr-hero-image: url("/images/themes/julianas/pr-hero.png");
+  --julianas-pr-hero-position: center right;
+  --julianas-pr-hero-mobile-position: 64% center;
+  --julianas-pr-hero-opacity: .92;
+
+  /* Nutrición hero */
+  --julianas-nutrition-hero-image: url("/images/themes/julianas/nutrition-hero.png");
+  --julianas-nutrition-hero-position: center right;
+
+  /* Home público */
+  --julianas-home-hero-image: url("/images/themes/julianas/home-hero.png");
+  --julianas-home-hero-position: center right;
+  --julianas-home-hero-mobile-position: 70% center;
+  --julianas-home-hero-opacity: 1;
+
+  /* Login */
+  --julianas-login-hero-image: url("/images/themes/julianas/home-hero.png");
+  --julianas-login-hero-position: calc(80% + 90px) center;
+  --julianas-login-hero-opacity: .90;
 }
 
+/* =========================================================
+   THEME: JULIANAS - SECCIONES
+   ========================================================= */
+
+/* RUTAS DE IMÁGENES JULIANAS
+   /images/themes/julianas/dashboard-hero.png
+   /images/themes/julianas/home-hero.png
+   /images/themes/julianas/wods-hero.png
+   /images/themes/julianas/wods-strip.png
+   /images/themes/julianas/pr-hero.png
+   /images/themes/julianas/nutrition-hero.png
+   /images/themes/julianas/footer-ribbon.png
+   /images/themes/julianas/home-card.png
+*/
 /* =========================================================
    BASE GENERAL JULIANAS
    ========================================================= */
@@ -1101,10 +1377,16 @@ html[data-phoenix-theme="julianas"] .phoenix-dashboard-hero {
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-dashboard-hero-bg {
-  background-image: url("/images/themes/julianas/dashboard-hero.png") !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--julianas-dashboard-hero-image) !important;
+  background-position: var(--julianas-dashboard-hero-position) !important;
+  opacity: var(--julianas-dashboard-hero-opacity) !important;
   background-size: cover !important;
-  background-position: center right !important;
-  opacity: 1 !important;
+
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-dashboard-hero-overlay {
@@ -1153,10 +1435,15 @@ html[data-phoenix-theme="julianas"] .phoenix-dashboard-metric:nth-child(2) [clas
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-dashboard-wod-bg {
-  background-image: url("/images/themes/julianas/wods-strip.png") !important;
-  background-position: right center !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--julianas-dashboard-wod-image) !important;
+  background-position: var(--julianas-dashboard-wod-position) !important;
   background-size: cover !important;
-  opacity: .55 !important;
+  opacity: var(--julianas-dashboard-wod-opacity) !important;
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-dashboard-wod-overlay {
@@ -1165,7 +1452,13 @@ html[data-phoenix-theme="julianas"] .phoenix-dashboard-wod-overlay {
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-dashboard-callout {
-  background: linear-gradient(90deg, rgba(3,10,26,.94), rgba(3,10,26,.82)), url("/images/themes/julianas/footer-ribbon.png") center right / cover no-repeat !important;
+  /*
+    AJUSTE FONDO CALLOUT:
+    Cambia --julianas-dashboard-callout-image o --julianas-dashboard-callout-position.
+  */
+  background:
+    linear-gradient(90deg, rgba(3,10,26,.94), rgba(3,10,26,.82)),
+    var(--julianas-dashboard-callout-image) var(--julianas-dashboard-callout-position) / cover no-repeat !important;
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-dashboard-orb-a {
@@ -1212,10 +1505,16 @@ html[data-phoenix-theme="julianas"] .phoenix-wods-hero {
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-wods-hero-bg {
-  background-image: url("/images/themes/julianas/wods-hero.png") !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--julianas-wods-hero-image) !important;
+  background-position: var(--julianas-wods-hero-position) !important;
+  opacity: var(--julianas-wods-hero-opacity) !important;
   background-size: cover !important;
-  background-position: center right !important;
-  opacity: .92 !important;
+
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-wods-hero-overlay {
@@ -1298,10 +1597,16 @@ html[data-phoenix-theme="julianas"] .phoenix-pr-hero {
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-pr-hero-bg {
-  background-image: url("/images/themes/julianas/pr-hero.png") !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--julianas-pr-hero-image) !important;
+  background-position: var(--julianas-pr-hero-position) !important;
+  opacity: var(--julianas-pr-hero-opacity) !important;
   background-size: cover !important;
-  background-position: center right !important;
-  opacity: .92 !important;
+
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-pr-hero-overlay {
@@ -1365,6 +1670,11 @@ html[data-phoenix-theme="julianas"] .phoenix-nutrition-logo {
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-nutrition-hero {
+  /*
+    AJUSTE HERO:
+    Para Nutrición mueve la imagen cambiando --julianas-nutrition-hero-position.
+    La opacidad visual se controla principalmente desde el overlay ::before.
+  */
   border-color: rgba(255,255,255,.16) !important;
   background: linear-gradient(90deg, rgba(2,6,23,.97), rgba(2,6,23,.84)), url("/images/themes/julianas/nutrition-hero.png") center right / cover no-repeat !important;
   box-shadow:
@@ -1434,10 +1744,15 @@ html[data-phoenix-theme="julianas"] .phoenix-nutrition-orb-c {
    ========================================================= */
 
 html[data-phoenix-theme="julianas"] .phoenix-home-bg {
-  background-image: url("/images/themes/julianas/home-hero.png") !important;
-  background-position: center right !important;
+  /*
+    AJUSTE HERO:
+    En estas 3 líneas puedes mover la figura de fondo y modificar su opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--julianas-home-hero-image) !important;
+  background-position: var(--julianas-home-hero-position) !important;
   background-size: cover !important;
-  opacity: 1 !important;
+  opacity: var(--julianas-home-hero-opacity) !important;
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-home-watermark {
@@ -1580,16 +1895,22 @@ html[data-phoenix-theme="julianas"] .phoenix-pr-screen stop[stopColor="#fb923c"]
 }
 
 @media (max-width: 430px) {
-  html[data-phoenix-theme="julianas"] .phoenix-dashboard-hero-bg,
-  html[data-phoenix-theme="julianas"] .phoenix-wods-hero-bg,
+  html[data-phoenix-theme="julianas"] .phoenix-dashboard-hero-bg {
+  background-position: var(--julianas-dashboard-hero-mobile-position) !important;
+  }
+
+  html[data-phoenix-theme="julianas"] .phoenix-wods-hero-bg {
+  background-position: var(--julianas-wods-hero-mobile-position) !important;
+  }
+
   html[data-phoenix-theme="julianas"] .phoenix-pr-hero-bg {
-    background-position: 64% center !important;
+  background-position: var(--julianas-pr-hero-mobile-position) !important;
   }
 }
 
 @media (max-width: 640px) {
   html[data-phoenix-theme="julianas"] .phoenix-home-bg {
-    background-position: 60% center !important;
+  background-position: var(--julianas-home-hero-mobile-position) !important;
   }
 
   html[data-phoenix-theme="julianas"] .phoenix-home-overlay-primary {
@@ -1604,125 +1925,8 @@ html[data-phoenix-theme="julianas"] .phoenix-pr-screen stop[stopColor="#fb923c"]
 }
 
 /* =========================================================
-   LOGIN - TEMAS ECUADOR Y JULIANAS
-   Misma estructura: no toca main.jsx ni agrega imports.
+   THEME: JULIANAS - LOGIN
    ========================================================= */
-
-/* -------------------------
-   LOGIN ECUADOR
-   ------------------------- */
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-page {
-  background:
-    radial-gradient(circle at 84% 8%, rgba(250,204,21,.055), transparent 17%),
-    radial-gradient(circle at 14% 88%, rgba(37,99,235,.04), transparent 18%),
-    linear-gradient(180deg, #02050b 0%, #03060c 48%, #02050b 100%) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-bg-radial {
-  background:
-    radial-gradient(circle at 50% 0%, rgba(250,204,21,.14), transparent 34%),
-    radial-gradient(circle at 20% 90%, rgba(37,99,235,.09), transparent 30%),
-    radial-gradient(circle at 78% 72%, rgba(239,68,68,.055), transparent 26%),
-    linear-gradient(180deg,#02050b 0%,#03060c 48%,#02050b 100%) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-bg-image,
-html[data-phoenix-theme="ecuador"] .phoenix-login-brand-image {
-  background-image: url("/images/themes/ecuador/home-hero.svg") !important;
-  background-position: calc(80% + 90px) center !important;
-  background-size: cover !important;
-  opacity: .42 !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-bg-overlay {
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.68), rgba(0,0,0,.78), rgba(0,0,0,.90)) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-brand-overlay {
-  background:
-    linear-gradient(90deg, rgba(0,0,0,.88), rgba(0,0,0,.74), rgba(0,0,0,.36)) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-brand-glow {
-  background:
-    radial-gradient(circle at 50% 70%, rgba(250,204,21,.16), transparent 34%) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-orb-a,
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-glow-a,
-html[data-phoenix-theme="ecuador"] .phoenix-login-brand-logo-glow {
-  background: rgba(250,204,21,.14) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-orb-b,
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-glow-b {
-  background: rgba(37,99,235,.08) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-card,
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-component,
-html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-card,
-html[data-phoenix-theme="ecuador"] .phoenix-login-modal {
-  border-color: rgba(255,255,255,.12) !important;
-  background:
-    radial-gradient(circle at 84% 10%, rgba(250,204,21,.035), transparent 22%),
-    rgba(4,8,16,.82) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.03),
-    0 30px 90px rgba(0,0,0,.48) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-page [class*="text-orange-"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper [class*="text-orange-"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal [class*="text-orange-"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-brand-panel [class*="text-orange-"] {
-  color: #facc15 !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-page [class*="border-orange-"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper [class*="border-orange-"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal [class*="border-orange-"] {
-  border-color: rgba(250,204,21,.30) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-page [class*="bg-orange-500/"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper [class*="bg-orange-500/"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal [class*="bg-orange-500/"] {
-  background-color: rgba(250,204,21,.11) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-page .bg-orange-500:not([class*="/"]),
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper .bg-orange-500:not([class*="/"]),
-html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal .bg-orange-500:not([class*="/"]) {
-  background: linear-gradient(135deg, #facc15, #f59e0b) !important;
-  color: #050505 !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-page [class*="from-orange-"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper [class*="from-orange-"],
-html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal [class*="from-orange-"] {
-  --tw-gradient-from: #facc15 var(--tw-gradient-from-position) !important;
-  --tw-gradient-to: #f59e0b var(--tw-gradient-to-position) !important;
-  --tw-gradient-stops: #facc15, #f59e0b !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-logo {
-  filter:
-    drop-shadow(0 0 16px rgba(250,204,21,.42))
-    drop-shadow(0 0 30px rgba(37,99,235,.12)) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-ring-a,
-html[data-phoenix-theme="ecuador"] .phoenix-login-ring-b {
-  border-color: rgba(250,204,21,.30) !important;
-  box-shadow: 0 0 55px rgba(250,204,21,.24) !important;
-}
-
-html[data-phoenix-theme="ecuador"] .phoenix-login-watermark {
-  -webkit-text-stroke-color: rgba(250,204,21,.18) !important;
-}
 
 /* -------------------------
    LOGIN JULIANAS
@@ -1744,10 +1948,15 @@ html[data-phoenix-theme="julianas"] .phoenix-login-bg-radial {
 
 html[data-phoenix-theme="julianas"] .phoenix-login-bg-image,
 html[data-phoenix-theme="julianas"] .phoenix-login-brand-image {
-  background-image: url("/images/themes/julianas/home-hero.png") !important;
-  background-position: calc(100% + 80px) center !important;
+  /*
+    AJUSTE HERO LOGIN:
+    En estas 3 líneas puedes mover la figura de fondo y modificar la opacidad:
+    background-image / background-position / opacity
+  */
+  background-image: var(--julianas-login-hero-image) !important;
+  background-position: var(--julianas-login-hero-position) !important;
   background-size: cover !important;
-  opacity: .44 !important;
+  opacity: var(--julianas-login-hero-opacity) !important;
 }
 
 html[data-phoenix-theme="julianas"] .phoenix-login-bg-overlay {
@@ -1839,18 +2048,10 @@ html[data-phoenix-theme="julianas"] .phoenix-login-watermark {
   -webkit-text-stroke-color: rgba(56,189,248,.18) !important;
 }
 
-/* Inputs compartidos */
-html[data-phoenix-theme="ecuador"] .phoenix-login-page input:focus,
-html[data-phoenix-theme="ecuador"] .phoenix-login-card-wrapper input:focus,
-html[data-phoenix-theme="ecuador"] .phoenix-login-create-password-modal input:focus {
-  border-color: rgba(250,204,21,.55) !important;
-  box-shadow: 0 0 0 4px rgba(250,204,21,.12) !important;
-}
-
+/* Inputs compartidos - Login Julianas */
 html[data-phoenix-theme="julianas"] .phoenix-login-page input:focus,
 html[data-phoenix-theme="julianas"] .phoenix-login-card-wrapper input:focus,
 html[data-phoenix-theme="julianas"] .phoenix-login-create-password-modal input:focus {
   border-color: rgba(56,189,248,.55) !important;
   box-shadow: 0 0 0 4px rgba(56,189,248,.12) !important;
 }
-
