@@ -343,7 +343,7 @@ export default function PR() {
     try {
       setExerciseSaving(true)
 
-      const registrosCount = Number(deleteExerciseTarget.registros || 0)
+      const registrosCount = Number(deleteExerciseTarget.registrosHistorial ?? deleteExerciseTarget.registros ?? 0)
 
       if (registrosCount > 0) {
         const { error: deleteRecordsError } = await supabase
@@ -840,7 +840,7 @@ function AdminExerciseTableRow({
         </p>
 
         <p className="mt-0.5 truncate text-[9px] font-bold text-white/40">
-          {hasRecords ? `${row.registros} PR registrado(s)` : "Sin registros"}
+          {hasRecords ? `${row.registros} PR actual(es)` : "Sin registros"}
         </p>
       </div>
 
@@ -1071,6 +1071,8 @@ function getRankingUserId(row) {
   return (
     row?.usuario ||
     row?.usuario_id ||
+    row?.user_id ||
+    row?.atleta_id ||
     row?.usuarios?.id ||
     row?.alumno_id ||
     row?.alumno?.id ||
@@ -1098,37 +1100,81 @@ function getGenderLabel(value) {
   return "Todos"
 }
 
+function getLatestPRRecordsByAthlete(rows = []) {
+  const latestByAthlete = new Map()
+
+  ;(rows || []).forEach((row, index) => {
+    const userKey = getPRRecordAthleteKey(row, index)
+    const current = latestByAthlete.get(userKey)
+
+    if (!current || isNewerPRRecord(row, current)) {
+      latestByAthlete.set(userKey, row)
+    }
+  })
+
+  return Array.from(latestByAthlete.values())
+}
+
+function getPRRecordAthleteKey(row, index = 0) {
+  const userId = getRankingUserId(row)
+
+  if (userId) return `user:${userId}`
+
+  const name = getAthleteName(row) || getRankingAthleteName(row)
+
+  if (name) return `name:${String(name).trim().toLowerCase()}`
+
+  return `record:${row?.id || index}`
+}
+
+function isNewerPRRecord(next, current) {
+  const nextDate = getPRRecordDateTime(next)
+  const currentDate = getPRRecordDateTime(current)
+
+  if (nextDate !== currentDate) return nextDate > currentDate
+
+  const nextCreated = getPRRecordCreatedTime(next)
+  const currentCreated = getPRRecordCreatedTime(current)
+
+  if (nextCreated !== currentCreated) return nextCreated > currentCreated
+
+  return String(next?.id || "") > String(current?.id || "")
+}
+
+function getPRRecordDateTime(row) {
+  const value = row?.fecha || row?.fecha_registro || row?.fecha_pr || row?.created_at || row?.updated_at
+
+  return parsePRDateTime(value)
+}
+
+function getPRRecordCreatedTime(row) {
+  const value = row?.created_at || row?.updated_at || row?.fecha_registro || row?.fecha
+
+  return parsePRDateTime(value)
+}
+
+function parsePRDateTime(value) {
+  if (!value) return 0
+
+  const text = String(value).trim()
+  const normalized = text.includes("T") ? text : `${text}T00:00:00`
+  const time = new Date(normalized).getTime()
+
+  return Number.isFinite(time) ? time : 0
+}
+
 function buildMobileExerciseRanking(allRows = [], selectedExerciseId, fallbackRanking = []) {
   const selectedRows = (allRows || [])
     .filter((row) => String(row?.ejercicio_id) === String(selectedExerciseId))
     .filter((row) => getRankingWeight(row) > 0)
 
   if (selectedRows.length > 0) {
-    const bestByUser = new Map()
-
-    selectedRows.forEach((row) => {
-      const userKey =
-        row?.usuario ||
-        row?.usuario_id ||
-        row?.usuarios?.id ||
-        row?.alumno_id ||
-        row?.id
-
-      const currentBest = bestByUser.get(userKey)
-      const currentWeight = getRankingWeight(currentBest)
-      const nextWeight = getRankingWeight(row)
-
-      if (!currentBest || nextWeight > currentWeight) {
-        bestByUser.set(userKey, row)
-      }
-    })
-
-    return Array.from(bestByUser.values()).sort((a, b) => {
+    return getLatestPRRecordsByAthlete(selectedRows).sort((a, b) => {
       return getRankingWeight(b) - getRankingWeight(a)
     })
   }
 
-  return (fallbackRanking || [])
+  return getLatestPRRecordsByAthlete(fallbackRanking || [])
     .filter((row) => getRankingWeight(row) > 0)
     .sort((a, b) => getRankingWeight(b) - getRankingWeight(a))
 }
@@ -1299,7 +1345,8 @@ function ExerciseNameModal({
 }
 
 function DeleteExerciseModal({ exercise, saving, onClose, onDelete }) {
-  const hasRecords = Number(exercise?.registros || 0) > 0
+  const registrosHistorial = Number(exercise?.registrosHistorial ?? exercise?.registros ?? 0)
+  const hasRecords = registrosHistorial > 0
 
   return (
     <div className="fixed inset-0 z-[260] flex items-center justify-center bg-black/88 p-4 backdrop-blur-2xl">
@@ -1324,7 +1371,7 @@ function DeleteExerciseModal({ exercise, saving, onClose, onDelete }) {
         <div className="p-4">
           {hasRecords ? (
             <p className="rounded-lg border border-red-500/20 bg-red-500/10 p-3 text-sm leading-6 text-red-100/75">
-              Este ejercicio tiene {exercise.registros} PR registrado(s). Si confirmas, también se eliminarán esos registros asociados.
+              Este ejercicio tiene {registrosHistorial} PR registrado(s) en el historial. Si confirmas, también se eliminarán esos registros asociados.
             </p>
           ) : (
             <p className="text-sm leading-6 text-white/65">
@@ -1566,12 +1613,14 @@ function buildManagedExerciseRows(ejercicios = [], rmRows = [], search = "") {
       const registros = (rmRows || []).filter((item) => {
         return String(item.ejercicio_id) === String(ejercicio.id)
       })
+      const registrosActuales = getLatestPRRecordsByAthlete(registros)
 
       return {
         id: ejercicio.id,
         nombre: ejercicio.nombre,
         created_at: ejercicio.created_at,
-        registros: registros.length,
+        registros: registrosActuales.length,
+        registrosHistorial: registros.length,
       }
     })
     .filter((row) => {

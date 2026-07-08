@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import * as XLSX from "xlsx"
 import { saveAs } from "file-saver"
 import { useNavigate } from "react-router-dom"
-import { supabase } from "../../supabase"
 import DashboardSidebar from "./dashboard/components/DashboardSidebar"
 import AdminUsersMobile from "./users/mobile/AdminUsersMobile"
 import {
@@ -48,8 +47,6 @@ export default function Users() {
 
   const [editOpen, setEditOpen] = useState(false)
   const [editUser, setEditUser] = useState(null)
-
-  const [deletingUserId, setDeletingUserId] = useState(null)
 
   const load = async () => {
     try {
@@ -196,55 +193,12 @@ export default function Users() {
     setEditOpen(true)
   }
 
-  const handleDelete = async (u) => {
-    if (!u?.id) return
-
-    if (isAdminRole(u.role)) {
-      alert("Por seguridad, no se puede eliminar un administrador desde esta pantalla.")
-      return
-    }
-
+  const handleDelete = (u) => {
     const ok = window.confirm(
-      `¿Eliminar definitivamente a ${u.nombre || "este usuario"}?
-
-Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensualidades. No se puede deshacer.`
+      `¿Borrar a ${u.nombre}? Recomendado: NO borrar, mejor desactivar mensualidad.`
     )
-
     if (!ok) return
-
-    const confirmation = window.prompt(
-      `Para confirmar la eliminación definitiva de ${u.nombre || "este usuario"}, escribe ELIMINAR`
-    )
-
-    if (String(confirmation || "").trim().toUpperCase() !== "ELIMINAR") {
-      alert("Eliminación cancelada.")
-      return
-    }
-
-    try {
-      setDeletingUserId(u.id)
-
-      const { data, error } = await supabase.functions.invoke("delete-user-complete", {
-        body: {
-          user_id: u.id,
-        },
-      })
-
-      if (error) {
-        throw new Error(error.message || "No se pudo eliminar el usuario.")
-      }
-
-      if (data?.error) {
-        throw new Error(data.error)
-      }
-
-      alert(data?.message || "Usuario eliminado definitivamente.")
-      await load()
-    } catch (e) {
-      alert(e?.message || "No se pudo eliminar el usuario definitivamente.")
-    } finally {
-      setDeletingUserId(null)
-    }
+    alert("Borrado aún no implementado. (Recomendado: desactivar mensualidad)")
   }
 
   return (
@@ -325,7 +279,6 @@ Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensuali
                   onToggleStatus={onToggleStatus}
                   handleEdit={handleEdit}
                   handleDelete={handleDelete}
-                  deletingUserId={deletingUserId}
                 />
               </div>
 
@@ -336,7 +289,6 @@ Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensuali
                   onToggleStatus={onToggleStatus}
                   handleEdit={handleEdit}
                   handleDelete={handleDelete}
-                  deletingUserId={deletingUserId}
                 />
               </div>
             </section>
@@ -381,7 +333,6 @@ Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensuali
         onToggleStatus={onToggleStatus}
         handleEdit={handleEdit}
         handleDelete={handleDelete}
-        deletingUserId={deletingUserId}
         navigate={navigate}
       />
 
@@ -496,7 +447,7 @@ function UsersMetricCard({ icon, label, value, note, tone }) {
   )
 }
 
-function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDelete, deletingUserId }) {
+function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDelete }) {
   return (
     <div className="h-full overflow-auto">
       <table className="min-w-full text-sm whitespace-nowrap">
@@ -577,7 +528,7 @@ function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDe
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
                       <IconButton title="Editar" onClick={() => handleEdit(u)} icon="✏️" />
-                      <IconButton title="Borrar definitivo" danger disabled={deletingUserId === u.id} onClick={() => handleDelete(u)} icon={deletingUserId === u.id ? "…" : "🗑️"} />
+                      <IconButton title="Borrar" danger onClick={() => handleDelete(u)} icon="🗑️" />
                     </div>
                   </td>
                 </tr>
@@ -590,7 +541,7 @@ function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDe
   )
 }
 
-function UsersMobileCards({ loading, rows, onToggleStatus, handleEdit, handleDelete, deletingUserId }) {
+function UsersMobileCards({ loading, rows, onToggleStatus, handleEdit, handleDelete }) {
   if (loading) {
     return <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-white/60">Cargando alumnos…</div>
   }
@@ -631,7 +582,7 @@ function UsersMobileCards({ loading, rows, onToggleStatus, handleEdit, handleDel
                 {st.active ? "Desactivar" : "Activar"}
               </button>
               <IconButtonSm title="Editar" onClick={() => handleEdit(u)} icon="✏️" />
-              <IconButtonSm title="Borrar definitivo" danger disabled={deletingUserId === u.id} onClick={() => handleDelete(u)} icon={deletingUserId === u.id ? "…" : "🗑️"} />
+              <IconButtonSm title="Borrar" danger onClick={() => handleDelete(u)} icon="🗑️" />
             </div>
           </article>
         )
@@ -826,21 +777,19 @@ function StatusDot({ active }) {
   )
 }
 
-function IconButton({ title, icon, onClick, danger = false, disabled = false }) {
+function IconButton({ title, icon, onClick, danger = false }) {
   return (
     <button
       type="button"
       title={title}
-      disabled={disabled}
       onClick={(e) => {
         e.stopPropagation()
-        if (!disabled) onClick?.()
+        onClick?.()
       }}
       className={[
         "h-9 w-9 rounded-xl border flex items-center justify-center transition",
         "bg-white/5 hover:bg-white/10 border-white/10",
         danger ? "hover:border-red-500/30" : "hover:border-white/20",
-        disabled ? "cursor-not-allowed opacity-45" : "",
       ].join(" ")}
     >
       <span className="text-base leading-none">{icon}</span>
@@ -848,21 +797,19 @@ function IconButton({ title, icon, onClick, danger = false, disabled = false }) 
   )
 }
 
-function IconButtonSm({ title, icon, onClick, danger = false, disabled = false }) {
+function IconButtonSm({ title, icon, onClick, danger = false }) {
   return (
     <button
       type="button"
       title={title}
-      disabled={disabled}
       onClick={(e) => {
         e.stopPropagation()
-        if (!disabled) onClick?.()
+        onClick?.()
       }}
       className={[
         "h-8 w-8 rounded-lg border flex items-center justify-center transition",
         "bg-white/5 hover:bg-white/10 border-white/10",
         danger ? "hover:border-red-500/30" : "hover:border-white/20",
-        disabled ? "cursor-not-allowed opacity-45" : "",
       ].join(" ")}
     >
       <span className="text-[14px] leading-none">{icon}</span>

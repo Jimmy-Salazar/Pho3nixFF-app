@@ -32,6 +32,13 @@ export default function PersonalRecordsAlumno() {
     peso_libras: "",
     fecha: getTodayISO(),
   })
+  const [editingPr, setEditingPr] = useState(null)
+  const [editForm, setEditForm] = useState({
+    ejercicio_id: "",
+    peso_libras: "",
+    fecha: getTodayISO(),
+  })
+  const [deletingPrId, setDeletingPrId] = useState(null)
 
   useEffect(() => {
     let alive = true
@@ -285,6 +292,18 @@ export default function PersonalRecordsAlumno() {
         throw new Error("Selecciona la fecha del PR.")
       }
 
+      const duplicatedSameDay = hasPrForExerciseAndDate(
+        data.rms,
+        form.ejercicio_id,
+        form.fecha
+      )
+
+      if (duplicatedSameDay) {
+        throw new Error(
+          "Ya tienes un PR registrado para este ejercicio en esa fecha. Puedes editarlo si necesitas corregirlo."
+        )
+      }
+
       const payload = {
         usuario: data.profile.id,
         ejercicio_id: form.ejercicio_id,
@@ -319,6 +338,137 @@ export default function PersonalRecordsAlumno() {
       setError(err.message || "No se pudo registrar el PR.")
     } finally {
       setSaving(false)
+    }
+  }
+
+  function openEditPr(item) {
+    if (!item?.id) return
+
+    setError("")
+    setSuccess("")
+    setEditingPr(item)
+    setEditForm({
+      ejercicio_id: item.ejercicio_id || "",
+      peso_libras: item.peso_libras || "",
+      fecha: item.fecha || getTodayISO(),
+    })
+  }
+
+  const handleUpdatePr = async (event) => {
+    event.preventDefault()
+
+    if (!data.profile?.id || !editingPr?.id) return
+
+    try {
+      setSaving(true)
+      setError("")
+      setSuccess("")
+
+      if (!editForm.ejercicio_id) {
+        throw new Error("Selecciona un ejercicio.")
+      }
+
+      if (!editForm.peso_libras || Number(editForm.peso_libras) <= 0) {
+        throw new Error("Ingresa un peso válido en libras.")
+      }
+
+      if (!editForm.fecha) {
+        throw new Error("Selecciona la fecha del PR.")
+      }
+
+      const duplicatedSameDay = hasPrForExerciseAndDate(
+        data.rms,
+        editForm.ejercicio_id,
+        editForm.fecha,
+        editingPr.id
+      )
+
+      if (duplicatedSameDay) {
+        throw new Error(
+          "Ya tienes otro PR registrado para este ejercicio en esa fecha. Puedes editar o eliminar el registro duplicado."
+        )
+      }
+
+      const payload = {
+        ejercicio_id: editForm.ejercicio_id,
+        peso_libras: Number(editForm.peso_libras),
+        fecha: editForm.fecha,
+      }
+
+      const { data: updated, error: updateError } = await supabase
+        .from("rm")
+        .update(payload)
+        .eq("id", editingPr.id)
+        .eq("usuario", data.profile.id)
+        .select("id,usuario,ejercicio_id,peso_libras,fecha,created_at")
+        .single()
+
+      if (updateError) throw updateError
+
+      setData((current) => ({
+        ...current,
+        rms: replacePrRow(current.rms, updated),
+        globalRms: replacePrRow(current.globalRms, updated),
+      }))
+
+      setSelectedExerciseId(editForm.ejercicio_id)
+      setEditingPr(null)
+      setSuccess("PR actualizado correctamente.")
+    } catch (err) {
+      console.error("Error actualizando PR:", err)
+      setError(err.message || "No se pudo actualizar el PR.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDeletePr = async (item) => {
+    if (!data.profile?.id || !item?.id || deletingPrId) return
+
+    const confirmed = window.confirm(
+      `¿Eliminar el PR de ${item.ejercicio_nombre || "este ejercicio"} (${item.peso_libras} lb)?`
+    )
+
+    if (!confirmed) return
+
+    try {
+      setDeletingPrId(item.id)
+      setError("")
+      setSuccess("")
+
+      const { error: deleteError } = await supabase
+        .from("rm")
+        .delete()
+        .eq("id", item.id)
+        .eq("usuario", data.profile.id)
+
+      if (deleteError) throw deleteError
+
+      setData((current) => ({
+        ...current,
+        rms: (current.rms || []).filter((row) => String(row.id) !== String(item.id)),
+        globalRms: (current.globalRms || []).filter((row) => String(row.id) !== String(item.id)),
+      }))
+
+      if (String(selectedExerciseId) === String(item.ejercicio_id)) {
+        const remainingForExercise = (data.rms || []).filter((row) => {
+          return (
+            String(row.id) !== String(item.id) &&
+            String(row.ejercicio_id) === String(item.ejercicio_id)
+          )
+        })
+
+        if (remainingForExercise.length === 0 && data.ejercicios[0]?.id) {
+          setSelectedExerciseId(data.ejercicios[0].id)
+        }
+      }
+
+      setSuccess("PR eliminado correctamente.")
+    } catch (err) {
+      console.error("Error eliminando PR:", err)
+      setError(err.message || "No se pudo eliminar el PR.")
+    } finally {
+      setDeletingPrId(null)
     }
   }
 
@@ -414,7 +564,13 @@ export default function PersonalRecordsAlumno() {
                     loading={loading}
                   />
 
-                  <HistoryTable items={stats.allRecords} loading={loading} />
+                  <HistoryTable
+                    items={stats.allRecords}
+                    loading={loading}
+                    deletingId={deletingPrId}
+                    onEdit={openEditPr}
+                    onDelete={handleDeletePr}
+                  />
                 </div>
 
                 <BestMarksGrid items={stats.bestByExercise} loading={loading} />
@@ -449,9 +605,23 @@ export default function PersonalRecordsAlumno() {
           setForm={setForm}
           saving={saving}
           onSubmit={handleSavePr}
+          onEditPr={openEditPr}
+          onDeletePr={handleDeletePr}
+          deletingPrId={deletingPrId}
           onBack={() => navigate("/alumno/dashboard")}
         />
       </div>
+
+      {editingPr ? (
+        <EditPrModal
+          ejercicios={data.ejercicios}
+          form={editForm}
+          setForm={setEditForm}
+          saving={saving}
+          onSubmit={handleUpdatePr}
+          onClose={() => !saving && setEditingPr(null)}
+        />
+      ) : null}
     </div>
   )
 }
@@ -472,6 +642,9 @@ function PersonalRecordsMobile({
   setForm,
   saving,
   onSubmit,
+  onEditPr,
+  onDeletePr,
+  deletingPrId,
   onBack,
 }) {
   const [showForm, setShowForm] = useState(false)
@@ -620,8 +793,11 @@ function PersonalRecordsMobile({
         <MobileAllPrTable
           items={allRecords}
           loading={loading}
+          deletingId={deletingPrId}
           onSelect={(item) => setSelectedEvolutionPr(item)}
           onOpenGlobal={(item) => setSelectedGlobalPr(item)}
+          onEdit={onEditPr}
+          onDelete={onDeletePr}
         />
 
         <MobileEvolutionCard
@@ -734,7 +910,15 @@ function MobileMetricCard({ title, value, footer, icon }) {
   )
 }
 
-function MobileAllPrTable({ items = [], loading = false, onSelect, onOpenGlobal }) {
+function MobileAllPrTable({
+  items = [],
+  loading = false,
+  deletingId = null,
+  onSelect,
+  onOpenGlobal,
+  onEdit,
+  onDelete,
+}) {
   const pageSize = 6
   const [page, setPage] = useState(1)
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
@@ -775,10 +959,11 @@ function MobileAllPrTable({ items = [], loading = false, onSelect, onOpenGlobal 
       ) : (
         <>
           <div className="phoenix-pr-table overflow-hidden rounded-[1.05rem] border border-white/10 bg-black/35">
-            <div className="grid grid-cols-[minmax(0,1fr)_68px_78px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
+            <div className="grid grid-cols-[minmax(0,1fr)_62px_58px_70px] items-center border-b border-white/10 bg-white/[0.04] px-2.5 py-2 text-[9px] font-black uppercase tracking-[0.12em] text-white/40">
               <span>Ejercicio</span>
               <span className="text-center">Marca</span>
               <span className="text-center">Global</span>
+              <span className="text-center">Acción</span>
             </div>
 
             <div className="divide-y divide-white/10">
@@ -786,8 +971,11 @@ function MobileAllPrTable({ items = [], loading = false, onSelect, onOpenGlobal 
                 <MobileBestMarkRow
                   key={item.id}
                   item={item}
+                  deleting={String(deletingId || "") === String(item.id)}
                   onSelect={() => onSelect?.(item)}
                   onOpenGlobal={() => onOpenGlobal?.(item)}
+                  onEdit={() => onEdit?.(item)}
+                  onDelete={() => onDelete?.(item)}
                 />
               ))}
             </div>
@@ -809,14 +997,21 @@ function MobileAllPrTable({ items = [], loading = false, onSelect, onOpenGlobal 
   )
 }
 
-function MobileBestMarkRow({ item, onSelect, onOpenGlobal }) {
+function MobileBestMarkRow({
+  item,
+  deleting = false,
+  onSelect,
+  onOpenGlobal,
+  onEdit,
+  onDelete,
+}) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="grid w-full grid-cols-[minmax(0,1fr)_68px_78px] items-center gap-2 px-2.5 py-2.5 text-left transition hover:bg-white/[0.03] active:bg-orange-500/10"
-    >
-      <div className="flex min-w-0 items-center gap-2.5">
+    <article className="grid w-full grid-cols-[minmax(0,1fr)_62px_58px_70px] items-center gap-2 px-2.5 py-2.5 text-left transition hover:bg-white/[0.03] active:bg-orange-500/10">
+      <button
+        type="button"
+        onClick={onSelect}
+        className="flex min-w-0 items-center gap-2.5 text-left"
+      >
         <ExerciseIcon name={item.ejercicio_nombre} />
 
         <div className="min-w-0">
@@ -828,7 +1023,7 @@ function MobileBestMarkRow({ item, onSelect, onOpenGlobal }) {
             {formatDateShort(item.fecha)}
           </p>
         </div>
-      </div>
+      </button>
 
       <div className="shrink-0 text-center">
         <p className="text-xs font-black text-orange-400">
@@ -839,32 +1034,40 @@ function MobileBestMarkRow({ item, onSelect, onOpenGlobal }) {
         </p>
       </div>
 
-      <div className="flex shrink-0 items-center justify-end gap-1.5">
-        <div className="min-w-0 text-right">
-          <p className="text-xs font-black text-white">
-            {formatOrdinal(item.global_rank)}
-          </p>
-          <p className="text-[9px] font-bold uppercase text-white/35">
-            Global
-          </p>
-        </div>
+      <button
+        type="button"
+        onClick={onOpenGlobal}
+        className="flex h-8 w-8 shrink-0 items-center justify-center justify-self-center rounded-lg border border-orange-500/25 bg-orange-500/10 text-sm text-orange-300 transition active:scale-95"
+        aria-label="Ver ranking global"
+      >
+        👁
+      </button>
+
+      <div className="flex shrink-0 items-center justify-end gap-1">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-orange-500/25 bg-orange-500/10 text-xs text-orange-300 transition active:scale-95"
+          aria-label="Editar PR"
+          title="Editar PR"
+        >
+          ✎
+        </button>
 
         <button
           type="button"
-          onClick={(event) => {
-            event.stopPropagation()
-            onOpenGlobal?.()
-          }}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-orange-500/25 bg-orange-500/10 text-sm text-orange-300 transition active:scale-95"
-          aria-label="Ver ranking global"
+          onClick={onDelete}
+          disabled={deleting}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/25 bg-red-500/10 text-xs text-red-300 transition active:scale-95 disabled:opacity-40"
+          aria-label="Eliminar PR"
+          title="Eliminar PR"
         >
-          👁
+          {deleting ? "…" : "🗑"}
         </button>
       </div>
-    </button>
+    </article>
   )
 }
-
 
 function ExerciseIcon({ name }) {
   const [failed, setFailed] = useState(false)
@@ -1183,6 +1386,21 @@ function DetailTile({ label, value }) {
   )
 }
 
+function EditPrModal({ ejercicios, form, setForm, saving, onSubmit, onClose }) {
+  return (
+    <MobileModal title="Editar PR" onClose={onClose}>
+      <MobileRegisterPanel
+        ejercicios={ejercicios}
+        form={form}
+        setForm={setForm}
+        saving={saving}
+        onSubmit={onSubmit}
+        submitLabel="Actualizar PR"
+      />
+    </MobileModal>
+  )
+}
+
 function MobileModal({ title, onClose, children }) {
   return (
     <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/88 p-4 backdrop-blur-2xl">
@@ -1217,14 +1435,21 @@ function MobileModal({ title, onClose, children }) {
   )
 }
 
-function MobileRegisterPanel({ ejercicios, form, setForm, saving, onSubmit }) {
+function MobileRegisterPanel({
+  ejercicios,
+  form,
+  setForm,
+  saving,
+  onSubmit,
+  submitLabel = "Guardar PR",
+}) {
   return (
     <form
       onSubmit={onSubmit}
       className="phoenix-pr-register-form rounded-[1.35rem] border border-orange-500/25 bg-black/55 p-4"
     >
       <p className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-orange-400">
-        Registrar nueva marca
+        {submitLabel === "Guardar PR" ? "Registrar nueva marca" : "Editar marca personal"}
       </p>
 
       <div className="grid gap-3">
@@ -1295,7 +1520,7 @@ function MobileRegisterPanel({ ejercicios, form, setForm, saving, onSubmit }) {
           disabled={saving}
           className="mt-2 h-11 rounded-xl bg-orange-500 text-xs font-black uppercase text-black transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {saving ? "Guardando..." : "Guardar PR"}
+          {saving ? "Guardando..." : submitLabel}
         </button>
       </div>
     </form>
@@ -1742,7 +1967,14 @@ function BestMarksGrid({ items = [], loading = false }) {
   )
 }
 
-function RegisterPrPanel({ ejercicios, form, setForm, saving, onSubmit }) {
+function RegisterPrPanel({
+  ejercicios,
+  form,
+  setForm,
+  saving,
+  onSubmit,
+  submitLabel = "Guardar PR",
+}) {
   return (
     <article className="overflow-hidden rounded-[2rem] border border-orange-500/25 bg-black/45 p-5 shadow-2xl shadow-black/30">
       <p className="text-xs font-black uppercase tracking-[0.22em] text-orange-400">
@@ -1783,14 +2015,20 @@ function RegisterPrPanel({ ejercicios, form, setForm, saving, onSubmit }) {
           disabled={saving}
           className="h-12 rounded-2xl bg-orange-500 text-sm font-black uppercase text-black transition hover:bg-orange-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {saving ? "Guardando..." : "Guardar PR"}
+          {saving ? "Guardando..." : submitLabel}
         </button>
       </form>
     </article>
   )
 }
 
-function HistoryTable({ items = [], loading = false }) {
+function HistoryTable({
+  items = [],
+  loading = false,
+  deletingId = null,
+  onEdit,
+  onDelete,
+}) {
   const pageSize = 7
   const [page, setPage] = useState(1)
   const totalPages = Math.max(1, Math.ceil(items.length / pageSize))
@@ -1839,6 +2077,7 @@ function HistoryTable({ items = [], loading = false }) {
                   <th className="px-4 py-3">Peso</th>
                   <th className="px-4 py-3">Global</th>
                   <th className="px-4 py-3">Registrado</th>
+                  <th className="px-4 py-3 text-right">Acción</th>
                 </tr>
               </thead>
 
@@ -1859,6 +2098,30 @@ function HistoryTable({ items = [], loading = false }) {
                     </td>
                     <td className="px-4 py-3 text-white/45">
                       {relativeDate(item.created_at)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onEdit?.(item)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-orange-500/25 bg-orange-500/10 text-xs text-orange-300 transition hover:bg-orange-500/15"
+                          aria-label="Editar PR"
+                          title="Editar PR"
+                        >
+                          ✎
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => onDelete?.(item)}
+                          disabled={String(deletingId || "") === String(item.id)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-500/25 bg-red-500/10 text-xs text-red-300 transition hover:bg-red-500/15 disabled:opacity-40"
+                          aria-label="Eliminar PR"
+                          title="Eliminar PR"
+                        >
+                          {String(deletingId || "") === String(item.id) ? "…" : "🗑"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -2054,6 +2317,26 @@ function BackgroundOrbs() {
 /* =======================================================
    HELPERS
 ======================================================= */
+
+function hasPrForExerciseAndDate(rows = [], ejercicioId, fecha, excludeId = null) {
+  return (rows || []).some((row) => {
+    if (excludeId && String(row.id) === String(excludeId)) return false
+
+    return (
+      String(row.ejercicio_id) === String(ejercicioId) &&
+      String(row.fecha || "") === String(fecha || "")
+    )
+  })
+}
+
+function replacePrRow(rows = [], updated) {
+  if (!updated?.id) return rows || []
+
+  return (rows || []).map((row) => {
+    if (String(row.id) !== String(updated.id)) return row
+    return { ...row, ...updated }
+  })
+}
 
 function getMembershipLabel(mensualidad) {
   if (!mensualidad) {
