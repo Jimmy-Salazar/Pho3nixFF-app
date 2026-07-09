@@ -49,6 +49,7 @@ export default function Users() {
   const [editOpen, setEditOpen] = useState(false)
   const [editUser, setEditUser] = useState(null)
 
+  const [deleteUserTarget, setDeleteUserTarget] = useState(null)
   const [deletingUserId, setDeletingUserId] = useState(null)
 
   const load = async () => {
@@ -196,49 +197,52 @@ export default function Users() {
     setEditOpen(true)
   }
 
-  const handleDelete = async (u) => {
+  const handleDelete = (u) => {
     if (!u?.id) return
+    setDeleteUserTarget(u)
+  }
 
-    if (isAdminRole(u.role)) {
-      alert("Por seguridad, no se puede eliminar un administrador desde esta pantalla.")
-      return
-    }
+  const closeDeleteUserModal = () => {
+    if (deletingUserId) return
+    setDeleteUserTarget(null)
+  }
 
-    const ok = window.confirm(
-      `¿Eliminar definitivamente a ${u.nombre || "este usuario"}?
-
-Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensualidades. No se puede deshacer.`
-    )
-
-    if (!ok) return
-
-    const confirmation = window.prompt(
-      `Para confirmar la eliminación definitiva de ${u.nombre || "este usuario"}, escribe ELIMINAR`
-    )
-
-    if (String(confirmation || "").trim().toUpperCase() !== "ELIMINAR") {
-      alert("Eliminación cancelada.")
-      return
-    }
+  const confirmDeleteUser = async () => {
+    if (!deleteUserTarget?.id) return
 
     try {
-      setDeletingUserId(u.id)
+      setDeletingUserId(deleteUserTarget.id)
+      setError("")
 
-      const { data, error } = await supabase.functions.invoke("delete-user-complete", {
-        body: {
-          user_id: u.id,
-        },
-      })
+      const { data: result, error: rpcError } = await supabase.rpc(
+        "admin_delete_user_complete",
+        {
+          target_user_id: deleteUserTarget.id,
+        }
+      )
 
-      if (error) {
-        throw new Error(error.message || "No se pudo eliminar el usuario.")
+      if (rpcError) {
+        throw new Error(rpcError.message || "No se pudo eliminar el usuario.")
       }
 
-      if (data?.error) {
-        throw new Error(data.error)
+      const { data: stillExists, error: verifyError } = await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("id", deleteUserTarget.id)
+        .maybeSingle()
+
+      if (verifyError) {
+        throw new Error(verifyError.message || "No se pudo verificar la eliminación.")
       }
 
-      alert(data?.message || "Usuario eliminado definitivamente.")
+      if (stillExists?.id) {
+        throw new Error(
+          "El usuario sigue existiendo en la base de datos. No se eliminó definitivamente."
+        )
+      }
+
+      setDeleteUserTarget(null)
+      alert(result?.message || "Usuario eliminado definitivamente.")
       await load()
     } catch (e) {
       alert(e?.message || "No se pudo eliminar el usuario definitivamente.")
@@ -325,7 +329,6 @@ Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensuali
                   onToggleStatus={onToggleStatus}
                   handleEdit={handleEdit}
                   handleDelete={handleDelete}
-                  deletingUserId={deletingUserId}
                 />
               </div>
 
@@ -336,7 +339,6 @@ Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensuali
                   onToggleStatus={onToggleStatus}
                   handleEdit={handleEdit}
                   handleDelete={handleDelete}
-                  deletingUserId={deletingUserId}
                 />
               </div>
             </section>
@@ -381,7 +383,6 @@ Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensuali
         onToggleStatus={onToggleStatus}
         handleEdit={handleEdit}
         handleDelete={handleDelete}
-        deletingUserId={deletingUserId}
         navigate={navigate}
       />
 
@@ -441,6 +442,15 @@ Esta acción borrará el usuario y sus registros asociados de WOD, PR y mensuali
           />
         ) : null}
 
+        {deleteUserTarget ? (
+          <DeleteUserModal
+            user={deleteUserTarget}
+            deleting={deletingUserId === deleteUserTarget.id}
+            onClose={closeDeleteUserModal}
+            onConfirm={confirmDeleteUser}
+          />
+        ) : null}
+
     </div>
   )
 }
@@ -496,7 +506,7 @@ function UsersMetricCard({ icon, label, value, note, tone }) {
   )
 }
 
-function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDelete, deletingUserId }) {
+function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDelete }) {
   return (
     <div className="h-full overflow-auto">
       <table className="min-w-full text-sm whitespace-nowrap">
@@ -577,7 +587,7 @@ function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDe
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
                       <IconButton title="Editar" onClick={() => handleEdit(u)} icon="✏️" />
-                      <IconButton title="Borrar definitivo" danger disabled={deletingUserId === u.id} onClick={() => handleDelete(u)} icon={deletingUserId === u.id ? "…" : "🗑️"} />
+                      <IconButton title="Borrar" danger onClick={() => handleDelete(u)} icon="🗑️" />
                     </div>
                   </td>
                 </tr>
@@ -590,7 +600,7 @@ function UsersDesktopTable({ loading, rows, onToggleStatus, handleEdit, handleDe
   )
 }
 
-function UsersMobileCards({ loading, rows, onToggleStatus, handleEdit, handleDelete, deletingUserId }) {
+function UsersMobileCards({ loading, rows, onToggleStatus, handleEdit, handleDelete }) {
   if (loading) {
     return <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-sm text-white/60">Cargando alumnos…</div>
   }
@@ -631,7 +641,7 @@ function UsersMobileCards({ loading, rows, onToggleStatus, handleEdit, handleDel
                 {st.active ? "Desactivar" : "Activar"}
               </button>
               <IconButtonSm title="Editar" onClick={() => handleEdit(u)} icon="✏️" />
-              <IconButtonSm title="Borrar definitivo" danger disabled={deletingUserId === u.id} onClick={() => handleDelete(u)} icon={deletingUserId === u.id ? "…" : "🗑️"} />
+              <IconButtonSm title="Borrar" danger onClick={() => handleDelete(u)} icon="🗑️" />
             </div>
           </article>
         )
@@ -826,21 +836,19 @@ function StatusDot({ active }) {
   )
 }
 
-function IconButton({ title, icon, onClick, danger = false, disabled = false }) {
+function IconButton({ title, icon, onClick, danger = false }) {
   return (
     <button
       type="button"
       title={title}
-      disabled={disabled}
       onClick={(e) => {
         e.stopPropagation()
-        if (!disabled) onClick?.()
+        onClick?.()
       }}
       className={[
         "h-9 w-9 rounded-xl border flex items-center justify-center transition",
         "bg-white/5 hover:bg-white/10 border-white/10",
         danger ? "hover:border-red-500/30" : "hover:border-white/20",
-        disabled ? "cursor-not-allowed opacity-45" : "",
       ].join(" ")}
     >
       <span className="text-base leading-none">{icon}</span>
@@ -848,21 +856,19 @@ function IconButton({ title, icon, onClick, danger = false, disabled = false }) 
   )
 }
 
-function IconButtonSm({ title, icon, onClick, danger = false, disabled = false }) {
+function IconButtonSm({ title, icon, onClick, danger = false }) {
   return (
     <button
       type="button"
       title={title}
-      disabled={disabled}
       onClick={(e) => {
         e.stopPropagation()
-        if (!disabled) onClick?.()
+        onClick?.()
       }}
       className={[
         "h-8 w-8 rounded-lg border flex items-center justify-center transition",
         "bg-white/5 hover:bg-white/10 border-white/10",
         danger ? "hover:border-red-500/30" : "hover:border-white/20",
-        disabled ? "cursor-not-allowed opacity-45" : "",
       ].join(" ")}
     >
       <span className="text-[14px] leading-none">{icon}</span>
@@ -1250,6 +1256,114 @@ function EditUserModal({ user, onClose, onSaved }) {
     </div>
   )
 }
+
+
+
+function DeleteUserModal({ user, deleting = false, onClose, onConfirm }) {
+  const [confirmText, setConfirmText] = useState("")
+  const canDelete = confirmText.trim().toUpperCase() === "ELIMINAR" && !deleting
+
+  return (
+    <div className="fixed inset-0 z-[260] flex items-end justify-center p-0 sm:items-center sm:p-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/88 backdrop-blur-xl"
+        onClick={onClose}
+        aria-label="Cerrar"
+      />
+
+      <section className="phoenix-card relative z-[261] w-full max-w-xl overflow-hidden rounded-t-[2rem] border-red-500/30 sm:rounded-[2rem]">
+        <div className="relative overflow-hidden border-b border-red-500/20 bg-black/70 p-5 sm:p-6">
+          <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-red-500/20 blur-3xl" />
+          <div className="absolute -bottom-24 left-10 h-52 w-52 rounded-full bg-orange-500/10 blur-3xl" />
+
+          <div className="relative z-10 flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-red-300">
+                Eliminación definitiva
+              </div>
+
+              <h2 className="mt-3 text-2xl font-black leading-tight text-white sm:text-3xl">
+                Eliminar usuario
+              </h2>
+
+              <p className="mt-2 max-w-lg text-sm leading-6 text-white/60">
+                Esta acción eliminará al usuario y sus registros asociados. No se puede deshacer.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={deleting}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-black/35 text-lg text-white/70 transition hover:border-red-400/40 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="p-5 sm:p-6">
+          <div className="rounded-2xl border border-white/10 bg-black/35 p-4">
+            <div className="flex items-center gap-3">
+              <Avatar fotoUrl={user?.foto_url} nombre={user?.nombre} />
+
+              <div className="min-w-0">
+                <p className="truncate text-lg font-black text-white">
+                  {user?.nombre || "Usuario"}
+                </p>
+
+                <p className="truncate text-sm text-white/45">
+                  {user?.email || "Sin email"} · {normalizeRoleLabel(user?.role)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm leading-6 text-red-100/75">
+            Se eliminarán sus PR, mensualidades, registros relacionados de WOD, perfil, tabla usuarios y acceso de Auth.
+          </div>
+
+          <label className="mt-5 block">
+            <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-white/55">
+              Escribe ELIMINAR para confirmar
+            </span>
+
+            <input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              disabled={deleting}
+              placeholder="ELIMINAR"
+              className="phoenix-input"
+            />
+          </label>
+        </div>
+
+        <div className="flex flex-col-reverse gap-3 border-t border-red-500/15 bg-black/75 p-5 sm:flex-row sm:justify-end sm:p-6">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={deleting}
+            className="phoenix-button-ghost text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={!canDelete}
+            className="rounded-xl border border-red-500/30 bg-red-500 px-5 py-3 text-sm font-black uppercase text-white transition hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-45"
+          >
+            {deleting ? "Eliminando..." : "Eliminar definitivamente"}
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
 
 
 function CreateStudentModal({ onClose, onSubmit, loading }) {
